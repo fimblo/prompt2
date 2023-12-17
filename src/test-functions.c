@@ -18,6 +18,7 @@ int main(void) {
 
   printf("CWD.full %s\n",         getCWDFull(&status));
   printf("CWD.basename %s\n",     getCWDBasename(&status));
+  printf("CWD.git_path %s\n",     getCWDFromGitRepo(&status, &context));
   
 
   printf("Repo.name %s\n",        getRepoName(&context, &status));

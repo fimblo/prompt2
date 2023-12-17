@@ -282,6 +282,20 @@ const char *getCWDBasename(struct RepoStatus *status) {
   return wd;
 }
 
+const char *getCWDFromGitRepo(struct RepoStatus *status, struct RepoContext *context) {
+  static char cwd_path[MAX_PATH_BUFFER_SIZE];
+  static char wd[MAX_PATH_BUFFER_SIZE];
+  getcwd(cwd_path, sizeof(cwd_path));
+    size_t common_length = strspn(context->repo_path, cwd_path);
+    if (common_length == strlen(cwd_path)) {
+      sprintf(wd, "+/");
+    }
+    else {
+      sprintf(wd, "+/%s", cwd_path + common_length + 1);
+    }
+    status->cwd_git_path = wd;
+  return wd;
+}
 
 void cleanupResources(struct RepoContext *context) {
   if (context->repo_obj) {
