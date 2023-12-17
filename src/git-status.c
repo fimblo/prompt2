@@ -270,3 +270,26 @@ const char *getCWD(struct RepoStatus *status) {
   status->cwd_path = cwd_path;
   return cwd_path;
 }
+
+
+void cleanupResources(struct RepoContext *context) {
+  if (context->repo_obj) {
+    git_repository_free(context->repo_obj);
+    context->repo_obj = NULL;
+  }
+  if (context->repo_path) {
+    free((void *) context->repo_path);
+    context->repo_path = NULL;
+  }
+  if (context->head_ref) {
+    git_reference_free(context->head_ref);
+    context->head_ref = NULL;
+  }
+
+  // context-head_oid is handled internally by libgit2. Apparently.
+
+  if (context->status_list) {
+    git_status_list_free(context->status_list);
+    context->status_list = NULL;
+  }
+}

@@ -33,6 +33,6 @@ int main(void) {
 
   printf("Conflict.num %d\n",     status.conflict_num);
 
-  
+  cleanupResources(&context);
   git_libgit2_shutdown();
 }

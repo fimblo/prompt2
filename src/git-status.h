@@ -82,6 +82,6 @@ void getRepoDivergence(struct RepoContext *context,
                        struct RepoStatus *status);
 
 const char *getCWD(struct RepoStatus *status);
-
+void cleanupResources(struct RepoContext *context);
 
 #endif //GITSTATUS_H
