@@ -47,7 +47,9 @@ struct RepoContext {
 
 // data for the user
 struct RepoStatus {
-  const char *cwd_path;
+  const char *cwd_full;
+  const char *cwd_basename;
+  
 
   const char *repo_name;
   const char *branch_name;
@@ -82,6 +84,7 @@ void getRepoDivergence(struct RepoContext *context,
                        struct RepoStatus *status);
 
 const char *getCWDFull(struct RepoStatus *status);
+const char *getCWDBasename(struct RepoStatus *status);
 void cleanupResources(struct RepoContext *context);
 
 #endif //GITSTATUS_H

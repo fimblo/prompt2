@@ -3,11 +3,13 @@
 
   Assortment of functions to get git status
 */
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <git2.h>
+#include <libgen.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+
 #include "git-status.h"
 
 const char *state_names[ENUM_SIZE] = {
@@ -267,8 +269,17 @@ void getRepoDivergence(struct RepoContext *context,
 const char *getCWDFull(struct RepoStatus *status) {
   static char cwd_path[MAX_PATH_BUFFER_SIZE];
   getcwd(cwd_path, sizeof(cwd_path));
-  status->cwd_path = cwd_path;
+  status->cwd_full = cwd_path;
   return cwd_path;
+}
+
+const char *getCWDBasename(struct RepoStatus *status) {
+  static char cwd_path[MAX_PATH_BUFFER_SIZE];
+  static char wd[MAX_PATH_BUFFER_SIZE];
+  getcwd(cwd_path, sizeof(cwd_path));
+  sprintf(wd, "%s", basename(cwd_path));
+  status->cwd_basename = wd;
+  return wd;
 }
 
 
