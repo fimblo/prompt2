@@ -264,7 +264,7 @@ void getRepoDivergence(struct RepoContext *context,
     git_reference_free(upstream_ref);
 }
 
-const char *getCWD(struct RepoStatus *status) {
+const char *getCWDFull(struct RepoStatus *status) {
   static char cwd_path[MAX_PATH_BUFFER_SIZE];
   getcwd(cwd_path, sizeof(cwd_path));
   status->cwd_path = cwd_path;
