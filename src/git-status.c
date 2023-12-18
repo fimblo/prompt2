@@ -81,7 +81,8 @@ const char *__findGitRepositoryPath(const char *path) {
   }
 }
 
-
+// return 0 if unable to open git repo
+// return 1 if git repo was opened
 int populateRepoContext(struct RepoContext *context, const char *path) {
   const char *git_repository_path;
   git_repository *repo     = NULL;
@@ -91,17 +92,17 @@ int populateRepoContext(struct RepoContext *context, const char *path) {
   git_repository_path = __findGitRepositoryPath(path);
   if (strlen(git_repository_path) == 0) {
     free((void *) git_repository_path);
-    return EXIT_DEFAULT_PROMPT;
+    return 0;
   }
 
   if (git_repository_open(&repo, git_repository_path) != 0) {
     free((void *) git_repository_path);
     git_repository_free(repo);
-    return EXIT_FAIL_REPO_OBJ;
+    return 0;
   }
 
   if (git_repository_head(&head_ref, repo) != 0) {
-    return EXIT_ABSENT_LOCAL_REF;
+    return 0;
   }
   head_oid = git_reference_target(head_ref);
 
