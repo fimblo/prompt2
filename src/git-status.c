@@ -318,6 +318,30 @@ const char *getCWDFromGitRepo(struct RepoContext *context, struct RepoStatus *st
   return wd;
 }
 
+const char *getCWDFromHome(struct RepoStatus *status) {
+  static char cwd_path[PATH_MAX];
+  static char wd[PATH_MAX];
+  char *home_path = getenv("HOME");
+
+  getcwd(cwd_path, sizeof(cwd_path));
+  if (strncmp(cwd_path, home_path, strlen(home_path)) == 0) {
+    // Inside HOME directory
+    if (strlen(cwd_path) == strlen(home_path)) {
+      // At HOME root
+      sprintf(wd, "~/");
+    } else {
+      // Deeper in HOME directory
+      sprintf(wd, "~%s", cwd_path + strlen(home_path));
+    }
+  } else {
+    // Outside HOME directory
+    strcpy(wd, cwd_path);
+  }
+
+  status->cwd_git_path = wd;
+  return wd;
+}
+
 void cleanupResources(struct RepoContext *context) {
   if (context->repo_obj) {
     git_repository_free(context->repo_obj);

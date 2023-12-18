@@ -74,6 +74,7 @@ int getRepoDivergence(struct RepoContext *context,
 const char *getCWDFull(struct RepoStatus *status);
 const char *getCWDBasename(struct RepoStatus *status);
 const char *getCWDFromGitRepo(struct RepoContext *context, struct RepoStatus *status);
+const char *getCWDFromHome(struct RepoStatus *status);
 void cleanupResources(struct RepoContext *context);
 
 #endif //GITSTATUS_H
