@@ -5,13 +5,6 @@
 */
 #include <git2.h>
 
-// max buffer sizes
-#define MAX_PATH_BUFFER_SIZE          2048
-#define MAX_REPO_BUFFER_SIZE          256
-#define MAX_BRANCH_BUFFER_SIZE        256
-#define MAX_STYLE_BUFFER_SIZE         64
-#define MAX_PARAM_MESSAGE_BUFFER_SIZE 64
-
 
 enum states {
   NO_DATA,

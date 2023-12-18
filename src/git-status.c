@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "git-status.h"
 
@@ -285,15 +286,15 @@ int getRepoDivergence(struct RepoContext *context,
 }
 
 const char *getCWDFull(struct RepoStatus *status) {
-  static char cwd_path[MAX_PATH_BUFFER_SIZE];
+  static char cwd_path[PATH_MAX];
   getcwd(cwd_path, sizeof(cwd_path));
   status->cwd_full = cwd_path;
   return cwd_path;
 }
 
 const char *getCWDBasename(struct RepoStatus *status) {
-  static char cwd_path[MAX_PATH_BUFFER_SIZE];
-  static char wd[MAX_PATH_BUFFER_SIZE];
+  static char cwd_path[PATH_MAX];
+  static char wd[PATH_MAX];
   getcwd(cwd_path, sizeof(cwd_path));
   sprintf(wd, "%s", basename(cwd_path));
   status->cwd_basename = wd;
@@ -303,8 +304,8 @@ const char *getCWDBasename(struct RepoStatus *status) {
 const char *getCWDFromGitRepo(struct RepoContext *context, struct RepoStatus *status) {
   if (context->head_ref == NULL) return strdup("NO_DATA");
 
-  static char cwd_path[MAX_PATH_BUFFER_SIZE];
-  static char wd[MAX_PATH_BUFFER_SIZE];
+  static char cwd_path[PATH_MAX];
+  static char wd[PATH_MAX];
   getcwd(cwd_path, sizeof(cwd_path));
   size_t common_length = strspn(context->repo_path, cwd_path);
   if (common_length == strlen(cwd_path)) {
