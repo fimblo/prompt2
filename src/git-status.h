@@ -62,8 +62,7 @@ struct RepoStatus {
   int rebase_in_progress;
 };
 
-void initializeRepoContext(struct RepoContext *repo_context);
-void initializeRepoStatus(struct RepoStatus *repo_status);
+void setDefaultValues(struct RepoContext *repo_context, struct RepoStatus *repo_status);
 int populateRepoContext(struct RepoContext *context, const char *path);
 const char * getRepoName(struct RepoContext *context, struct RepoStatus *status);
 const char * getBranchName(struct RepoContext *context, struct RepoStatus *status);

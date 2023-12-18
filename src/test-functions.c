@@ -4,11 +4,11 @@
 
 //int main(int argc, char *argv[]) {
 int main(void) {
-  git_libgit2_init();
   struct RepoContext context;
   struct RepoStatus status;
-  initializeRepoContext(&context);
-  initializeRepoStatus(&status);
+
+  git_libgit2_init();
+  setDefaultValues(&context, &status);
 
   populateRepoContext(&context, ".");
   getRepoStatus(&context, &status);

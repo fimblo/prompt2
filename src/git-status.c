@@ -21,15 +21,16 @@ const char *state_names[ENUM_SIZE] = {
 };
 
 
-void initializeRepoContext(struct RepoContext *context) {
+void setDefaultValues(struct RepoContext *context, struct RepoStatus *status) {
+  // Internal things. Uninteresting for user
   context->repo_obj     = NULL;
   context->repo_path    = NULL;
   context->head_ref     = NULL;
   context->head_oid     = NULL;
   context->status_list  = NULL;
-}
 
-void initializeRepoStatus(struct RepoStatus *status) {
+
+  // External stuff. User prolly interested in these
   status->repo_name    = NULL;
   status->branch_name  = NULL;
 
