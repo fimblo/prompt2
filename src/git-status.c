@@ -78,6 +78,48 @@ const char *__findGitRepositoryPath(const char *path) {
   }
 }
 
+int __calculateDivergence(git_repository *repo,
+                          const git_oid *local_oid,
+                          const git_oid *upstream_oid,
+                          int *ahead,
+                          int *behind) {
+  int aheadCount = 0;
+  int behindCount = 0;
+  git_oid id;
+
+  // init walker
+  git_revwalk *walker = NULL;
+  if (git_revwalk_new(&walker, repo) != 0) {
+    return -1;
+  }
+
+  // count number of commits ahead
+  if (git_revwalk_push(walker, local_oid)    != 0 ||  // set where I want to start
+      git_revwalk_hide(walker, upstream_oid) != 0) {  // set where the walk ends (exclusive)
+    git_revwalk_free(walker);
+    return -2;
+  }
+  while (git_revwalk_next(&id, walker) == 0) aheadCount++;
+
+  // count number of commits behind
+  git_revwalk_reset(walker);
+  if (git_revwalk_push(walker, upstream_oid) != 0 || // set where I want to start
+      git_revwalk_hide(walker, local_oid)    != 0) { // set where the walk ends (exclusive)
+    git_revwalk_free(walker);
+    return -3;
+  }
+  while (git_revwalk_next(&id, walker) == 0) behindCount++;
+
+  *ahead = aheadCount;
+  *behind = behindCount;
+
+  git_revwalk_free(walker);
+  return 0;
+}
+
+
+
+
 // return 0 if unable to open git repo
 // return 1 if git repo was opened
 int populateRepoContext(struct RepoContext *context, const char *path) {
@@ -187,46 +229,6 @@ int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
   status->unstaged_changes_num = unstaged_changes;
 
   return 1;
-}
-
-
-int __calculateDivergence(git_repository *repo,
-                          const git_oid *local_oid,
-                          const git_oid *upstream_oid,
-                          int *ahead,
-                          int *behind) {
-  int aheadCount = 0;
-  int behindCount = 0;
-  git_oid id;
-
-  // init walker
-  git_revwalk *walker = NULL;
-  if (git_revwalk_new(&walker, repo) != 0) {
-    return -1;
-  }
-
-  // count number of commits ahead
-  if (git_revwalk_push(walker, local_oid)    != 0 ||  // set where I want to start
-      git_revwalk_hide(walker, upstream_oid) != 0) {  // set where the walk ends (exclusive)
-    git_revwalk_free(walker);
-    return -2;
-  }
-  while (git_revwalk_next(&id, walker) == 0) aheadCount++;
-
-  // count number of commits behind
-  git_revwalk_reset(walker);
-  if (git_revwalk_push(walker, upstream_oid) != 0 || // set where I want to start
-      git_revwalk_hide(walker, local_oid)    != 0) { // set where the walk ends (exclusive)
-    git_revwalk_free(walker);
-    return -3;
-  }
-  while (git_revwalk_next(&id, walker) == 0) behindCount++;
-
-  *ahead = aheadCount;
-  *behind = behindCount;
-
-  git_revwalk_free(walker);
-  return 0;
 }
 
 

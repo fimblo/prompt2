@@ -75,11 +75,6 @@ int populateRepoContext(struct RepoContext *context, const char *path);
 const char * getRepoName(struct RepoContext *context, struct RepoStatus *status);
 const char * getBranchName(struct RepoContext *context, struct RepoStatus *status);
 int getRepoStatus(struct RepoContext *context, struct RepoStatus *status);
-int __calculateDivergence(git_repository *repo,
-                          const git_oid *local_oid,
-                          const git_oid *upstream_oid,
-                          int *ahead,
-                          int *behind);
 void getRepoDivergence(struct RepoContext *context,
                        struct RepoStatus *status);
 
