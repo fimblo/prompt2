@@ -37,10 +37,10 @@ void initializeRepoStatus(struct RepoStatus *status) {
   status->behind               = -1;
 
   status->status_staged        = NO_DATA;
-  status->staged_changes_num   = 0;
+  status->staged_changes_num   = -1;
 
   status->status_unstaged      = NO_DATA;
-  status->unstaged_changes_num = 0;
+  status->unstaged_changes_num = -1;
 
   status->conflict_num         = 0;
   status->rebase_in_progress   = 0;
@@ -179,8 +179,12 @@ int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
     }
   }
 
-  if (staged_changes == 0)   { status->status_staged   = UP_TO_DATE; }
-  if (unstaged_changes == 0) { status->status_unstaged = UP_TO_DATE; }
+  if (staged_changes == 0)   {
+    status->status_staged   = UP_TO_DATE;
+  }
+  if (unstaged_changes == 0) {
+    status->status_unstaged = UP_TO_DATE;
+  }
 
   status->staged_changes_num = staged_changes;
   status->unstaged_changes_num = unstaged_changes;
