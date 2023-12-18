@@ -41,9 +41,6 @@ void initializeRepoStatus(struct RepoStatus *status) {
 
   status->status_unstaged      = NO_DATA;
   status->unstaged_changes_num = -1;
-
-  status->conflict_num         = 0;
-  status->rebase_in_progress   = 0;
 }
 
 
