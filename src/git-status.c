@@ -153,11 +153,13 @@ int populateRepoContext(struct RepoContext *context, const char *path) {
 }
 
 const char * getRepoName(struct RepoContext *context, struct RepoStatus *status) {
+  if (context->head_ref == NULL) return state_names[NO_DATA];
   status->repo_name = strrchr(context->repo_path, '/') + 1;
   return status->repo_name;
 }
 
 const char * getBranchName(struct RepoContext *context, struct RepoStatus *status) {
+  if (context->head_ref == NULL) return state_names[NO_DATA];
   status->branch_name = git_reference_shorthand(context->head_ref);
   return status->branch_name;
 }
@@ -165,6 +167,7 @@ const char * getBranchName(struct RepoContext *context, struct RepoStatus *statu
 // 0 if fail to get repo status
 // 1 if success
 int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
+  if (context->head_ref == NULL) return 0;
 
   // First get the status-list which we'll iterate through
 #pragma GCC diagnostic push
@@ -232,8 +235,10 @@ int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
 }
 
 
-void getRepoDivergence(struct RepoContext *context,
+int getRepoDivergence(struct RepoContext *context,
                        struct RepoStatus *status) {
+  if (context->head_ref == NULL) return 0;
+
   char full_remote_branch_name[128];
   sprintf(full_remote_branch_name, "refs/remotes/origin/%s", git_reference_shorthand(context->head_ref));
 
@@ -247,7 +252,7 @@ void getRepoDivergence(struct RepoContext *context,
     // If there is no upstream ref, this is a stand-alone branch
     status->status_repo = NO_UPSTREAM;
     git_reference_free(upstream_ref);
-    return;
+    return 0;
   }
 
   upstream_oid = git_reference_target(upstream_ref);
@@ -256,7 +261,7 @@ void getRepoDivergence(struct RepoContext *context,
   // Not certain about this. TODO: check
   if (upstream_oid == NULL) {
     status->status_repo = NO_UPSTREAM;
-    return;
+    return 0;
   }
 
   __calculateDivergence(context->repo_obj,
@@ -276,6 +281,7 @@ void getRepoDivergence(struct RepoContext *context,
   /*   status->status_repo = MODIFIED; */
 
   git_reference_free(upstream_ref);
+  return 1;
 }
 
 const char *getCWDFull(struct RepoStatus *status) {
@@ -295,6 +301,8 @@ const char *getCWDBasename(struct RepoStatus *status) {
 }
 
 const char *getCWDFromGitRepo(struct RepoContext *context, struct RepoStatus *status) {
+  if (context->head_ref == NULL) return strdup("NO_DATA");
+
   static char cwd_path[MAX_PATH_BUFFER_SIZE];
   static char wd[MAX_PATH_BUFFER_SIZE];
   getcwd(cwd_path, sizeof(cwd_path));

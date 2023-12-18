@@ -6,15 +6,15 @@
 int main(void) {
   git_libgit2_init();
   struct RepoContext context;
-  initializeRepoContext(&context);
-  populateRepoContext(&context, ".");
-
-
   struct RepoStatus status;
+  initializeRepoContext(&context);
   initializeRepoStatus(&status);
+
+  populateRepoContext(&context, ".");
   getRepoStatus(&context, &status);
 
   getRepoDivergence(&context, &status);
+
 
   printf("CWD.full %s\n",         getCWDFull(&status));
   printf("CWD.basename %s\n",     getCWDBasename(&status));
@@ -34,7 +34,6 @@ int main(void) {
   printf("Unstaged.status %s\n",  state_names[status.status_unstaged]);
   printf("Unstaged.num %d\n",     status.unstaged_changes_num);
 
-  printf("Conflict.num %d\n",     status.conflict_num);
 
   cleanupResources(&context);
   git_libgit2_shutdown();

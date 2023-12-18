@@ -75,7 +75,7 @@ int populateRepoContext(struct RepoContext *context, const char *path);
 const char * getRepoName(struct RepoContext *context, struct RepoStatus *status);
 const char * getBranchName(struct RepoContext *context, struct RepoStatus *status);
 int getRepoStatus(struct RepoContext *context, struct RepoStatus *status);
-void getRepoDivergence(struct RepoContext *context,
+int getRepoDivergence(struct RepoContext *context,
                        struct RepoStatus *status);
 
 const char *getCWDFull(struct RepoStatus *status);
