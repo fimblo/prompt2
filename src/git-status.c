@@ -33,8 +33,8 @@ void initializeRepoStatus(struct RepoStatus *status) {
   status->branch_name  = NULL;
 
   status->status_repo          = NO_DATA;
-  status->ahead                = 0;
-  status->behind               = 0;
+  status->ahead                = -1;
+  status->behind               = -1;
 
   status->status_staged        = NO_DATA;
   status->staged_changes_num   = 0;
