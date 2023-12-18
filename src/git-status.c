@@ -283,7 +283,7 @@ const char *getCWDBasename(struct RepoStatus *status) {
   return wd;
 }
 
-const char *getCWDFromGitRepo(struct RepoStatus *status, struct RepoContext *context) {
+const char *getCWDFromGitRepo(struct RepoContext *context, struct RepoStatus *status) {
   static char cwd_path[MAX_PATH_BUFFER_SIZE];
   static char wd[MAX_PATH_BUFFER_SIZE];
   getcwd(cwd_path, sizeof(cwd_path));
