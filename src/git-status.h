@@ -74,8 +74,7 @@ void initializeRepoStatus(struct RepoStatus *repo_status);
 int populateRepoContext(struct RepoContext *context, const char *path);
 const char * getRepoName(struct RepoContext *context, struct RepoStatus *status);
 const char * getBranchName(struct RepoContext *context, struct RepoStatus *status);
-git_status_list * getRepoStatusList(struct RepoContext *context); 
-void getRepoStatus(git_status_list * status_list, struct RepoStatus *status);
+int getRepoStatus(struct RepoContext *context, struct RepoStatus *status);
 int __calculateDivergence(git_repository *repo,
                           const git_oid *local_oid,
                           const git_oid *upstream_oid,

@@ -32,14 +32,14 @@ void initializeRepoStatus(struct RepoStatus *status) {
   status->repo_name    = NULL;
   status->branch_name  = NULL;
 
-  status->status_repo          = UP_TO_DATE;
+  status->status_repo          = NO_DATA;
   status->ahead                = 0;
   status->behind               = 0;
 
-  status->status_staged        = UP_TO_DATE;
+  status->status_staged        = NO_DATA;
   status->staged_changes_num   = 0;
 
-  status->status_unstaged      = UP_TO_DATE;
+  status->status_unstaged      = NO_DATA;
   status->unstaged_changes_num = 0;
 
   status->conflict_num         = 0;
@@ -123,7 +123,11 @@ const char * getBranchName(struct RepoContext *context, struct RepoStatus *statu
   return status->branch_name;
 }
 
-git_status_list * getRepoStatusList(struct RepoContext * context) {
+// 0 if fail to get repo status
+// 1 if success
+int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
+
+  // First get the status-list which we'll iterate through
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
   git_status_options opts = GIT_STATUS_OPTIONS_INIT;
@@ -137,13 +141,12 @@ git_status_list * getRepoStatusList(struct RepoContext * context) {
     git_reference_free(context->head_ref);
     git_repository_free(context->repo_obj);
     free((void *) context->repo_path);
-    return NULL;
+    return 0;
   }
   context->status_list = status_list;
-  return status_list;
-}
 
-void getRepoStatus(git_status_list * status_list, struct RepoStatus *status) {
+
+  // Now iterate
   int staged_changes   = 0;
   int unstaged_changes = 0;
 
@@ -176,16 +179,21 @@ void getRepoStatus(git_status_list * status_list, struct RepoStatus *status) {
     }
   }
 
+  if (staged_changes == 0)   { status->status_staged   = UP_TO_DATE; }
+  if (unstaged_changes == 0) { status->status_unstaged = UP_TO_DATE; }
+
   status->staged_changes_num = staged_changes;
   status->unstaged_changes_num = unstaged_changes;
+
+  return 1;
 }
 
 
 int __calculateDivergence(git_repository *repo,
-                        const git_oid *local_oid,
-                        const git_oid *upstream_oid,
-                        int *ahead,
-                        int *behind) {
+                          const git_oid *local_oid,
+                          const git_oid *upstream_oid,
+                          int *ahead,
+                          int *behind) {
   int aheadCount = 0;
   int behindCount = 0;
   git_oid id;
@@ -224,47 +232,47 @@ int __calculateDivergence(git_repository *repo,
 void getRepoDivergence(struct RepoContext *context,
                        struct RepoStatus *status) {
   char full_remote_branch_name[128];
-  sprintf(full_remote_branch_name,
-          "refs/remotes/origin/%s",
-          git_reference_shorthand(context->head_ref));
+  sprintf(full_remote_branch_name, "refs/remotes/origin/%s", git_reference_shorthand(context->head_ref));
 
-    git_reference *upstream_ref = NULL;
-    const git_oid *upstream_oid;
-    const int retval = git_reference_lookup(&upstream_ref,
-                                            context->repo_obj,
-                                            full_remote_branch_name);
-    if (retval != 0) {
-      // If there is no upstream ref, this is a stand-alone branch
-      status->status_repo = NO_UPSTREAM;
-      git_reference_free(upstream_ref);
-    }
-    else {
-      upstream_oid = git_reference_target(upstream_ref);
-
-      // if the upstream_oid is null, we can't get the divergence, so
-      // might as well set it to NO_DATA. Oh and btw, when there's no
-      // conflict _and_ upstream_OID is NULL, then it seems we're
-      // inside of an interactive rebase - when it's not useful to
-      // check for divergences anyway.
-      if (upstream_oid == NULL) {
-        status->status_repo = NO_UPSTREAM;
-      }
-      else {
-        __calculateDivergence(context->repo_obj,
-                              context->head_oid,
-                              upstream_oid,
-                              &status->ahead,
-                              &status->behind);
-      }
-    }
-
-    // check if local and remote are the same
-    if (status->status_repo == UP_TO_DATE) {
-      if (git_oid_cmp(context->head_oid, upstream_oid) != 0)
-        status->status_repo = MODIFIED;
-    }
-
+  git_reference *upstream_ref = NULL;
+  const git_oid *upstream_oid;
+  const int retval =
+    git_reference_lookup(&upstream_ref,
+                         context->repo_obj,
+                         full_remote_branch_name);
+  if (retval != 0) {
+    // If there is no upstream ref, this is a stand-alone branch
+    status->status_repo = NO_UPSTREAM;
     git_reference_free(upstream_ref);
+    return;
+  }
+
+  upstream_oid = git_reference_target(upstream_ref);
+
+  // if the upstream_oid is null, we assume it's a stand-alone branch.
+  // Not certain about this. TODO: check
+  if (upstream_oid == NULL) {
+    status->status_repo = NO_UPSTREAM;
+    return;
+  }
+
+  __calculateDivergence(context->repo_obj,
+                        context->head_oid,
+                        upstream_oid,
+                        &status->ahead,
+                        &status->behind);
+
+  if (status->ahead + status->behind == 0) {
+    status->status_repo = UP_TO_DATE;
+  }
+  else {
+    status->status_repo = MODIFIED;
+  }
+
+  /* if (git_oid_cmp(context->head_oid, upstream_oid) != 0) */
+  /*   status->status_repo = MODIFIED; */
+
+  git_reference_free(upstream_ref);
 }
 
 const char *getCWDFull(struct RepoStatus *status) {
@@ -287,14 +295,14 @@ const char *getCWDFromGitRepo(struct RepoContext *context, struct RepoStatus *st
   static char cwd_path[MAX_PATH_BUFFER_SIZE];
   static char wd[MAX_PATH_BUFFER_SIZE];
   getcwd(cwd_path, sizeof(cwd_path));
-    size_t common_length = strspn(context->repo_path, cwd_path);
-    if (common_length == strlen(cwd_path)) {
-      sprintf(wd, "+/");
-    }
-    else {
-      sprintf(wd, "+/%s", cwd_path + common_length + 1);
-    }
-    status->cwd_git_path = wd;
+  size_t common_length = strspn(context->repo_path, cwd_path);
+  if (common_length == strlen(cwd_path)) {
+    sprintf(wd, "+/");
+  }
+  else {
+    sprintf(wd, "+/%s", cwd_path + common_length + 1);
+  }
+  status->cwd_git_path = wd;
   return wd;
 }
 

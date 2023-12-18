@@ -8,11 +8,11 @@ int main(void) {
   struct RepoContext context;
   initializeRepoContext(&context);
   populateRepoContext(&context, ".");
-  getRepoStatusList(&context);
+
 
   struct RepoStatus status;
   initializeRepoStatus(&status);
-  getRepoStatus(context.status_list, &status);
+  getRepoStatus(&context, &status);
 
   getRepoDivergence(&context, &status);
 
