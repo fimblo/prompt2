@@ -101,3 +101,72 @@ teardown () {
   # - We should get zero diff
   diff $TEST_FILE <(echo "$output")
 }
+
+# --------------------------------------------------
+@test "empty git repository does nothing" {
+  # Given
+  # - we create an empty git repo
+  helper__new_repo
+
+  update_test_file CWD.full      $(realpath $PWD)
+  update_test_file CWD.basename  $(basename $PWD)
+  update_test_file CWD.git_path  'NO_DATA'
+  update_test_file CWD.home_path "${PWD/$HOME/\~\/}"
+
+  # When
+  # - we test the lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - We should get zero diff
+  diff $TEST_FILE <(echo "$output")
+}
+
+# --------------------------------------------------
+@test "adding file to empty git repo does nothing" {
+  # Given
+  # - we create an empty git repo
+  helper__new_repo_and_add_file "newfile" "some text"
+
+  update_test_file CWD.full      $(realpath $PWD)
+  update_test_file CWD.basename  $(basename $PWD)
+  update_test_file CWD.git_path  'NO_DATA'
+  update_test_file CWD.home_path "${PWD/$HOME/\~\/}"
+
+  # When
+  # - we test the lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - We should get zero diff
+  diff $TEST_FILE <(echo "$output")
+}
+
+# --------------------------------------------------
+@test "committing in empty git repo updates state" {
+  # Given
+  # - we create an empty git repo
+  helper__new_repo_and_commit "newfile" "some text"
+
+  update_test_file CWD.full         $(realpath $PWD)
+  update_test_file CWD.basename     $(basename $PWD)
+  update_test_file CWD.git_path     '+/'
+  update_test_file CWD.home_path    "${PWD/$HOME/\~\/}"
+
+  update_test_file Repo.name        $(basename $PWD)
+  update_test_file Repo.branch.name $DEFAULT_GIT_BRANCH_NAME
+  update_test_file Repo.status      'NO_UPSTREAM'
+  update_test_file Staged.status    'UP_TO_DATE'
+  update_test_file Staged.num       '0'
+  update_test_file Unstaged.status  'UP_TO_DATE'
+  update_test_file Unstaged.num     '0'
+
+  # When
+  # - we test the lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - We should get zero diff
+  diff $TEST_FILE <(echo "$output")
+}
+
