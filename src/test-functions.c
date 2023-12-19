@@ -37,4 +37,5 @@ int main(void) {
 
   cleanupResources(&context);
   git_libgit2_shutdown();
+  return 0;
 }
