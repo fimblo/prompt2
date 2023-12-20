@@ -5,7 +5,6 @@ bats_require_minimum_version 1.5.0
 # cd path/to/project/root
 # bats test/test.bats
 
-DEFAULT_GIT_BRANCH_NAME='main'
 
 # Binary to test
 TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-functions"
@@ -17,10 +16,11 @@ load test_helper_functions
   # Given
   # - we're in HOME
   # - it's not a git repo
-  update_fixture $FIXTURE_ZERO CWD.full      $(realpath $PWD)
-  update_fixture $FIXTURE_ZERO CWD.basename  $(basename $PWD)
-  update_fixture $FIXTURE_ZERO CWD.git_path  'NO_DATA'
-  update_fixture $FIXTURE_ZERO CWD.home_path "${PWD/$HOME/\~\/}"
+  FIXTURE=$(select_fixture "no-git")
+  update_fixture $FIXTURE CWD.full      $(realpath $PWD)
+  update_fixture $FIXTURE CWD.basename  $(basename $PWD)
+  update_fixture $FIXTURE CWD.git_path  'NO_DATA'
+  update_fixture $FIXTURE CWD.home_path "${PWD/$HOME/\~\/}"
 
   # When
   # - we test the lib
@@ -28,7 +28,7 @@ load test_helper_functions
 
   # Then
   # - We should get zero diff
-  diff $FIXTURE_ZERO <(echo "$output")
+  diff $FIXTURE <(echo "$output")
 }
 
 # --------------------------------------------------
@@ -37,10 +37,11 @@ load test_helper_functions
   # - we create an empty git repo
   helper__new_repo
 
-  update_fixture $FIXTURE_ZERO CWD.full      $(realpath $PWD)
-  update_fixture $FIXTURE_ZERO CWD.basename  $(basename $PWD)
-  update_fixture $FIXTURE_ZERO CWD.git_path  'NO_DATA'
-  update_fixture $FIXTURE_ZERO CWD.home_path "${PWD/$HOME/\~\/}"
+  FIXTURE=$(select_fixture "no-git")
+  update_fixture $FIXTURE CWD.full      $(realpath $PWD)
+  update_fixture $FIXTURE CWD.basename  $(basename $PWD)
+  update_fixture $FIXTURE CWD.git_path  'NO_DATA'
+  update_fixture $FIXTURE CWD.home_path "${PWD/$HOME/\~\/}"
 
   # When
   # - we test the lib
@@ -48,7 +49,7 @@ load test_helper_functions
 
   # Then
   # - We should get zero diff
-  diff $FIXTURE_ZERO <(echo "$output")
+  diff $FIXTURE <(echo "$output")
 }
 
 # --------------------------------------------------
@@ -57,10 +58,11 @@ load test_helper_functions
   # - we create an empty git repo
   helper__new_repo_and_add_file "newfile" "some text"
 
-  update_fixture $FIXTURE_ZERO CWD.full      $(realpath $PWD)
-  update_fixture $FIXTURE_ZERO CWD.basename  $(basename $PWD)
-  update_fixture $FIXTURE_ZERO CWD.git_path  'NO_DATA'
-  update_fixture $FIXTURE_ZERO CWD.home_path "${PWD/$HOME/\~\/}"
+  FIXTURE=$(select_fixture "no-git")
+  update_fixture $FIXTURE CWD.full      $(realpath $PWD)
+  update_fixture $FIXTURE CWD.basename  $(basename $PWD)
+  update_fixture $FIXTURE CWD.git_path  'NO_DATA'
+  update_fixture $FIXTURE CWD.home_path "${PWD/$HOME/\~\/}"
 
   # When
   # - we test the lib
@@ -68,7 +70,7 @@ load test_helper_functions
 
   # Then
   # - We should get zero diff
-  diff $FIXTURE_ZERO <(echo "$output")
+  diff $FIXTURE <(echo "$output")
 }
 
 # --------------------------------------------------
@@ -77,18 +79,16 @@ load test_helper_functions
   # - we create an empty git repo
   helper__new_repo_and_commit "newfile" "some text"
 
-  update_fixture $FIXTURE_ZERO CWD.full         $(realpath $PWD)
-  update_fixture $FIXTURE_ZERO CWD.basename     $(basename $PWD)
-  update_fixture $FIXTURE_ZERO CWD.git_path     '+/'
-  update_fixture $FIXTURE_ZERO CWD.home_path    "${PWD/$HOME/\~\/}"
+  FIXTURE=$(select_fixture "git-simple")
+  update_fixture $FIXTURE CWD.full         $(realpath $PWD)
+  update_fixture $FIXTURE CWD.basename     $(basename $PWD)
+  update_fixture $FIXTURE CWD.git_path     '+/'
+  update_fixture $FIXTURE CWD.home_path    "${PWD/$HOME/\~\/}"
 
-  update_fixture $FIXTURE_ZERO Repo.name        $(basename $PWD)
-  update_fixture $FIXTURE_ZERO Repo.branch.name $DEFAULT_GIT_BRANCH_NAME
-  update_fixture $FIXTURE_ZERO Repo.status      'NO_UPSTREAM'
-  update_fixture $FIXTURE_ZERO Staged.status    'UP_TO_DATE'
-  update_fixture $FIXTURE_ZERO Staged.num       '0'
-  update_fixture $FIXTURE_ZERO Unstaged.status  'UP_TO_DATE'
-  update_fixture $FIXTURE_ZERO Unstaged.num     '0'
+  update_fixture $FIXTURE Repo.name        $(basename $PWD)
+  update_fixture $FIXTURE Repo.status      'NO_UPSTREAM'
+  update_fixture $FIXTURE Repo.ahead       '-1'
+  update_fixture $FIXTURE Repo.behind      '-1'
 
   # When
   # - we test the lib
@@ -96,6 +96,6 @@ load test_helper_functions
 
   # Then
   # - We should get zero diff
-  diff $FIXTURE_ZERO <(echo "$output")
+  diff $FIXTURE <(echo "$output")
 }
 
