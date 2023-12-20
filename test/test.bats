@@ -45,11 +45,8 @@ update_fixture() {
   fixture="$1"
   name="$2"
   value="$3"
-  perl -pi -e "s{^$name .*}{$name $value}" $FIXTURE_ZERO
+  perl -pi -e "s{^$name .*}{$name $value}" $fixture
 }
-
-
-
 
 
 # run before each test
@@ -59,8 +56,8 @@ setup () {
   export HOME=$RUN_TMPDIR
   cd
   
-  FIXTURE_ZERO=$(mktemp)
-  cat<<EOF> $FIXTURE_ZERO
+  FIXTURE_ZERO="$BATS_TEST_TMPDIR/fixture-0"
+  cat<<EOF>$FIXTURE_ZERO
 CWD.full full path to current working directory
 CWD.basename basename of current working directory
 CWD.git_path path from git project root
@@ -81,7 +78,6 @@ EOF
 teardown () {
   HOME=$HOME_BK
   rm -rf $RUN_TMPDIR $FIXTURE_ZERO
-
 }
 
 
