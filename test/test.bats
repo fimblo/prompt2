@@ -100,3 +100,63 @@ load test_helper_functions
   diff $FIXTURE <(echo "$output")
 }
 
+# --------------------------------------------------
+@test "cd to a non-git dir inside of HOME" {
+  skip
+}
+
+# --------------------------------------------------
+@test "cd to a non-git dir outside of HOME" {
+  skip
+}
+
+# --------------------------------------------------
+@test "modifying tracked file" {
+  skip
+}
+
+# --------------------------------------------------
+@test "changing localbranch" {
+  skip
+}
+
+# --------------------------------------------------
+@test "cloning a repo and entering it" {
+  skip
+}
+
+# --------------------------------------------------
+@test "committing a change in a cloned repo" {
+  skip
+}
+
+# --------------------------------------------------
+@test "when local is behind upstream" {
+  skip
+}
+
+# --------------------------------------------------
+@test "when local is ahead of upstream" {
+  skip
+}
+
+# --------------------------------------------------
+@test "when local is both ahead and behind upstream" {
+  skip
+}
+
+# --------------------------------------------------
+@test "a conflict should update state" {
+  skip
+}
+
+# --------------------------------------------------
+@test "an add after conflict" {
+  skip
+}
+
+# --------------------------------------------------
+@test "interactive rebase" {
+  skip
+}
+
