@@ -41,11 +41,14 @@ helper__new_repo_and_commit() {
 }
 
 
-update_test_file() {
-  name="$1"
-  value="$2"
-  perl -pi -e "s{^$name .*}{$name $value}" $TEST_FILE
+update_fixture() {
+  fixture="$1"
+  name="$2"
+  value="$3"
+  perl -pi -e "s{^$name .*}{$name $value}" $FIXTURE_ZERO
 }
+
+
 
 
 
@@ -56,8 +59,8 @@ setup () {
   export HOME=$RUN_TMPDIR
   cd
   
-  TEST_FILE=$(mktemp)
-  cat<<EOF> $TEST_FILE
+  FIXTURE_ZERO=$(mktemp)
+  cat<<EOF> $FIXTURE_ZERO
 CWD.full full path to current working directory
 CWD.basename basename of current working directory
 CWD.git_path path from git project root
@@ -77,7 +80,7 @@ EOF
 # run after each test
 teardown () {
   HOME=$HOME_BK
-  rm -rf $RUN_TMPDIR $TEST_FILE
+  rm -rf $RUN_TMPDIR $FIXTURE_ZERO
 
 }
 
@@ -88,10 +91,10 @@ teardown () {
   # Given
   # - we're in HOME
   # - it's not a git repo
-  update_test_file CWD.full      $(realpath $PWD)
-  update_test_file CWD.basename  $(basename $PWD)
-  update_test_file CWD.git_path  'NO_DATA'
-  update_test_file CWD.home_path "${PWD/$HOME/\~\/}"
+  update_fixture $FIXTURE_ZERO CWD.full      $(realpath $PWD)
+  update_fixture $FIXTURE_ZERO CWD.basename  $(basename $PWD)
+  update_fixture $FIXTURE_ZERO CWD.git_path  'NO_DATA'
+  update_fixture $FIXTURE_ZERO CWD.home_path "${PWD/$HOME/\~\/}"
 
   # When
   # - we test the lib
@@ -99,7 +102,7 @@ teardown () {
 
   # Then
   # - We should get zero diff
-  diff $TEST_FILE <(echo "$output")
+  diff $FIXTURE_ZERO <(echo "$output")
 }
 
 # --------------------------------------------------
@@ -108,10 +111,10 @@ teardown () {
   # - we create an empty git repo
   helper__new_repo
 
-  update_test_file CWD.full      $(realpath $PWD)
-  update_test_file CWD.basename  $(basename $PWD)
-  update_test_file CWD.git_path  'NO_DATA'
-  update_test_file CWD.home_path "${PWD/$HOME/\~\/}"
+  update_fixture $FIXTURE_ZERO CWD.full      $(realpath $PWD)
+  update_fixture $FIXTURE_ZERO CWD.basename  $(basename $PWD)
+  update_fixture $FIXTURE_ZERO CWD.git_path  'NO_DATA'
+  update_fixture $FIXTURE_ZERO CWD.home_path "${PWD/$HOME/\~\/}"
 
   # When
   # - we test the lib
@@ -119,7 +122,7 @@ teardown () {
 
   # Then
   # - We should get zero diff
-  diff $TEST_FILE <(echo "$output")
+  diff $FIXTURE_ZERO <(echo "$output")
 }
 
 # --------------------------------------------------
@@ -128,10 +131,10 @@ teardown () {
   # - we create an empty git repo
   helper__new_repo_and_add_file "newfile" "some text"
 
-  update_test_file CWD.full      $(realpath $PWD)
-  update_test_file CWD.basename  $(basename $PWD)
-  update_test_file CWD.git_path  'NO_DATA'
-  update_test_file CWD.home_path "${PWD/$HOME/\~\/}"
+  update_fixture $FIXTURE_ZERO CWD.full      $(realpath $PWD)
+  update_fixture $FIXTURE_ZERO CWD.basename  $(basename $PWD)
+  update_fixture $FIXTURE_ZERO CWD.git_path  'NO_DATA'
+  update_fixture $FIXTURE_ZERO CWD.home_path "${PWD/$HOME/\~\/}"
 
   # When
   # - we test the lib
@@ -139,7 +142,7 @@ teardown () {
 
   # Then
   # - We should get zero diff
-  diff $TEST_FILE <(echo "$output")
+  diff $FIXTURE_ZERO <(echo "$output")
 }
 
 # --------------------------------------------------
@@ -148,18 +151,18 @@ teardown () {
   # - we create an empty git repo
   helper__new_repo_and_commit "newfile" "some text"
 
-  update_test_file CWD.full         $(realpath $PWD)
-  update_test_file CWD.basename     $(basename $PWD)
-  update_test_file CWD.git_path     '+/'
-  update_test_file CWD.home_path    "${PWD/$HOME/\~\/}"
+  update_fixture $FIXTURE_ZERO CWD.full         $(realpath $PWD)
+  update_fixture $FIXTURE_ZERO CWD.basename     $(basename $PWD)
+  update_fixture $FIXTURE_ZERO CWD.git_path     '+/'
+  update_fixture $FIXTURE_ZERO CWD.home_path    "${PWD/$HOME/\~\/}"
 
-  update_test_file Repo.name        $(basename $PWD)
-  update_test_file Repo.branch.name $DEFAULT_GIT_BRANCH_NAME
-  update_test_file Repo.status      'NO_UPSTREAM'
-  update_test_file Staged.status    'UP_TO_DATE'
-  update_test_file Staged.num       '0'
-  update_test_file Unstaged.status  'UP_TO_DATE'
-  update_test_file Unstaged.num     '0'
+  update_fixture $FIXTURE_ZERO Repo.name        $(basename $PWD)
+  update_fixture $FIXTURE_ZERO Repo.branch.name $DEFAULT_GIT_BRANCH_NAME
+  update_fixture $FIXTURE_ZERO Repo.status      'NO_UPSTREAM'
+  update_fixture $FIXTURE_ZERO Staged.status    'UP_TO_DATE'
+  update_fixture $FIXTURE_ZERO Staged.num       '0'
+  update_fixture $FIXTURE_ZERO Unstaged.status  'UP_TO_DATE'
+  update_fixture $FIXTURE_ZERO Unstaged.num     '0'
 
   # When
   # - we test the lib
@@ -167,6 +170,6 @@ teardown () {
 
   # Then
   # - We should get zero diff
-  diff $TEST_FILE <(echo "$output")
+  diff $FIXTURE_ZERO <(echo "$output")
 }
 
