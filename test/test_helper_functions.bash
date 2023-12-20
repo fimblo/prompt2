@@ -83,9 +83,8 @@ EOF
 select_fixture() {
   fixture_name="fixture-$1"
   if [[ -e "$BATS_FILE_TMPDIR/$fixture_name" ]] ; then
-    FIXTURE_COPY=$(mktemp "$BATS_TEST_TMPDIR/fixture.XXXXXX")
+    FIXTURE_COPY="$BATS_TEST_TMPDIR/fixture_selected"
     cp "$BATS_FILE_TMPDIR/$fixture_name" "$FIXTURE_COPY"
-    echo "$FIXTURE_COPY"
     return 0
   fi
 
@@ -94,10 +93,18 @@ select_fixture() {
 }
 
 update_fixture() {
-  fixture="$1"
-  name="$2"
-  value="$3"
-  perl -pi -e "s{^$name .*}{$name $value}" "$fixture"
+  name="$1"
+  value="$2"
+  echo "$name $value" >> "$BATS_TEST_TMPDIR/fixture_edit"
+}
+
+commit_fixture() {
+  temp=$(mktemp)
+  awk 'NR==FNR{a[$1]=$0; next} $1 in a{print a[$1]; next} 1' \
+      "$BATS_TEST_TMPDIR/fixture_edit" \
+      "$BATS_TEST_TMPDIR/fixture_selected" > "$temp"
+  mv "$temp" "$BATS_TEST_TMPDIR/fixture_selected"
+  echo "$BATS_TEST_TMPDIR/fixture_selected"
 }
 
 
@@ -112,6 +119,7 @@ teardown_file() {
 
 # These two functions run before and after each test
 setup () {
+  # shellcheck disable=SC2046
   RUN_TMPDIR=$(realpath $(mktemp -d "$BATS_TEST_TMPDIR/tmp.XXXXXX" ))
   HOME_BK=$HOME
   export HOME=$RUN_TMPDIR
