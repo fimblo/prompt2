@@ -1,2 +1,4 @@
 * prompt2
 another prompt generator
+
+Right now, just working on =git-status.{c,h}=, and using =test-function.c= to test the lib.
