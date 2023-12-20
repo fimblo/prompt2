@@ -19,7 +19,6 @@ load test_helper_functions
   select_fixture "no-git"
   update_fixture CWD.full      $(realpath $PWD)
   update_fixture CWD.basename  $(basename $PWD)
-  update_fixture CWD.git_path  'NO_DATA'
   update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
   FIXTURE=$(commit_fixture)
 
@@ -41,7 +40,6 @@ load test_helper_functions
   select_fixture "no-git"
   update_fixture CWD.full      $(realpath $PWD)
   update_fixture CWD.basename  $(basename $PWD)
-  update_fixture CWD.git_path  'NO_DATA'
   update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
   FIXTURE=$(commit_fixture)
 
@@ -63,7 +61,6 @@ load test_helper_functions
   select_fixture "no-git"
   update_fixture CWD.full      $(realpath $PWD)
   update_fixture CWD.basename  $(basename $PWD)
-  update_fixture CWD.git_path  'NO_DATA'
   update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
   FIXTURE=$(commit_fixture)
 

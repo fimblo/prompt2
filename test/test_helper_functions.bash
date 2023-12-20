@@ -48,7 +48,7 @@ create_fixtures_before_tests() {
   cat<<EOF>"$FIXTURE_NO_GIT"
 CWD.full full path to current working directory
 CWD.basename basename of current working directory
-CWD.git_path path from git project root
+CWD.git_path NO_DATA
 CWD.home_path path from home
 Repo.name NO_DATA
 Repo.branch.name NO_DATA
