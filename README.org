@@ -3,3 +3,33 @@ another prompt generator for the terminal
 
 - Right now, just working on =git-status.{c,h}=, and using =test-function.c= to test the lib.
 - Later, when the lib basics are in place, write a prompt generator for the terminal.
+
+Sample output from `test-functions`
+
+#+begin_example
+$ bin/test-functions
+CWD.full /Users/fimblo/github/prompt2 # full path to .
+CWD.basename prompt2                  # basename of .
+CWD.git_path +/                       # I'm at the root of the git repo
+CWD.home_path ~/github/prompt2        # path to . from HOME
+Repo.name prompt2                     # name of git repo
+Repo.branch.name main                 # name of branch
+Repo.status UP_TO_DATE                # status of repo compared to remote
+Repo.ahead 0                          # number of commits ahead remote
+Repo.behind 0                         # number of commits behind remote
+Staged.status UP_TO_DATE              # status of staged
+Staged.num 0                          # number of staged files
+Unstaged.status MODIFIED              # status of tracked unstaged files
+Unstaged.num 1                        # number of changed unstaged files
+#+end_example
+
+
+
+** Prerequisites
+*** Debian
+- =apt-get install build-essential bats=
+*** Mac
+- =xcode-select --install ; brew install bats=
+** Building and testing
+- =make= will build and run all tests.
+- =make help= will print all targets
