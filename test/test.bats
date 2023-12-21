@@ -32,6 +32,58 @@ load test_helper_functions
 }
 
 # --------------------------------------------------
+@test "cd to a non-git dir inside of HOME" {
+  # Given
+  # - we're in HOME/somedir
+  # - it's not a git repo
+  tmpdir=$(mktemp -d "$HOME/tmp.XXXXXX")
+  cd $tmpdir
+  select_fixture "no-git"
+  update_fixture CWD.full      $(realpath $PWD)
+  update_fixture CWD.basename  $(basename $PWD)
+  update_fixture CWD.home_path "${PWD/$HOME/\~}"
+  FIXTURE=$(commit_fixture)
+
+  # When
+  # - we test the lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - We should get zero diff
+  diff $FIXTURE <(echo "$output")
+
+  # cleanup
+  rm -rf $tmpdir
+}
+
+# --------------------------------------------------
+@test "cd to a non-git dir outside of HOME" {
+  # Given
+  # - we're in a dir outside of HOME
+  # - it's not a git repo
+  
+  tmpdir=$(mktemp -d "/tmp/tmp.XXXXXX")
+  cd $(realpath $tmpdir)
+
+  select_fixture "no-git"
+  update_fixture CWD.full      $(realpath $PWD)
+  update_fixture CWD.basename  $(basename $PWD)
+  update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
+  FIXTURE=$(commit_fixture)
+
+  # When
+  # - we test the lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - We should get zero diff
+  diff $FIXTURE <(echo "$output")
+
+  # cleanup
+  rm -rf $tmpdir
+}
+
+# --------------------------------------------------
 @test "empty git repository does nothing" {
   # Given
   # - we create an empty git repo
@@ -98,16 +150,6 @@ load test_helper_functions
   # Then
   # - We should get zero diff
   diff $FIXTURE <(echo "$output")
-}
-
-# --------------------------------------------------
-@test "cd to a non-git dir inside of HOME" {
-  skip
-}
-
-# --------------------------------------------------
-@test "cd to a non-git dir outside of HOME" {
-  skip
 }
 
 # --------------------------------------------------
