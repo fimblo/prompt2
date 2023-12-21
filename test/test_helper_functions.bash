@@ -78,6 +78,23 @@ Unstaged.status UP_TO_DATE
 Unstaged.num 0
 EOF
   
+  FIXTURE_GIT_UPSTREAM="$BATS_FILE_TMPDIR/fixture-git-simple-with-upstream"
+  cat<<EOF>"$FIXTURE_GIT_UPSTREAM"
+CWD.full full path to current working directory
+CWD.basename basename of current working directory
+CWD.git_path +/
+CWD.home_path path from home
+Repo.name NO_DATA
+Repo.branch.name $DEFAULT_GIT_BRANCH_NAME
+Repo.status UP_TO_DATE
+Repo.ahead 0
+Repo.behind 0
+Staged.status UP_TO_DATE
+Staged.num 0
+Unstaged.status UP_TO_DATE
+Unstaged.num 0
+EOF
+  
 }
 
 select_fixture() {

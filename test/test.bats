@@ -286,7 +286,41 @@ load test_helper_functions
 
 # --------------------------------------------------
 @test "committing a change in a cloned repo" {
-  skip
+  # given we have a git repo
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "newfile" "some text"
+  cd -
+
+  # given we clone it
+  mkdir tmp
+  cd tmp
+  git clone ../myRepo
+  cd myRepo
+  helper__set_git_config
+
+  # given we commit a change
+  echo > newfile
+  git add newfile
+  git commit -m 'update the file'
+
+  # when we run the prompt
+  run -0 $TEST_FUNCTION
+
+  select_fixture "git-simple-with-upstream"
+  update_fixture CWD.full         $(realpath $PWD)
+  update_fixture CWD.basename     $(basename $PWD)
+  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
+  update_fixture Repo.name        'myRepo'
+
+  # then
+  # - should be ahead by one commit
+  update_fixture Repo.status      'MODIFIED'
+  update_fixture Repo.ahead       '1'
+  FIXTURE=$(commit_fixture)
+
+  diff $FIXTURE <(echo "$output")
+
 }
 
 # --------------------------------------------------
