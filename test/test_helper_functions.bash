@@ -78,7 +78,7 @@ Unstaged.status UP_TO_DATE
 Unstaged.num 0
 EOF
   
-  FIXTURE_GIT_UPSTREAM="$BATS_FILE_TMPDIR/fixture-git-simple-with-upstream"
+  FIXTURE_GIT_UPSTREAM="$BATS_FILE_TMPDIR/fixture-git-with-upstream"
   cat<<EOF>"$FIXTURE_GIT_UPSTREAM"
 CWD.full full path to current working directory
 CWD.basename basename of current working directory

@@ -303,7 +303,7 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-with-upstream"
+  select_fixture "git-with-upstream"
   update_fixture CWD.full         $(realpath $PWD)
   update_fixture CWD.basename     $(basename $PWD)
   update_fixture CWD.home_path    "${PWD/$HOME/\~}"
@@ -340,7 +340,7 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-with-upstream"
+  select_fixture "git-with-upstream"
   update_fixture CWD.full         $(realpath $PWD)
   update_fixture CWD.basename     $(basename $PWD)
   update_fixture CWD.home_path    "${PWD/$HOME/\~}"
@@ -378,7 +378,7 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-with-upstream"
+  select_fixture "git-with-upstream"
   update_fixture CWD.full         $(realpath $PWD)
   update_fixture CWD.basename     $(basename $PWD)
   update_fixture CWD.home_path    "${PWD/$HOME/\~}"
@@ -423,7 +423,7 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-with-upstream"
+  select_fixture "git-with-upstream"
   update_fixture CWD.full         $(realpath $PWD)
   update_fixture CWD.basename     $(basename $PWD)
   update_fixture CWD.home_path    "${PWD/$HOME/\~}"
@@ -476,7 +476,7 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-with-upstream"
+  select_fixture "git-with-upstream"
   update_fixture CWD.full         $(realpath $PWD)
   update_fixture CWD.basename     $(basename $PWD)
   update_fixture CWD.home_path    "${PWD/$HOME/\~}"
