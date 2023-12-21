@@ -209,7 +209,27 @@ load test_helper_functions
 
 # --------------------------------------------------
 @test "changing localbranch" {
-  skip
+  # given we have a git repo
+  helper__new_repo_and_commit "newfile" "some text"
+
+  # given we change localbranch
+  git checkout -b featureBranch
+
+  # when we run the prompt lib
+  run -0 $TEST_FUNCTION
+
+  select_fixture "git-simple-no-upstream"
+  update_fixture CWD.full         $(realpath $PWD)
+  update_fixture CWD.basename     $(basename $PWD)
+  update_fixture CWD.git_path     '+/'
+  update_fixture CWD.home_path    "${PWD/$HOME/\~\/}"
+  update_fixture Repo.name        $(basename $(git rev-parse --show-toplevel))
+
+  # then the branch.name should be 'featureBranch'
+  update_fixture Repo.branch.name 'featureBranch'
+  FIXTURE=$(commit_fixture)
+
+  diff $FIXTURE <(echo "$output")
 }
 
 # --------------------------------------------------
