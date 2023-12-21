@@ -285,6 +285,79 @@ load test_helper_functions
 }
 
 # --------------------------------------------------
+@test "edit a tracked file in a cloned repo" {
+  # given we have a git repo
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "newfile" "some text"
+  cd -
+
+  # given we clone it
+  mkdir tmp
+  cd tmp
+  git clone ../myRepo
+  cd myRepo
+  helper__set_git_config
+
+  # given we commit a change
+  echo > newfile
+
+  # when we run the prompt
+  run -0 $TEST_FUNCTION
+
+  select_fixture "git-simple-with-upstream"
+  update_fixture CWD.full         $(realpath $PWD)
+  update_fixture CWD.basename     $(basename $PWD)
+  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
+  update_fixture Repo.name        'myRepo'
+
+  # then
+  # - should be ahead by one commit
+  update_fixture Unstaged.status  'MODIFIED'
+  update_fixture Unstaged.num     '1'
+  FIXTURE=$(commit_fixture)
+
+  diff $FIXTURE <(echo "$output")
+}
+
+# --------------------------------------------------
+@test "stage a file in a cloned repo" {
+  # given we have a git repo
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "newfile" "some text"
+  cd -
+
+  # given we clone it
+  mkdir tmp
+  cd tmp
+  git clone ../myRepo
+  cd myRepo
+  helper__set_git_config
+
+  # given we commit a change
+  echo > newfile
+  git add newfile
+
+  # when we run the prompt
+  run -0 $TEST_FUNCTION
+
+  select_fixture "git-simple-with-upstream"
+  update_fixture CWD.full         $(realpath $PWD)
+  update_fixture CWD.basename     $(basename $PWD)
+  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
+  update_fixture Repo.name        'myRepo'
+
+  # then
+  # - should be ahead by one commit
+  update_fixture Staged.status  'MODIFIED'
+  update_fixture Staged.num     '1'
+  FIXTURE=$(commit_fixture)
+
+  diff $FIXTURE <(echo "$output")
+}
+
+# --------------------------------------------------
 @test "committing a change in a cloned repo" {
   # given we have a git repo
   mkdir myRepo
@@ -320,7 +393,6 @@ load test_helper_functions
   FIXTURE=$(commit_fixture)
 
   diff $FIXTURE <(echo "$output")
-
 }
 
 # --------------------------------------------------
