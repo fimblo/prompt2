@@ -397,17 +397,104 @@ load test_helper_functions
 
 # --------------------------------------------------
 @test "when local is behind upstream" {
-  skip
-}
+  # given we have a git repo
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "newfile" "some text"
+  cd -
 
-# --------------------------------------------------
-@test "when local is ahead of upstream" {
-  skip
+  # given we clone it to anotherLocation/myRepo
+  mkdir anotherLocation
+  cd anotherLocation
+  git clone ../myRepo
+  cd myRepo
+  helper__set_git_config
+  cd ../..
+
+  # given we commit a change in the first repo 
+  cd myRepo
+  echo "new text" > newfile
+  git add newfile
+  git commit -m 'update the file with "new text"'
+  cd -
+
+  # given we git fetch in anotherLocation/myRepo
+  cd anotherLocation/myRepo
+  git fetch
+
+  # when we run the prompt
+  run -0 $TEST_FUNCTION
+
+  select_fixture "git-simple-with-upstream"
+  update_fixture CWD.full         $(realpath $PWD)
+  update_fixture CWD.basename     $(basename $PWD)
+  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
+  update_fixture Repo.name        'myRepo'
+
+  # then
+  # - should be behind by one commit
+  update_fixture Repo.status      'MODIFIED'
+  update_fixture Repo.behind      '1'
+  FIXTURE=$(commit_fixture)
+
+  diff $FIXTURE <(echo "$output")
+  
 }
 
 # --------------------------------------------------
 @test "when local is both ahead and behind upstream" {
-  skip
+  # given we have a git repo
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "newfile" "some text"
+  cd -
+
+  # given we clone it to anotherLocation/myRepo
+  mkdir anotherLocation
+  cd anotherLocation
+  git clone ../myRepo
+  cd myRepo
+  helper__set_git_config
+  cd ../..
+
+  # given we commit a change in the first repo 
+  cd myRepo
+  echo "new text" > newfile
+  git add newfile
+  git commit -m 'update the file with "new text"'
+  cd -
+
+  # given we commit another change in anotherLocation/myRepo
+  cd anotherLocation/myRepo
+  echo "new text2" > otherfile
+  git add otherfile
+  git commit -m 'update a file with "new text2"'
+  cd -
+
+  # given we git fetch in anotherLocation/myRepo
+  cd anotherLocation/myRepo
+  git fetch
+
+
+  # when we run the prompt
+  run -0 $TEST_FUNCTION
+
+  select_fixture "git-simple-with-upstream"
+  update_fixture CWD.full         $(realpath $PWD)
+  update_fixture CWD.basename     $(basename $PWD)
+  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
+  update_fixture Repo.name        'myRepo'
+
+  # then
+  # - should be ahead by one commit
+  # - .. and behind by one
+  update_fixture Repo.status      'MODIFIED'
+  update_fixture Repo.ahead       '1'
+  update_fixture Repo.behind      '1'
+  
+  FIXTURE=$(commit_fixture)
+
+  diff $FIXTURE <(echo "$output")
 }
 
 # --------------------------------------------------
