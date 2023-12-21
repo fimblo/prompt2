@@ -248,7 +248,40 @@ load test_helper_functions
 
 # --------------------------------------------------
 @test "cloning a repo and entering it" {
-  skip
+  # given we have a git repo
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "newfile" "some text"
+  cd -
+
+  # given we clone it
+  mkdir tmp
+  cd tmp
+  git clone ../myRepo
+  cd myRepo
+  helper__set_git_config
+
+
+  # when we run the prompt
+  run -0 $TEST_FUNCTION
+
+  select_fixture "git-simple-no-upstream"
+  update_fixture CWD.full         $(realpath $PWD)
+  update_fixture CWD.basename     $(basename $PWD)
+  update_fixture CWD.git_path     '+/'
+  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
+
+  # then
+  # - the repo name should be 'myRepo'
+  # - and it should be in sync with remote
+  update_fixture Repo.name        'myRepo'
+  update_fixture Repo.status      'UP_TO_DATE'
+  update_fixture Repo.ahead       '0'
+  update_fixture Repo.behind      '0'
+  FIXTURE=$(commit_fixture)
+
+  diff $FIXTURE <(echo "$output")
+
 }
 
 # --------------------------------------------------
