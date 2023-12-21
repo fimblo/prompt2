@@ -16,18 +16,21 @@ load test_helper_functions
   # Given
   # - we're in HOME
   # - it's not a git repo
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - full-path should point all the way to HOME
+  # - basename should contain the name of the directory of HOME
+  # - home_path should print ~/
+  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
   select_fixture "no-git"
-  update_fixture CWD.full      $(realpath $PWD)
+  update_fixture CWD.full      $(realpath $HOME)
   update_fixture CWD.basename  $(basename $PWD)
   update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
   FIXTURE=$(commit_fixture)
 
-  # When
-  # - we test the lib
-  run -0 $TEST_FUNCTION
-
-  # Then
-  # - We should get zero diff
   diff $FIXTURE <(echo "$output")
 }
 
@@ -38,22 +41,27 @@ load test_helper_functions
   # - it's not a git repo
   tmpdir=$(mktemp -d "$HOME/tmp.XXXXXX")
   cd $tmpdir
-  select_fixture "no-git"
-  update_fixture CWD.full      $(realpath $PWD)
-  update_fixture CWD.basename  $(basename $PWD)
-  update_fixture CWD.home_path "${PWD/$HOME/\~}"
-  FIXTURE=$(commit_fixture)
 
-  # When
-  # - we test the lib
+  # When we test the prompt lib
   run -0 $TEST_FUNCTION
 
   # Then
-  # - We should get zero diff
+  # - full path should be $HOME/tmp.XXXXXX
+  # - basename should be tmp.XXXXXX
+  # - home_path should be ~/tmp.XXXXXX
+  select_fixture "no-git"
+  update_fixture CWD.full      $tmpdir
+  update_fixture CWD.basename  $(basename $tmpdir)
+  update_fixture CWD.home_path "${PWD/$HOME/\~}"
+  FIXTURE=$(commit_fixture)
+
   diff $FIXTURE <(echo "$output")
+  ec=$?
 
   # cleanup
   rm -rf $tmpdir
+
+  return $ec
 }
 
 # --------------------------------------------------
@@ -61,26 +69,29 @@ load test_helper_functions
   # Given
   # - we're in a dir outside of HOME
   # - it's not a git repo
-  
-  tmpdir=$(mktemp -d "/tmp/tmp.XXXXXX")
-  cd $(realpath $tmpdir)
+  tmpdir=$(realpath $(mktemp -d "/tmp/tmp.XXXXXX"))
+  cd $tmpdir
 
+
+  # When  we test the prompt lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - full path should point at /tmp/tmp.XXXXXX
+  # - basename should be tmp.XXXXXX
+  # - home_path should be the same as fullpath
   select_fixture "no-git"
-  update_fixture CWD.full      $(realpath $PWD)
+  update_fixture CWD.full      $tmpdir
   update_fixture CWD.basename  $(basename $PWD)
   update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
   FIXTURE=$(commit_fixture)
 
-  # When
-  # - we test the lib
-  run -0 $TEST_FUNCTION
-
-  # Then
-  # - We should get zero diff
   diff $FIXTURE <(echo "$output")
+  ec=$?
 
   # cleanup
   rm -rf $tmpdir
+  return $ec
 }
 
 # --------------------------------------------------
@@ -89,15 +100,14 @@ load test_helper_functions
   # - we create an empty git repo
   helper__new_repo
 
+  # When  we test the prompt lib
+  run -0 $TEST_FUNCTION
+
   select_fixture "no-git"
-  update_fixture CWD.full      $(realpath $PWD)
+  update_fixture CWD.full      $(realpath $HOME)
   update_fixture CWD.basename  $(basename $PWD)
   update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
   FIXTURE=$(commit_fixture)
-
-  # When
-  # - we test the lib
-  run -0 $TEST_FUNCTION
 
   # Then
   # - We should get zero diff
@@ -159,24 +169,22 @@ load test_helper_functions
   helper__new_repo_and_commit "newfile" "some text"
   echo > newfile
 
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+
   select_fixture "git-simple-no-upstream"
   update_fixture CWD.full         $(realpath $PWD)
   update_fixture CWD.basename     $(basename $PWD)
   update_fixture CWD.git_path     '+/'
   update_fixture CWD.home_path    "${PWD/$HOME/\~\/}"
-
   update_fixture Repo.name        $(basename $PWD)
+
+  # Then we should find one unstaged file
   update_fixture Unstaged.status  'MODIFIED'
   update_fixture Unstaged.num     '1'
-
   FIXTURE=$(commit_fixture)
 
-  # When
-  # - we test the lib
-  run -0 $TEST_FUNCTION
-
-  # Then
-  # - We should get zero diff
   diff $FIXTURE <(echo "$output")
 }
 
@@ -188,21 +196,22 @@ load test_helper_functions
   mkdir -p subdir
   cd subdir
 
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+
   select_fixture "git-simple-no-upstream"
   update_fixture CWD.full         $(realpath $PWD)
   update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.git_path     '+/subdir'
   update_fixture CWD.home_path    "${PWD/$HOME/\~}"
 
-  update_fixture Repo.name        $(basename $(git rev-parse --show-toplevel))
-  FIXTURE=$(commit_fixture)
-
-  # When
-  # - we test the lib
-  run -0 $TEST_FUNCTION
-
   # Then
-  # - We should get zero diff
+  # - the repo name should stay the same
+  # - and the git_path should be updated
+  update_fixture Repo.name        $(basename $(git rev-parse --show-toplevel))
+  update_fixture CWD.git_path     '+/subdir'
+  FIXTURE=$(commit_fixture)
+  
   diff $FIXTURE <(echo "$output")
 
 }
