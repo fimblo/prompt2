@@ -181,6 +181,33 @@ load test_helper_functions
 }
 
 # --------------------------------------------------
+@test "cd to subdirectory in a git repo" {
+  # Given
+  # - we chdir to a subdirectory
+  helper__new_repo_and_commit "newfile" "some text"
+  mkdir -p subdir
+  cd subdir
+
+  select_fixture "git-simple-no-upstream"
+  update_fixture CWD.full         $(realpath $PWD)
+  update_fixture CWD.basename     $(basename $PWD)
+  update_fixture CWD.git_path     '+/subdir'
+  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
+
+  update_fixture Repo.name        $(basename $(git rev-parse --show-toplevel))
+  FIXTURE=$(commit_fixture)
+
+  # When
+  # - we test the lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - We should get zero diff
+  diff $FIXTURE <(echo "$output")
+
+}
+
+# --------------------------------------------------
 @test "changing localbranch" {
   skip
 }
