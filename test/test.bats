@@ -151,7 +151,31 @@ load test_helper_functions
 
 # --------------------------------------------------
 @test "modifying tracked file" {
-  skip
+  # Given
+  # - we create an empty git repo with one tracked file
+  # - we modify it
+  helper__new_repo_and_commit "newfile" "some text"
+  echo > newfile
+
+  select_fixture "git-simple-no-upstream"
+  update_fixture CWD.full         $(realpath $PWD)
+  update_fixture CWD.basename     $(basename $PWD)
+  update_fixture CWD.git_path     '+/'
+  update_fixture CWD.home_path    "${PWD/$HOME/\~\/}"
+
+  update_fixture Repo.name        $(basename $PWD)
+  update_fixture Unstaged.status  'MODIFIED'
+  update_fixture Unstaged.num     '1'
+
+  FIXTURE=$(commit_fixture)
+
+  # When
+  # - we test the lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - We should get zero diff
+  diff $FIXTURE <(echo "$output")
 }
 
 # --------------------------------------------------
