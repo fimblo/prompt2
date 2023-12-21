@@ -218,7 +218,6 @@ load test_helper_functions
   FIXTURE=$(commit_fixture)
   
   diff $FIXTURE <(echo "$output")
-
 }
 
 # --------------------------------------------------
@@ -281,7 +280,6 @@ load test_helper_functions
   FIXTURE=$(commit_fixture)
 
   diff $FIXTURE <(echo "$output")
-
 }
 
 # --------------------------------------------------
@@ -438,7 +436,6 @@ load test_helper_functions
   FIXTURE=$(commit_fixture)
 
   diff $FIXTURE <(echo "$output")
-  
 }
 
 # --------------------------------------------------
