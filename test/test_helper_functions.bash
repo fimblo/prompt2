@@ -61,7 +61,7 @@ Unstaged.status NO_DATA
 Unstaged.num -1
 EOF
   
-  FIXTURE_GIT_SIMPLE="$BATS_FILE_TMPDIR/fixture-git-simple"
+  FIXTURE_GIT_SIMPLE="$BATS_FILE_TMPDIR/fixture-git-simple-no-upstream"
   cat<<EOF>"$FIXTURE_GIT_SIMPLE"
 CWD.full full path to current working directory
 CWD.basename basename of current working directory
@@ -69,9 +69,9 @@ CWD.git_path path from git project root
 CWD.home_path path from home
 Repo.name NO_DATA
 Repo.branch.name $DEFAULT_GIT_BRANCH_NAME
-Repo.status UP_TO_DATE
-Repo.ahead 0
-Repo.behind 0
+Repo.status NO_UPSTREAM
+Repo.ahead -1
+Repo.behind -1
 Staged.status UP_TO_DATE
 Staged.num 0
 Unstaged.status UP_TO_DATE
