@@ -49,10 +49,12 @@ load test_helper_functions
   # - full path should be $HOME/tmp.XXXXXX
   # - basename should be tmp.XXXXXX
   # - home_path should be ~/tmp.XXXXXX
+  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
   select_fixture "no-git"
   update_fixture CWD.full      $tmpdir
   update_fixture CWD.basename  $(basename $tmpdir)
   update_fixture CWD.home_path "${PWD/$HOME/\~}"
+  # CWD.git_path NO_DATA # see fixture: no-git
   FIXTURE=$(commit_fixture)
 
   diff $FIXTURE <(echo "$output")
@@ -80,10 +82,12 @@ load test_helper_functions
   # - full path should point at /tmp/tmp.XXXXXX
   # - basename should be tmp.XXXXXX
   # - home_path should be the same as fullpath
+  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
   select_fixture "no-git"
   update_fixture CWD.full      $tmpdir
   update_fixture CWD.basename  $(basename $PWD)
   update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
+  # CWD.git_path NO_DATA # see fixture: no-git
   FIXTURE=$(commit_fixture)
 
   diff $FIXTURE <(echo "$output")
@@ -103,14 +107,16 @@ load test_helper_functions
   # When  we test the prompt lib
   run -0 $TEST_FUNCTION
 
+
+  # Then
+  # - it should behave as if it was a normal (non-git) directory
+  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
   select_fixture "no-git"
   update_fixture CWD.full      $(realpath $HOME)
   update_fixture CWD.basename  $(basename $PWD)
   update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
   FIXTURE=$(commit_fixture)
 
-  # Then
-  # - We should get zero diff
   diff $FIXTURE <(echo "$output")
 }
 
