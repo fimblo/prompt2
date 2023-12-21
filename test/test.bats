@@ -127,18 +127,19 @@ load test_helper_functions
   # - we add (but do not commit) a file
   helper__new_repo_and_add_file "newfile" "some text"
 
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - it should behave as if it was a normal (non-git) directory
+  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
   select_fixture "no-git"
   update_fixture CWD.full      $(realpath $PWD)
   update_fixture CWD.basename  $(basename $PWD)
   update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
   FIXTURE=$(commit_fixture)
 
-  # When
-  # - we test the lib
-  run -0 $TEST_FUNCTION
-
-  # Then
-  # - We should get zero diff
   diff $FIXTURE <(echo "$output")
 }
 
@@ -149,21 +150,21 @@ load test_helper_functions
   # - we commit a new file
   helper__new_repo_and_commit "newfile" "some text"
 
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+
   select_fixture "git-simple-no-upstream"
   update_fixture CWD.full         $(realpath $PWD)
   update_fixture CWD.basename     $(basename $PWD)
+
+  # Then
+  # - git_path should be set to +/
+  # - repo name should be set to basename of pwd
   update_fixture CWD.git_path     '+/'
   update_fixture CWD.home_path    "${PWD/$HOME/\~\/}"
-
   update_fixture Repo.name        $(basename $PWD)
   FIXTURE=$(commit_fixture)
 
-  # When
-  # - we test the lib
-  run -0 $TEST_FUNCTION
-
-  # Then
-  # - We should get zero diff
   diff $FIXTURE <(echo "$output")
 }
 
@@ -174,7 +175,6 @@ load test_helper_functions
   # - we modify it
   helper__new_repo_and_commit "newfile" "some text"
   echo > newfile
-
 
   # When we test the prompt lib
   run -0 $TEST_FUNCTION
@@ -201,7 +201,6 @@ load test_helper_functions
   helper__new_repo_and_commit "newfile" "some text"
   mkdir -p subdir
   cd subdir
-
 
   # When we test the prompt lib
   run -0 $TEST_FUNCTION
