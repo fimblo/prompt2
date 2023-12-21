@@ -108,6 +108,7 @@ load test_helper_functions
 @test "adding file to empty git repo does nothing" {
   # Given
   # - we create an empty git repo
+  # - we add (but do not commit) a file
   helper__new_repo_and_add_file "newfile" "some text"
 
   select_fixture "no-git"
@@ -129,6 +130,7 @@ load test_helper_functions
 @test "committing in empty git repo updates state" {
   # Given
   # - we create an empty git repo
+  # - we commit a new file
   helper__new_repo_and_commit "newfile" "some text"
 
   select_fixture "git-simple-no-upstream"
