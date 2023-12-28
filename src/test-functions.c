@@ -35,6 +35,7 @@ int main(void) {
   printf("Unstaged.num %d\n",     status.unstaged_changes_num);
 
   printf("Conflict.num %d\n",     status.conflict_num);
+  printf("Repo.rebase_in_progress %d\n",     checkForInteractiveRebase(&context, &status));
 
 
   cleanupResources(&context);

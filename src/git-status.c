@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <sys/stat.h>
 
 #include "git-status.h"
 
@@ -45,6 +46,7 @@ void setDefaultValues(struct RepoContext *context, struct RepoStatus *status) {
   status->unstaged_changes_num = -1;
 
   status->conflict_num         = -1;
+  status->rebase_in_progress   = 0;
 }
 
 
@@ -290,6 +292,20 @@ int getRepoDivergence(struct RepoContext *context,
   return 1;
 }
 
+int checkForInteractiveRebase(struct RepoContext *context, struct RepoStatus *status) {
+  char rebaseMergePath[PATH_MAX];
+  char rebaseApplyPath[PATH_MAX];
+  snprintf(rebaseMergePath, sizeof(rebaseMergePath), "%s/.git/rebase-merge", context->repo_path);
+  snprintf(rebaseApplyPath, sizeof(rebaseApplyPath), "%s/.git/rebase-apply", context->repo_path);
+
+  struct stat mergeStat, applyStat;
+  if (stat(rebaseMergePath, &mergeStat) == 0 || stat(rebaseApplyPath, &applyStat) == 0) {
+    status->rebase_in_progress = 1;
+    return 1;
+  }
+  return 0;
+}
+
 const char *getCWDFull(struct RepoStatus *status) {
   static char cwd_path[PATH_MAX];
   getcwd(cwd_path, sizeof(cwd_path));
@@ -368,3 +384,4 @@ void cleanupResources(struct RepoContext *context) {
     context->status_list = NULL;
   }
 }
+

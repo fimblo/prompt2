@@ -428,6 +428,7 @@ load test_helper_functions
   echo "$output" > "$HOME/assert-file"
   assert Repo.status       'NO_UPSTREAM'
   assert Conflict.num      '1'
+  assert Repo.rebase_in_progress '1'
 }
 
 # --------------------------------------------------
@@ -525,10 +526,40 @@ load test_helper_functions
   assert Staged.num        '0'
   assert Repo.status       'NO_UPSTREAM'
   assert Conflict.num      '0'
+  assert Repo.rebase_in_progress '1'
 }
 
 # --------------------------------------------------
 @test "interactive rebase" {
-  skip
+  # given we have a git repo which we have some commits on
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "newfile" "some text"
+  echo "hello" > newfile
+  git commit -a -m '2nd commit'
+  echo "bye" > newfile
+  git commit -a -m '3rd commit'
+
+  # when we enter an interactive rebase session
+  cat<<-EOF>edit.sh
+	#!/bin/bash
+	sed -i'bak' 's/^pick/edit/' \$1
+	EOF
+  chmod 755 edit.sh
+  cat edit.sh >&2
+  GIT_SEQUENCE_EDITOR=./edit.sh git rebase -i HEAD^1
+
+  run -0 $TEST_FUNCTION
+  
+  # Then number of conflicts should be zero
+  # .. Staged.status should be UP_TO_DATE
+  # .. number of staged should be 0
+  # .. and Repo.status is still NO_UPSTREAM
+  echo "$output" > "$HOME/assert-file"
+  assert Staged.status     'UP_TO_DATE'
+  assert Staged.num        '0'
+  assert Repo.status       'NO_UPSTREAM'
+  assert Conflict.num      '0'
+  assert Repo.rebase_in_progress '1'
 }
 

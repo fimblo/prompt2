@@ -69,6 +69,7 @@ const char * getBranchName(struct RepoContext *context, struct RepoStatus *statu
 int getRepoStatus(struct RepoContext *context, struct RepoStatus *status);
 int getRepoDivergence(struct RepoContext *context,
                        struct RepoStatus *status);
+int checkForInteractiveRebase(struct RepoContext *context, struct RepoStatus *status);
 
 const char *getCWDFull(struct RepoStatus *status);
 const char *getCWDBasename(struct RepoStatus *status);
