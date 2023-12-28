@@ -43,6 +43,8 @@ void setDefaultValues(struct RepoContext *context, struct RepoStatus *status) {
 
   status->status_unstaged      = NO_DATA;
   status->unstaged_changes_num = -1;
+
+  status->conflict_num         = -1;
 }
 
 
@@ -193,6 +195,7 @@ int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
   // Now iterate
   int staged_changes   = 0;
   int unstaged_changes = 0;
+  int conflicts        = 0;
 
   int status_count = git_status_list_entrycount(status_list);
   for (int i = 0; i < status_count; i++) {
@@ -201,7 +204,7 @@ int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
 
     // Check for conflicts
     if (entry->status & GIT_STATUS_CONFLICTED)
-      status->conflict_num++;
+      conflicts++;
 
     // Check for staged changes
     if (entry->status & (GIT_STATUS_INDEX_NEW      |
@@ -232,6 +235,7 @@ int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
 
   status->staged_changes_num = staged_changes;
   status->unstaged_changes_num = unstaged_changes;
+  status->conflict_num = conflicts;
 
   return 1;
 }

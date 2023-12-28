@@ -418,23 +418,113 @@ load test_helper_functions
   echo "conflicting change in cloned repo" > commonfile
   git add commonfile
   git commit -m 'conflicting change in cloned repo'
-  cd -
-
 
   # When running the test function, expect a conflict
-  cd anotherLocation/myRepo
-  git fetch
+  git pull || true  #force happy ending else test fails
   run -0 $TEST_FUNCTION
 
-  # Then check for conflict status and number
+  # Then check that conflict_num has increased to 1
+  # .. and that Repo.status is changed to NO_UPSTREAM
   echo "$output" > "$HOME/assert-file"
-  assert Conflict.status   'TRUE'
+  assert Repo.status       'NO_UPSTREAM'
   assert Conflict.num      '1'
 }
 
 # --------------------------------------------------
-@test "an add after conflict" {
-  skip
+@test "when adding file after conflict" {
+  # Setup: Create a git repo and clone it
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "commonfile" "initial text"
+  cd -
+
+  mkdir anotherLocation
+  cd anotherLocation
+  git clone ../myRepo
+  cd myRepo
+  helper__set_git_config
+  cd ../..
+
+  # Given a change in the original repo
+  cd myRepo
+  echo "change in original repo" > commonfile
+  git add commonfile
+  git commit -m 'change in original repo'
+  cd -
+
+  # Given a change to the same file in the cloned repo
+  cd anotherLocation/myRepo
+  echo "conflicting change in cloned repo" > commonfile
+  git add commonfile
+  git commit -m 'conflicting change in cloned repo'
+
+  # Given a conflict
+  git pull || true  #force happy ending else test fails
+
+  # When fixing the problem and adding it
+  echo "tomato" > commonfile
+  git add commonfile
+
+  run -0 $TEST_FUNCTION
+
+  # Then number of conflicts should decrease to zero
+  # .. Staged.status should be MODIFIED
+  # .. number of staged should be 1
+  # .. and Repo.status is still NO_UPSTREAM
+  echo "$output" > "$HOME/assert-file"
+  assert Staged.status     'MODIFIED'
+  assert Staged.num        '1'
+  assert Repo.status       'NO_UPSTREAM'
+  assert Conflict.num      '0'
+}
+
+# --------------------------------------------------
+@test "when committing file after conflict" {
+  # Setup: Create a git repo and clone it
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "commonfile" "initial text"
+  cd -
+
+  mkdir anotherLocation
+  cd anotherLocation
+  git clone ../myRepo
+  cd myRepo
+  helper__set_git_config
+  cd ../..
+
+  # Given a change in the original repo
+  cd myRepo
+  echo "change in original repo" > commonfile
+  git add commonfile
+  git commit -m 'change in original repo'
+  cd -
+
+  # Given a change to the same file in the cloned repo
+  cd anotherLocation/myRepo
+  echo "conflicting change in cloned repo" > commonfile
+  git add commonfile
+  git commit -m 'conflicting change in cloned repo'
+
+  # Given a conflict
+  git pull || true  #force happy ending else test fails
+
+  # When resolving the conflict and committing it
+  echo "tomato" > commonfile
+  git add commonfile
+  git commit -m 'resolve conflicting change'
+
+  run -0 $TEST_FUNCTION
+
+  # Then number of conflicts should be zero
+  # .. Staged.status should be UP_TO_DATE
+  # .. number of staged should be 0
+  # .. and Repo.status is still NO_UPSTREAM
+  echo "$output" > "$HOME/assert-file"
+  assert Staged.status     'UP_TO_DATE'
+  assert Staged.num        '0'
+  assert Repo.status       'NO_UPSTREAM'
+  assert Conflict.num      '0'
 }
 
 # --------------------------------------------------
