@@ -41,88 +41,8 @@ helper__new_repo_and_commit() {
 
 
 # --------------------------------------------------
-# Helper functions to create, select and update fixtures
+# Helper functions for assisting with tests
 # --------------------------------------------------
-create_fixtures_before_tests() {
-  FIXTURE_NO_GIT="$BATS_FILE_TMPDIR/fixture-no-git"
-  cat<<EOF>"$FIXTURE_NO_GIT"
-CWD.full full path to current working directory
-CWD.basename basename of current working directory
-CWD.git_path NO_DATA
-CWD.home_path path from home
-Repo.name NO_DATA
-Repo.branch.name NO_DATA
-Repo.status NO_DATA
-Repo.ahead -1
-Repo.behind -1
-Staged.status NO_DATA
-Staged.num -1
-Unstaged.status NO_DATA
-Unstaged.num -1
-EOF
-  
-  FIXTURE_GIT_SIMPLE="$BATS_FILE_TMPDIR/fixture-git-simple-no-upstream"
-  cat<<EOF>"$FIXTURE_GIT_SIMPLE"
-CWD.full full path to current working directory
-CWD.basename basename of current working directory
-CWD.git_path path from git project root
-CWD.home_path path from home
-Repo.name NO_DATA
-Repo.branch.name $DEFAULT_GIT_BRANCH_NAME
-Repo.status NO_UPSTREAM
-Repo.ahead -1
-Repo.behind -1
-Staged.status UP_TO_DATE
-Staged.num 0
-Unstaged.status UP_TO_DATE
-Unstaged.num 0
-EOF
-  
-  FIXTURE_GIT_UPSTREAM="$BATS_FILE_TMPDIR/fixture-git-with-upstream"
-  cat<<EOF>"$FIXTURE_GIT_UPSTREAM"
-CWD.full full path to current working directory
-CWD.basename basename of current working directory
-CWD.git_path +/
-CWD.home_path path from home
-Repo.name NO_DATA
-Repo.branch.name $DEFAULT_GIT_BRANCH_NAME
-Repo.status UP_TO_DATE
-Repo.ahead 0
-Repo.behind 0
-Staged.status UP_TO_DATE
-Staged.num 0
-Unstaged.status UP_TO_DATE
-Unstaged.num 0
-EOF
-  
-}
-
-select_fixture() {
-  fixture_name="fixture-$1"
-  if [[ -e "$BATS_FILE_TMPDIR/$fixture_name" ]] ; then
-    FIXTURE_COPY="$BATS_TEST_TMPDIR/fixture_selected"
-    cp "$BATS_FILE_TMPDIR/$fixture_name" "$FIXTURE_COPY"
-    return 0
-  fi
-
-  echo "No fixture with name '$fixture_name'." > /dev/stderr
-  return 1
-}
-
-update_fixture() {
-  name="$1"
-  value="$2"
-  echo "$name $value" >> "$BATS_TEST_TMPDIR/fixture_edit"
-}
-
-commit_fixture() {
-  temp=$(mktemp)
-  awk 'NR==FNR{a[$1]=$0; next} $1 in a{print a[$1]; next} 1' \
-      "$BATS_TEST_TMPDIR/fixture_edit" \
-      "$BATS_TEST_TMPDIR/fixture_selected" > "$temp"
-  mv "$temp" "$BATS_TEST_TMPDIR/fixture_selected"
-  echo "$BATS_TEST_TMPDIR/fixture_selected"
-}
 
 assert() {
   file="$HOME/assert-file"
@@ -145,9 +65,13 @@ assert() {
   return 1
 }
 
+# --------------------------------------------------
+# Regular set up and tear down functions
+# --------------------------------------------------
+
 # These two functions run before and after all tests.
 setup_file() {
-  create_fixtures_before_tests
+  true
 }
 teardown_file() {
   rm -rf "$BATS_FILE_TMPDIR"
