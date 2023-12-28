@@ -124,6 +124,26 @@ commit_fixture() {
   echo "$BATS_TEST_TMPDIR/fixture_selected"
 }
 
+assert() {
+  file="$HOME/assert-file"
+  key="$1"
+  expected_value="$2"
+
+  if [[ ! -e $file ]] ; then
+    echo "file '$file' does not exist."
+    echo "ensure test output is stored there"
+    exit 1
+  fi
+
+  received_value=$(grep "^$key" "$file" | cut -d' ' -f2)
+  if [[ "$expected_value" == "$received_value" ]] ; then
+    return 0
+  fi
+  
+  echo "Expected: '$key' '$expected_value'" > /dev/stderr
+  echo "Received: '$key' '$received_value'" > /dev/stderr
+  return 1
+}
 
 # These two functions run before and after all tests.
 setup_file() {
