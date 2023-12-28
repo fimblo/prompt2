@@ -16,16 +16,6 @@ enum states {
 
 extern const char *state_names[ENUM_SIZE];
 
-enum exit_code {
-  // success codes
-  EXIT_GIT_PROMPT        =  0,
-  EXIT_DEFAULT_PROMPT    =  1,
-  EXIT_ABSENT_LOCAL_REF  =  2,
-
-  // failure codes
-  EXIT_FAIL_GIT_STATUS   = -1,
-  EXIT_FAIL_REPO_OBJ     = -2,
-};
 
 // data for internal functions
 struct RepoContext {
