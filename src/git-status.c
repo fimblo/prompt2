@@ -5,12 +5,12 @@
 */
 #include <git2.h>
 #include <libgen.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <limits.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "git-status.h"
 
