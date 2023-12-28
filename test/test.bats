@@ -392,8 +392,44 @@ load test_helper_functions
 }
 
 # --------------------------------------------------
-@test "a conflict should update state" {
-  skip
+@test "when local has a merge conflict with upstream" {
+  # Setup: Create a git repo and clone it
+  mkdir myRepo
+  cd myRepo
+  helper__new_repo_and_commit "commonfile" "initial text"
+  cd -
+
+  mkdir anotherLocation
+  cd anotherLocation
+  git clone ../myRepo
+  cd myRepo
+  helper__set_git_config
+  cd ../..
+
+  # Given a change in the original repo
+  cd myRepo
+  echo "change in original repo" > commonfile
+  git add commonfile
+  git commit -m 'change in original repo'
+  cd -
+
+  # Given a change to the same file in the cloned repo
+  cd anotherLocation/myRepo
+  echo "conflicting change in cloned repo" > commonfile
+  git add commonfile
+  git commit -m 'conflicting change in cloned repo'
+  cd -
+
+
+  # When running the test function, expect a conflict
+  cd anotherLocation/myRepo
+  git fetch
+  run -0 $TEST_FUNCTION
+
+  # Then check for conflict status and number
+  echo "$output" > "$HOME/assert-file"
+  assert Conflict.status   'TRUE'
+  assert Conflict.num      '1'
 }
 
 # --------------------------------------------------
