@@ -24,14 +24,13 @@ load test_helper_functions
   # - full-path should point all the way to HOME
   # - basename should contain the name of the directory of HOME
   # - home_path should print ~/
-  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
-  select_fixture "no-git"
-  update_fixture CWD.full      $(realpath $HOME)
-  update_fixture CWD.basename  $(basename $PWD)
-  update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
-  FIXTURE=$(commit_fixture)
+  # - git_path should be NO_DATA
 
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert CWD.full      $(realpath $HOME)
+  assert CWD.basename  $(basename $PWD)
+  assert CWD.home_path "${PWD/$HOME/\~\/}"
+  assert CWD.git_path  "NO_DATA"
 }
 
 # --------------------------------------------------
@@ -49,21 +48,12 @@ load test_helper_functions
   # - full path should be $HOME/tmp.XXXXXX
   # - basename should be tmp.XXXXXX
   # - home_path should be ~/tmp.XXXXXX
-  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
-  select_fixture "no-git"
-  update_fixture CWD.full      $tmpdir
-  update_fixture CWD.basename  $(basename $tmpdir)
-  update_fixture CWD.home_path "${PWD/$HOME/\~}"
-  # CWD.git_path NO_DATA # see fixture: no-git
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
-  ec=$?
-
-  # cleanup
-  rm -rf $tmpdir
-
-  return $ec
+  # - git_path should be NO_DATA
+  echo "$output" > "$HOME/assert-file"
+  assert CWD.full      $tmpdir
+  assert CWD.basename  $(basename $tmpdir)
+  assert CWD.home_path "${PWD/$HOME/\~}"
+  assert CWD.git_path  "NO_DATA"
 }
 
 # --------------------------------------------------
@@ -82,20 +72,12 @@ load test_helper_functions
   # - full path should point at /tmp/tmp.XXXXXX
   # - basename should be tmp.XXXXXX
   # - home_path should be the same as fullpath
-  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
-  select_fixture "no-git"
-  update_fixture CWD.full      $tmpdir
-  update_fixture CWD.basename  $(basename $PWD)
-  update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
-  # CWD.git_path NO_DATA # see fixture: no-git
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
-  ec=$?
-
-  # cleanup
-  rm -rf $tmpdir
-  return $ec
+  # - git_path should be NO_DATA
+  echo "$output" > "$HOME/assert-file"
+  assert CWD.full      $(realpath $PWD)
+  assert CWD.basename  $(basename $PWD)
+  assert CWD.home_path "${PWD/$HOME/\~\/}"
+  assert CWD.git_path  "NO_DATA"
 }
 
 # --------------------------------------------------
@@ -110,14 +92,11 @@ load test_helper_functions
 
   # Then
   # - it should behave as if it was a normal (non-git) directory
-  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
-  select_fixture "no-git"
-  update_fixture CWD.full      $(realpath $HOME)
-  update_fixture CWD.basename  $(basename $PWD)
-  update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert CWD.full      $(realpath $PWD)
+  assert CWD.basename  $(basename $PWD)
+  assert CWD.home_path "${PWD/$HOME/\~\/}"
+  assert CWD.git_path  "NO_DATA"
 }
 
 # --------------------------------------------------
@@ -133,14 +112,11 @@ load test_helper_functions
 
   # Then
   # - it should behave as if it was a normal (non-git) directory
-  # - and all the git info should be NO_DATA or -1 (see fixture: FIXTURE_NO_GIT)
-  select_fixture "no-git"
-  update_fixture CWD.full      $(realpath $PWD)
-  update_fixture CWD.basename  $(basename $PWD)
-  update_fixture CWD.home_path "${PWD/$HOME/\~\/}"
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert CWD.full      $(realpath $PWD)
+  assert CWD.basename  $(basename $PWD)
+  assert CWD.home_path "${PWD/$HOME/\~\/}"
+  assert CWD.git_path  "NO_DATA"
 }
 
 # --------------------------------------------------
@@ -153,19 +129,14 @@ load test_helper_functions
   # When we test the prompt lib
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-no-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
 
   # Then
   # - git_path should be set to +/
   # - repo name should be set to basename of pwd
-  update_fixture CWD.git_path     '+/'
-  update_fixture CWD.home_path    "${PWD/$HOME/\~\/}"
-  update_fixture Repo.name        $(basename $PWD)
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert CWD.git_path     '+/'
+  assert CWD.home_path    "${PWD/$HOME/\~\/}"
+  assert Repo.name        $(basename $PWD)
 }
 
 # --------------------------------------------------
@@ -179,19 +150,10 @@ load test_helper_functions
   # When we test the prompt lib
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-no-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.git_path     '+/'
-  update_fixture CWD.home_path    "${PWD/$HOME/\~\/}"
-  update_fixture Repo.name        $(basename $PWD)
-
   # Then we should find one unstaged file
-  update_fixture Unstaged.status  'MODIFIED'
-  update_fixture Unstaged.num     '1'
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert Unstaged.status  'MODIFIED'
+  assert Unstaged.num     '1'
 }
 
 # --------------------------------------------------
@@ -205,19 +167,12 @@ load test_helper_functions
   # When we test the prompt lib
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-no-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
-
   # Then
   # - the repo name should stay the same
   # - and the git_path should be updated
-  update_fixture Repo.name        $(basename $(git rev-parse --show-toplevel))
-  update_fixture CWD.git_path     '+/subdir'
-  FIXTURE=$(commit_fixture)
-  
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert Repo.name        $(basename $(git rev-parse --show-toplevel))
+  assert CWD.git_path     '+/subdir'
 }
 
 # --------------------------------------------------
@@ -231,18 +186,9 @@ load test_helper_functions
   # when we run the prompt lib
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-no-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.git_path     '+/'
-  update_fixture CWD.home_path    "${PWD/$HOME/\~\/}"
-  update_fixture Repo.name        $(basename $(git rev-parse --show-toplevel))
-
   # then the branch.name should be 'featureBranch'
-  update_fixture Repo.branch.name 'featureBranch'
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert Repo.branch.name 'featureBranch'
 }
 
 # --------------------------------------------------
@@ -264,22 +210,14 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-simple-no-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.git_path     '+/'
-  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
-
   # then
   # - the repo name should be 'myRepo'
   # - and it should be in sync with remote
-  update_fixture Repo.name        'myRepo'
-  update_fixture Repo.status      'UP_TO_DATE'
-  update_fixture Repo.ahead       '0'
-  update_fixture Repo.behind      '0'
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert Repo.name        'myRepo'
+  assert Repo.status      'UP_TO_DATE'
+  assert Repo.ahead       '0'
+  assert Repo.behind      '0'
 }
 
 # --------------------------------------------------
@@ -303,19 +241,11 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-with-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
-  update_fixture Repo.name        'myRepo'
-
   # then
   # - should be ahead by one commit
-  update_fixture Unstaged.status  'MODIFIED'
-  update_fixture Unstaged.num     '1'
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert Unstaged.status  'MODIFIED'
+  assert Unstaged.num     '1'
 }
 
 # --------------------------------------------------
@@ -340,19 +270,11 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-with-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
-  update_fixture Repo.name        'myRepo'
-
   # then
   # - should be ahead by one commit
-  update_fixture Staged.status  'MODIFIED'
-  update_fixture Staged.num     '1'
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert Staged.status  'MODIFIED'
+  assert Staged.num     '1'
 }
 
 # --------------------------------------------------
@@ -378,19 +300,11 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-with-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
-  update_fixture Repo.name        'myRepo'
-
   # then
   # - should be ahead by one commit
-  update_fixture Repo.status      'MODIFIED'
-  update_fixture Repo.ahead       '1'
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert Repo.status      'MODIFIED'
+  assert Repo.ahead       '1'
 }
 
 # --------------------------------------------------
@@ -423,19 +337,11 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-with-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
-  update_fixture Repo.name        'myRepo'
-
   # then
   # - should be behind by one commit
-  update_fixture Repo.status      'MODIFIED'
-  update_fixture Repo.behind      '1'
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert Repo.status      'MODIFIED'
+  assert Repo.behind      '1'
 }
 
 # --------------------------------------------------
@@ -476,22 +382,13 @@ load test_helper_functions
   # when we run the prompt
   run -0 $TEST_FUNCTION
 
-  select_fixture "git-with-upstream"
-  update_fixture CWD.full         $(realpath $PWD)
-  update_fixture CWD.basename     $(basename $PWD)
-  update_fixture CWD.home_path    "${PWD/$HOME/\~}"
-  update_fixture Repo.name        'myRepo'
-
   # then
   # - should be ahead by one commit
   # - .. and behind by one
-  update_fixture Repo.status      'MODIFIED'
-  update_fixture Repo.ahead       '1'
-  update_fixture Repo.behind      '1'
-  
-  FIXTURE=$(commit_fixture)
-
-  diff $FIXTURE <(echo "$output")
+  echo "$output" > "$HOME/assert-file"
+  assert Repo.status      'MODIFIED'
+  assert Repo.ahead       '1'
+  assert Repo.behind      '1'
 }
 
 # --------------------------------------------------
