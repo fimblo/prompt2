@@ -29,7 +29,7 @@ struct RepoContext {
 };
 
 // data for the user
-struct RepoStatus {
+struct CurrentState {
   const char *cwd_full;
   const char *cwd_basename;
   const char *cwd_git_path;
@@ -52,19 +52,19 @@ struct RepoStatus {
   int rebase_in_progress;
 };
 
-void setDefaultValues(struct RepoContext *repo_context, struct RepoStatus *repo_status);
+void setDefaultValues(struct RepoContext *repo_context, struct CurrentState *state);
 int populateRepoContext(struct RepoContext *context, const char *path);
-const char * getRepoName(struct RepoContext *context, struct RepoStatus *status);
-const char * getBranchName(struct RepoContext *context, struct RepoStatus *status);
-int getRepoStatus(struct RepoContext *context, struct RepoStatus *status);
+const char * getRepoName(struct RepoContext *context, struct CurrentState *state);
+const char * getBranchName(struct RepoContext *context, struct CurrentState *state);
+int getRepoStatus(struct RepoContext *context, struct CurrentState *state);
 int getRepoDivergence(struct RepoContext *context,
-                       struct RepoStatus *status);
-int checkForInteractiveRebase(struct RepoContext *context, struct RepoStatus *status);
+                       struct CurrentState *state);
+int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *state);
 
-const char *getCWDFull(struct RepoStatus *status);
-const char *getCWDBasename(struct RepoStatus *status);
-const char *getCWDFromGitRepo(struct RepoContext *context, struct RepoStatus *status);
-const char *getCWDFromHome(struct RepoStatus *status);
+const char *getCWDFull(struct CurrentState *state);
+const char *getCWDBasename(struct CurrentState *state);
+const char *getCWDFromGitRepo(struct RepoContext *context, struct CurrentState *state);
+const char *getCWDFromHome(struct CurrentState *state);
 void cleanupResources(struct RepoContext *context);
 
 #endif //GITSTATUS_H

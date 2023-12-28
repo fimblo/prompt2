@@ -22,7 +22,7 @@ const char *state_names[ENUM_SIZE] = {
 };
 
 
-void setDefaultValues(struct RepoContext *context, struct RepoStatus *status) {
+void setDefaultValues(struct RepoContext *context, struct CurrentState *state) {
   // Internal things. Uninteresting for user
   context->repo_obj     = NULL;
   context->repo_path    = NULL;
@@ -32,21 +32,21 @@ void setDefaultValues(struct RepoContext *context, struct RepoStatus *status) {
 
 
   // External stuff. User prolly interested in these
-  status->repo_name    = NULL;
-  status->branch_name  = NULL;
+  state->repo_name    = NULL;
+  state->branch_name  = NULL;
 
-  status->status_repo          = NO_DATA;
-  status->ahead                = -1;
-  status->behind               = -1;
+  state->status_repo          = NO_DATA;
+  state->ahead                = -1;
+  state->behind               = -1;
 
-  status->status_staged        = NO_DATA;
-  status->staged_changes_num   = -1;
+  state->status_staged        = NO_DATA;
+  state->staged_changes_num   = -1;
 
-  status->status_unstaged      = NO_DATA;
-  status->unstaged_changes_num = -1;
+  state->status_unstaged      = NO_DATA;
+  state->unstaged_changes_num = -1;
 
-  status->conflict_num         = -1;
-  status->rebase_in_progress   = 0;
+  state->conflict_num         = -1;
+  state->rebase_in_progress   = 0;
 }
 
 
@@ -158,21 +158,21 @@ int populateRepoContext(struct RepoContext *context, const char *path) {
   return 1;
 }
 
-const char * getRepoName(struct RepoContext *context, struct RepoStatus *status) {
+const char * getRepoName(struct RepoContext *context, struct CurrentState *state) {
   if (context->head_ref == NULL) return state_names[NO_DATA];
-  status->repo_name = strrchr(context->repo_path, '/') + 1;
-  return status->repo_name;
+  state->repo_name = strrchr(context->repo_path, '/') + 1;
+  return state->repo_name;
 }
 
-const char * getBranchName(struct RepoContext *context, struct RepoStatus *status) {
+const char * getBranchName(struct RepoContext *context, struct CurrentState *state) {
   if (context->head_ref == NULL) return state_names[NO_DATA];
-  status->branch_name = git_reference_shorthand(context->head_ref);
-  return status->branch_name;
+  state->branch_name = git_reference_shorthand(context->head_ref);
+  return state->branch_name;
 }
 
 // 0 if fail to get repo status
 // 1 if success
-int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
+int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
   if (context->head_ref == NULL) return 0;
 
   // First get the status-list which we'll iterate through
@@ -214,7 +214,7 @@ int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
                          GIT_STATUS_INDEX_RENAMED  |
                          GIT_STATUS_INDEX_DELETED  |
                          GIT_STATUS_INDEX_TYPECHANGE)) {
-      status->status_staged = MODIFIED;
+      state->status_staged = MODIFIED;
       staged_changes++;
     }
 
@@ -223,28 +223,28 @@ int getRepoStatus(struct RepoContext *context, struct RepoStatus *status) {
                          GIT_STATUS_WT_DELETED  |
                          GIT_STATUS_WT_RENAMED  |
                          GIT_STATUS_WT_TYPECHANGE)) {
-      status->status_unstaged = MODIFIED;
+      state->status_unstaged = MODIFIED;
       unstaged_changes++;
     }
   }
 
   if (staged_changes == 0)   {
-    status->status_staged   = UP_TO_DATE;
+    state->status_staged   = UP_TO_DATE;
   }
   if (unstaged_changes == 0) {
-    status->status_unstaged = UP_TO_DATE;
+    state->status_unstaged = UP_TO_DATE;
   }
 
-  status->staged_changes_num = staged_changes;
-  status->unstaged_changes_num = unstaged_changes;
-  status->conflict_num = conflicts;
+  state->staged_changes_num = staged_changes;
+  state->unstaged_changes_num = unstaged_changes;
+  state->conflict_num = conflicts;
 
   return 1;
 }
 
 
 int getRepoDivergence(struct RepoContext *context,
-                       struct RepoStatus *status) {
+                       struct CurrentState *state) {
   if (context->head_ref == NULL) return 0;
 
   char full_remote_branch_name[128];
@@ -258,7 +258,7 @@ int getRepoDivergence(struct RepoContext *context,
                          full_remote_branch_name);
   if (retval != 0) {
     // If there is no upstream ref, this is a stand-alone branch
-    status->status_repo = NO_UPSTREAM;
+    state->status_repo = NO_UPSTREAM;
     git_reference_free(upstream_ref);
     return 0;
   }
@@ -268,31 +268,31 @@ int getRepoDivergence(struct RepoContext *context,
   // if the upstream_oid is null, we assume it's a stand-alone branch.
   // Not certain about this. TODO: check
   if (upstream_oid == NULL) {
-    status->status_repo = NO_UPSTREAM;
+    state->status_repo = NO_UPSTREAM;
     return 0;
   }
 
   __calculateDivergence(context->repo_obj,
                         context->head_oid,
                         upstream_oid,
-                        &status->ahead,
-                        &status->behind);
+                        &state->ahead,
+                        &state->behind);
 
-  if (status->ahead + status->behind == 0) {
-    status->status_repo = UP_TO_DATE;
+  if (state->ahead + state->behind == 0) {
+    state->status_repo = UP_TO_DATE;
   }
   else {
-    status->status_repo = MODIFIED;
+    state->status_repo = MODIFIED;
   }
 
   /* if (git_oid_cmp(context->head_oid, upstream_oid) != 0) */
-  /*   status->status_repo = MODIFIED; */
+  /*   state->status_repo = MODIFIED; */
 
   git_reference_free(upstream_ref);
   return 1;
 }
 
-int checkForInteractiveRebase(struct RepoContext *context, struct RepoStatus *status) {
+int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *state) {
   char rebaseMergePath[PATH_MAX];
   char rebaseApplyPath[PATH_MAX];
   snprintf(rebaseMergePath, sizeof(rebaseMergePath), "%s/.git/rebase-merge", context->repo_path);
@@ -300,29 +300,30 @@ int checkForInteractiveRebase(struct RepoContext *context, struct RepoStatus *st
 
   struct stat mergeStat, applyStat;
   if (stat(rebaseMergePath, &mergeStat) == 0 || stat(rebaseApplyPath, &applyStat) == 0) {
-    status->rebase_in_progress = 1;
+    state->rebase_in_progress = 1;
     return 1;
   }
   return 0;
 }
 
-const char *getCWDFull(struct RepoStatus *status) {
+const char *getCWDFull(struct CurrentState *state) {
   static char cwd_path[PATH_MAX];
   getcwd(cwd_path, sizeof(cwd_path));
-  status->cwd_full = cwd_path;
+  state->cwd_full = cwd_path;
   return cwd_path;
 }
 
-const char *getCWDBasename(struct RepoStatus *status) {
+const char *getCWDBasename(struct CurrentState *state) {
   static char cwd_path[PATH_MAX];
   static char wd[PATH_MAX];
   getcwd(cwd_path, sizeof(cwd_path));
   sprintf(wd, "%s", basename(cwd_path));
-  status->cwd_basename = wd;
+  state->cwd_basename = wd;
   return wd;
 }
 
-const char *getCWDFromGitRepo(struct RepoContext *context, struct RepoStatus *status) {
+
+const char *getCWDFromGitRepo(struct RepoContext *context, struct CurrentState *state) {
   if (context->head_ref == NULL) return strdup("NO_DATA");
 
   static char cwd_path[PATH_MAX];
@@ -335,11 +336,11 @@ const char *getCWDFromGitRepo(struct RepoContext *context, struct RepoStatus *st
   else {
     sprintf(wd, "+/%s", cwd_path + common_length + 1);
   }
-  status->cwd_git_path = wd;
+  state->cwd_git_path = wd;
   return wd;
 }
 
-const char *getCWDFromHome(struct RepoStatus *status) {
+const char *getCWDFromHome(struct CurrentState *state) {
   static char cwd_path[PATH_MAX];
   static char wd[PATH_MAX];
   char *home_path = getenv("HOME");
@@ -359,7 +360,7 @@ const char *getCWDFromHome(struct RepoStatus *status) {
     strcpy(wd, cwd_path);
   }
 
-  status->cwd_git_path = wd;
+  state->cwd_git_path = wd;
   return wd;
 }
 
