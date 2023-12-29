@@ -90,6 +90,7 @@ const char *__findGitRepositoryPath(const char *path) {
   }
 }
 
+// helper function. not exported
 int __calculateDivergence(git_repository *repo,
                           const git_oid *local_oid,
                           const git_oid *upstream_oid,
@@ -248,7 +249,8 @@ int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
   return 1;
 }
 
-
+// return 0 if no upstream
+// and 1 if successful
 int getRepoDivergence(struct RepoContext *context,
                        struct CurrentState *state) {
   if (context->head_ref == NULL) return 0;
@@ -298,6 +300,9 @@ int getRepoDivergence(struct RepoContext *context,
   return 1;
 }
 
+
+// 1 if we are in ann interactive rebase
+// 0 otherwise
 int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *state) {
   char rebaseMergePath[PATH_MAX];
   char rebaseApplyPath[PATH_MAX];
@@ -312,6 +317,9 @@ int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *
   return 0;
 }
 
+// return -1 if unable to get token expiry time
+// 0 if token exists and is invalid
+// 1 if token exists and is valid
 int getAWSContext(struct CurrentState *state) {
   const char *home_dir = getenv("HOME");
   if (!home_dir) return 0;
