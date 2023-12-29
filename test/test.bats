@@ -609,7 +609,6 @@ load test_helper_functions
 }
 
 # --------------------------------------------------
-# TODO: this test fails rarely, but is dependent on the time.
 @test "aws sso token is valid" {
   # given a valid aws token
   mkdir -p $HOME/.aws/sso/cache
@@ -636,5 +635,11 @@ load test_helper_functions
   echo "$output" > "$HOME/assert-file"
   assert AWS.token_is_valid          '1'
   assert AWS.token_remaining_hours   '2'
-  assert AWS.token_remaining_minutes '15'
+
+  # Sometimes, the expected and received minutes differ by one because
+  # the test was run just on the verge of the clock turning from one
+  # minute to the next.
+  # So we test both 15 and 14.
+  assert AWS.token_remaining_minutes '15' \
+    || assert AWS.token_remaining_minutes '14'
 }
