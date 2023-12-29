@@ -17,42 +17,42 @@
 #include "git-status.h"
 
 const char *state_names[ENUM_SIZE] = {
-    "NO_DATA",
-    "NO_UPSTREAM",
-    "UP_TO_DATE",
-    "MODIFIED"
+  "NO_DATA",
+  "NO_UPSTREAM",
+  "UP_TO_DATE",
+  "MODIFIED"
 };
 
 
 void setDefaultValues(struct RepoContext *context, struct CurrentState *state) {
   // Internal things. Uninteresting for user
-  context->repo_obj     = NULL;
-  context->repo_path    = NULL;
-  context->head_ref     = NULL;
-  context->head_oid     = NULL;
-  context->status_list  = NULL;
+  context->repo_obj                  = NULL;
+  context->repo_path                 = NULL;
+  context->head_ref                  = NULL;
+  context->head_oid                  = NULL;
+  context->status_list               = NULL;
 
 
   // External stuff. User prolly interested in these
-  state->repo_name    = NULL;
-  state->branch_name  = NULL;
+  state->repo_name                   = NULL;
+  state->branch_name                 = NULL;
 
-  state->status_repo          = NO_DATA;
-  state->ahead                = -1;
-  state->behind               = -1;
+  state->status_repo                 = NO_DATA;
+  state->ahead                       = -1;
+  state->behind                      = -1;
 
-  state->status_staged        = NO_DATA;
-  state->staged_changes_num   = -1;
+  state->status_staged               = NO_DATA;
+  state->staged_changes_num          = -1;
 
-  state->status_unstaged      = NO_DATA;
-  state->unstaged_changes_num = -1;
+  state->status_unstaged             = NO_DATA;
+  state->unstaged_changes_num        = -1;
 
-  state->conflict_num         = -1;
-  state->rebase_in_progress   = 0;
+  state->conflict_num                = -1;
+  state->rebase_in_progress          = 0;
 
-  state->aws_token_is_valid             = 0;
-  state->aws_token_remaining_hours      = -1;
-  state->aws_token_remaining_minutes    = -1;
+  state->aws_token_is_valid          = 0;
+  state->aws_token_remaining_hours   = -1;
+  state->aws_token_remaining_minutes = -1;
 }
 
 
