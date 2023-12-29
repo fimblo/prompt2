@@ -21,15 +21,20 @@ Staged.status UP_TO_DATE              # status of staged
 Staged.num 0                          # number of staged files
 Unstaged.status MODIFIED              # status of tracked unstaged files
 Unstaged.num 1                        # number of changed unstaged files
+Conflict.num 0                        # number of conflicts in repo
+Repo.rebase_in_progress 0             # if rebase is in progress
+AWS.token_is_valid 0                  # if there is a valid AWS SSO token
+AWS.token_remaining_hours 0           # AWS SSO token: how many hours are remaining
+AWS.token_remaining_minutes 0         # AWS SSO token: how many minutes are remaining
 #+end_example
 
 
 
 ** Prerequisites
 *** Debian
-- =apt-get install build-essential bats=
+- =apt-get install build-essential bats libjson-c-dev=
 *** Mac
-- =xcode-select --install ; brew install bats=
+- =xcode-select --install ; brew install bats json-c=
 ** Building and testing
 - =make= will build and run all tests.
 - =make help= will print all targets

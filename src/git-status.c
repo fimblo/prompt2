@@ -3,7 +3,9 @@
 
   Assortment of functions to get git status
 */
+#include <dirent.h>
 #include <git2.h>
+#include <json-c/json.h>
 #include <libgen.h>
 #include <limits.h>
 #include <stdio.h>
@@ -47,6 +49,10 @@ void setDefaultValues(struct RepoContext *context, struct CurrentState *state) {
 
   state->conflict_num         = -1;
   state->rebase_in_progress   = 0;
+
+  state->aws_token_is_valid             = 0;
+  state->aws_token_remaining_hours      = -1;
+  state->aws_token_remaining_minutes    = -1;
 }
 
 
@@ -305,6 +311,81 @@ int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *
   }
   return 0;
 }
+
+int getAWSContext(struct CurrentState *state) {
+  const char *home_dir = getenv("HOME");
+  if (!home_dir) return 0;
+
+  char cache_dir[1024];
+  snprintf(cache_dir, sizeof(cache_dir), "%s/.aws/sso/cache", home_dir);
+
+  DIR *dir = opendir(cache_dir);
+  if (!dir) return 0;
+
+  struct dirent *entry;
+  struct stat file_stat;
+  time_t newest_mtime = 0;
+  char newest_file[1024];
+
+  while ((entry = readdir(dir)) != NULL) {
+    if (entry->d_type == DT_REG) {
+      char file_path[1024];
+      snprintf(file_path, sizeof(file_path), "%s/%s", cache_dir, entry->d_name);
+
+      if (stat(file_path, &file_stat) == 0) {
+        if (file_stat.st_mtime > newest_mtime) {
+          newest_mtime = file_stat.st_mtime;
+          strncpy(newest_file, file_path, sizeof(newest_file));
+        }
+      }
+    }
+  }
+  closedir(dir);
+
+  if (newest_mtime == 0) return -1;
+
+  FILE *file = fopen(newest_file, "r");
+  if (!file) return -1;
+
+  struct json_object *parsed_json, *expires_at;
+  char buffer[4096];
+
+  fread(buffer, sizeof(buffer), 1, file);
+  fclose(file);
+
+  parsed_json = json_tokener_parse(buffer);
+  if (!parsed_json) return -1;
+
+  if (!json_object_object_get_ex(parsed_json, "expiresAt", &expires_at)) {
+    json_object_put(parsed_json);
+    return -1;
+  }
+
+  const char *expires_at_str = json_object_get_string(expires_at);
+  struct tm tm;
+  strptime(expires_at_str, "%Y-%m-%dT%H:%M:%SZ", &tm);
+  time_t expires_at_time = mktime(&tm);
+
+  json_object_put(parsed_json);
+
+  time_t current_time;
+  time(&current_time);
+
+  double diff_seconds = difftime(expires_at_time, current_time);
+  state->aws_token_is_valid = (diff_seconds > 0) ? 1 : 0;
+
+  // Calculate hours and minutes
+  if (state->aws_token_is_valid) {
+    state->aws_token_remaining_hours = (int)(diff_seconds / 3600);
+    state->aws_token_remaining_minutes = (int)((diff_seconds - (state->aws_token_remaining_hours * 3600)) / 60);
+  } else {
+    state->aws_token_remaining_hours = 0;
+    state->aws_token_remaining_minutes = 0;
+  }
+
+  return state->aws_token_is_valid;
+}
+
 
 const char *getCWDFull(struct CurrentState *state) {
   static char cwd_path[PATH_MAX];

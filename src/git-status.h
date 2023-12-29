@@ -50,6 +50,10 @@ struct CurrentState {
 
   int conflict_num;
   int rebase_in_progress;
+
+  int aws_token_is_valid;
+  int aws_token_remaining_hours;
+  int aws_token_remaining_minutes;
 };
 
 void setDefaultValues(struct RepoContext *repo_context, struct CurrentState *state);
@@ -60,7 +64,7 @@ int getRepoStatus(struct RepoContext *context, struct CurrentState *state);
 int getRepoDivergence(struct RepoContext *context,
                        struct CurrentState *state);
 int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *state);
-
+int getAWSContext(struct CurrentState *state);
 const char *getCWDFull(struct CurrentState *state);
 const char *getCWDBasename(struct CurrentState *state);
 const char *getCWDFromGitRepo(struct RepoContext *context, struct CurrentState *state);

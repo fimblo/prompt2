@@ -563,3 +563,77 @@ load test_helper_functions
   assert Repo.rebase_in_progress '1'
 }
 
+# --------------------------------------------------
+@test "aws sso token has not been granted" {
+  # given no cache directory for the tokens to be in
+  rm -rf $HOME/.aws/sso/cache || true  # don't worry, HOME is pointing to a tmpdir, and it should always fail to delete
+
+  # when we run the test lib
+  run -0 $TEST_FUNCTION
+
+  # then it should tell us that the aws_token is not valid
+  # .. and all remaining time counters should be -1 (no tokens found)
+  echo "$output" > "$HOME/assert-file"
+  assert AWS.token_is_valid          '0'
+  assert AWS.token_remaining_hours   '-1'
+  assert AWS.token_remaining_minutes '-1'
+}
+
+# --------------------------------------------------
+@test "aws sso token is outdated" {
+  # given an expired aws token
+  if [[ "$(uname)" == "Linux" ]]; then
+    timestamp=$(date --date='-30 days' +"%Y-%m-%dT%H:%M:%SZ")
+  else
+    timestamp=$(date -v-30d +"%Y-%m-%dT%H:%M:%SZ")
+  fi
+
+  mkdir -p $HOME/.aws/sso/cache
+  cat<<-EOF>$HOME/.aws/sso/cache/token.json
+	{
+	 "startUrl":  "https://someurl.awsapps.com/start#/",
+	 "region":    "eu-central-1",
+	 "expiresAt": "${timestamp}"
+	}
+	EOF
+
+  # when we run the test lib
+  run -0 $TEST_FUNCTION
+
+  # then it should tell us that the aws_token is not valid
+  # .. and all remaining time counters should be 0
+  echo "$output" > "$HOME/assert-file"
+  assert AWS.token_is_valid          '0'
+  assert AWS.token_remaining_hours   '0'
+  assert AWS.token_remaining_minutes '0'
+}
+
+# --------------------------------------------------
+@test "aws sso token is valid" {
+  # given a valid aws token
+  if [[ "$(uname)" == "Linux" ]]; then
+    timestamp=$(date --date='+135 minutes' +"%Y-%m-%dT%H:%M:%SZ")
+  else
+    timestamp=$(date -v+135M +"%Y-%m-%dT%H:%M:%SZ")
+  fi
+
+  mkdir -p $HOME/.aws/sso/cache
+  cat<<-EOF>$HOME/.aws/sso/cache/token.json
+	{
+	 "startUrl":  "https://someurl.awsapps.com/start#/",
+	 "region":    "eu-central-1",
+	 "expiresAt": "${timestamp}"
+	}
+	EOF
+  cat $HOME/.aws/sso/cache/token.json > /dev/stderr
+
+  # when we run the test lib
+  run -0 $TEST_FUNCTION
+
+  # then it should tell us that the aws_token is not valid
+  # .. and all remaining time counters should be 0
+  echo "$output" > "$HOME/assert-file"
+  assert AWS.token_is_valid          '1'
+  assert AWS.token_remaining_hours   '2'
+  assert AWS.token_remaining_minutes '15'
+}

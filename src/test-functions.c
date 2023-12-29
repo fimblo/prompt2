@@ -38,6 +38,10 @@ int main(void) {
   printf("Conflict.num %d\n",     state.conflict_num);
   printf("Repo.rebase_in_progress %d\n",     checkForInteractiveRebase(&context, &state));
 
+  getAWSContext(&state);
+  printf("AWS.token_is_valid %d\n", state.aws_token_is_valid);
+  printf("AWS.token_remaining_hours %d\n", state.aws_token_remaining_hours);
+  printf("AWS.token_remaining_minutes %d\n", state.aws_token_remaining_minutes);
 
   cleanupResources(&context);
   git_libgit2_shutdown();
