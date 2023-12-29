@@ -609,15 +609,16 @@ load test_helper_functions
 }
 
 # --------------------------------------------------
+# TODO: this test fails rarely, but is dependent on the time.
 @test "aws sso token is valid" {
   # given a valid aws token
+  mkdir -p $HOME/.aws/sso/cache
   if [[ "$(uname)" == "Linux" ]]; then
     timestamp=$(date --date='+135 minutes' +"%Y-%m-%dT%H:%M:%SZ")
   else
     timestamp=$(date -v+135M +"%Y-%m-%dT%H:%M:%SZ")
   fi
 
-  mkdir -p $HOME/.aws/sso/cache
   cat<<-EOF>$HOME/.aws/sso/cache/token.json
 	{
 	 "startUrl":  "https://someurl.awsapps.com/start#/",
@@ -625,10 +626,10 @@ load test_helper_functions
 	 "expiresAt": "${timestamp}"
 	}
 	EOF
-  cat $HOME/.aws/sso/cache/token.json > /dev/stderr
 
   # when we run the test lib
   run -0 $TEST_FUNCTION
+  cat $HOME/.aws/sso/cache/token.json > /dev/stderr
 
   # then it should tell us that the aws_token is not valid
   # .. and all remaining time counters should be 0
