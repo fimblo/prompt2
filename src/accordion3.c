@@ -16,89 +16,121 @@ void shortenPath(char *path) {
     return;
   }
 
-  char originalPath[MAX_PATH];
-  strncpy(originalPath, path, MAX_PATH - 1); // copy up to MAX_PATH-1 characters of path into originalPath
-  originalPath[MAX_PATH - 1] = '\0'; // if path was larger than originalPath, null-terminate it.
-
-  /*
-    Preserve the first part of the path
-    Examples:
-    ~/tmp/hello            -> preserve '~/tmp/'
-    /home/fimblo/tmp/hello -> preserve '/home/fimblo/'
-
-    This since the first bit of the path helps us understand where
-    we are, we don't want to truncate that.
-  */
-
-
-  /*
-    TODO
-    Later, check if there is a tilde or plus in the zeroth position.
-    If there is, copy it and use the remainder for the rest of the
-    calculations. Then prepend it later when returning.
-  */
-
-  /*
-    all examples in the margin below assume this path:
-    0    0    1    1    2    2    3    3    4    4    5    5    6    
-    0    5    0    5    0    5    0    5    0    5    0    5    0
-    /home/fimblo/personal/writing/story_10/chapter_18/section_30   len 60    
-    /home/fimblo/                                                  len 13
-    personal/writing/story_10/chapter_18/section_30                len 47
-  */
-
-
-  char preservedPart[MAX_PATH] = {0};
-  char *secondSlash = strchr(originalPath + 1, '/'); // '/home/' 
-  char *remainder = originalPath;
-  if (secondSlash) {
-    char *thirdSlash = strchr(secondSlash + 1, '/'); // 'fimblo/'
-    if (thirdSlash) {
-      int preservedLength = thirdSlash - originalPath + 1;  // 13
-      strncpy(preservedPart, originalPath, preservedLength);
-      preservedPart[preservedLength] = '\0';
-      remainder += preservedLength; // 'personal/writing/story_10/chapter_18/section_3'
-    }
-  }
-
-  // Shorten the remaining part of the path
-  len = strlen(remainder); // 47
-  if (len > maxWidth) {
-    char tempPath[MAX_PATH];
-    char *lastSlash = strrchr(remainder, '/');
-
-    // Special case: If the rest of the path is one long directory
-    // name, or if it is only a slash at the beginning
-    if (!lastSlash || lastSlash == remainder) {
-      // truncate to fit this limit, and add space for '...'
-      strncpy(tempPath, remainder, maxWidth - 3);
-      tempPath[maxWidth - 3] = '\0';
-      // tempPath will have 'personal/writing/story_10/cha'
-      
-    } else {
-      int lastSegmentLen = strlen(lastSlash);
-      if (lastSegmentLen > maxWidth - 3) {
-        strncpy(tempPath, "...", 3);
-        strncpy(tempPath + 3, lastSlash, maxWidth - 4);
-        tempPath[maxWidth - 1] = '\0';
-      } else {
-        int frontLength = maxWidth - lastSegmentLen - 3; // Length available at the front
-        strncpy(tempPath, "...", 3);
-        memmove(tempPath + 3, remainder + len - lastSegmentLen - frontLength, frontLength);
-        strcpy(tempPath + maxWidth - lastSegmentLen, lastSlash); // Use strcpy to include the null terminator
-      }
-    }
-
-    // Concatenate the preserved part and the shortened part
-    strncpy(path, preservedPart, MAX_PATH - 1);
-    strncat(path, tempPath, MAX_PATH - strlen(path) - 1);
-    path[MAX_PATH - 1] = '\0';
+  // store the first char if it's a special char.
+  char specialChar = '\0';
+  char cleanPath[strlen(path)];
+  if (path[0] == '~' || path[0] == '+') {
+    specialChar = path[0];
+    strcpy(cleanPath, path + 1);
   } else {
-    // If no shortening needed, concatenate the preserved part and remainder
-    strncpy(path, preservedPart, MAX_PATH - 1);
-    strncat(path, remainder, MAX_PATH - strlen(path) - 1);
-    path[MAX_PATH - 1] = '\0';
+    strcpy(cleanPath, path);
   }
+
+
+  /*
+    If there is no second slash, then we have a ginormous directory
+   name, probably in the homedir. Truncate the end and we're done
+  */
+  char firstDir[strlen(cleanPath) + 1];
+  char *secondSlash = strchr(cleanPath + 1, '/');
+  if (secondSlash == NULL) {
+    int truncateLength = maxWidth - 3 - (specialChar != '\0' ? 1 : 0);
+    cleanPath[truncateLength] = '\0';
+    strcat(cleanPath, "...");
+
+    if (specialChar != '\0') {
+      strcpy(path + 1, cleanPath);
+    } else {
+      strcpy(path, cleanPath);
+    }
+    return;
+  }
+
+  
+  /*
+    Now we know that cleanPath has at least one directory level in it.
+    Let's save the first one, since it's helpful for spacial
+    navigation purposes.
+   */
+  int lengthOfFirstDir = secondSlash - cleanPath + 1;
+  strncpy(firstDir, cleanPath, lengthOfFirstDir);
+  firstDir[lengthOfFirstDir] = '\0';
+
+
+  char remainderPath[strlen(cleanPath) - lengthOfFirstDir + 1];
+  strcpy(remainderPath, cleanPath + lengthOfFirstDir);
+  
+  int remainderMaxWidth = maxWidth - ( lengthOfFirstDir + (specialChar != '\0' ? 1 : 0) );
+  
+  /*
+    Let's save the last directory name as well.
+  */
+  char *lastSlash = strrchr(remainderPath, '/');
+  char lastDir[strlen(remainderPath) + 1];
+
+  if (lastSlash == NULL) {
+    // If there's no last slash, the entire remainderPath is the last directory
+
+    // truncate remainderPath
+    int truncateLength = remainderMaxWidth - 3;
+    remainderPath[truncateLength] = '\0';
+    strcat(remainderPath, "...");
+
+    // rebuild path and return
+    path[0] = '\0';
+    if (specialChar != '\0') {
+      path[0] = specialChar;
+      path[1] = '\0';
+      strcat(path, firstDir);
+    } else {
+      strcpy(path, firstDir);
+    }
+    strcat(path, remainderPath);
+    return;
+  }
+  strcpy(lastDir, lastSlash + 1);
+  *lastSlash = '\0'; // remainderPath is now shorter
+
+  
+  /*
+    Now we tokenise all the in-between directory levels
+   */
+  int remainderLength = strlen(remainderPath);
+  char accordionPath[remainderLength + 1];
+  accordionPath[0] = '\0';
+
+  char *token = strtok(remainderPath, "/"); 
+  while (token != NULL) { 
+    if (remainderLength - (int) strlen(token) + 2 >= remainderMaxWidth) {
+      char firstChars[3]; 
+      firstChars[0] = token[0];
+      firstChars[1] = '/';
+      firstChars[2] = '\0';
+      strcat(accordionPath, firstChars);
+      remainderLength = remainderLength - (strlen(token) + 2);
+    }
+    else {
+      char tokenWithSlash[strlen(token) + 2];
+      tokenWithSlash[0] = '\0';
+      strcat(tokenWithSlash, token);
+      strcat(tokenWithSlash, "/");
+      strcat(accordionPath, tokenWithSlash);
+    }
+    token = strtok(NULL, "/"); 
+  }
+  
+
+  // rebuild path and return
+  path[0] = '\0';
+  if (specialChar != '\0') {
+    path[0] = specialChar;
+    path[1] = '\0';
+    strcat(path, firstDir);
+  } else {
+    strcpy(path, firstDir);
+  }
+  strcat(path, accordionPath);
+  return;
 }
 
 int main(int argc, char *argv[]) {
@@ -112,7 +144,7 @@ int main(int argc, char *argv[]) {
   path[MAX_PATH - 1] = '\0';
 
   shortenPath(path);
-  printf("%s $ ", path);
+  printf("'%s'\n", path);
 
   return 0;
 }
