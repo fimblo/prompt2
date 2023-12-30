@@ -53,11 +53,9 @@ void shortenPath(char *path) {
     char *thirdSlash = strchr(secondSlash + 1, '/'); // 'fimblo/'
     if (thirdSlash) {
       int preservedLength = thirdSlash - originalPath + 1;  // 13
-      if (preservedLength < MAX_PATH) {
-        strncpy(preservedPart, originalPath, preservedLength);
-        preservedPart[preservedLength] = '\0';
-        remainder += preservedLength;
-      }
+      strncpy(preservedPart, originalPath, preservedLength);
+      preservedPart[preservedLength] = '\0';
+      remainder += preservedLength;
     }
   }
 
