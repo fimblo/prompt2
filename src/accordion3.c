@@ -118,9 +118,24 @@ void shortenPath(char *path) {
     }
     token = strtok(NULL, "/"); 
   }
-  
 
-  // rebuild path and return
+
+  /*
+
+    This code works. But the accordionPath will still get larger for
+    every directory layer I add.
+
+    Now I need to replace all in-between a/b/c/d/e/f/g with a/.../g.
+
+   */
+
+
+
+
+
+  /*
+    Now that it's shortened, let's rebuild path and return
+  */
   path[0] = '\0';
   if (specialChar != '\0') {
     path[0] = specialChar;
@@ -130,6 +145,7 @@ void shortenPath(char *path) {
     strcpy(path, firstDir);
   }
   strcat(path, accordionPath);
+  strcat(path, lastDir);
   return;
 }
 
