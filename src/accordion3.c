@@ -40,9 +40,11 @@ void shortenPath(char *path) {
 
   /*
     all examples in the margin below assume this path:
-    0    0    1    1    2    2    3    3    4    4
-    0    5    0    5    0    5    0    5    0    5
-    /home/fimblo/personal/writing/story_1/chapter_1
+    0    0    1    1    2    2    3    3    4    4    5    5    6    
+    0    5    0    5    0    5    0    5    0    5    0    5    0
+    /home/fimblo/personal/writing/story_10/chapter_18/section_30   len 60    
+    /home/fimblo/                                                  len 13
+    personal/writing/story_10/chapter_18/section_30                len 47
   */
 
 
@@ -55,18 +57,24 @@ void shortenPath(char *path) {
       int preservedLength = thirdSlash - originalPath + 1;  // 13
       strncpy(preservedPart, originalPath, preservedLength);
       preservedPart[preservedLength] = '\0';
-      remainder += preservedLength;
+      remainder += preservedLength; // 'personal/writing/story_10/chapter_18/section_3'
     }
   }
 
   // Shorten the remaining part of the path
-  len = strlen(remainder);
+  len = strlen(remainder); // 47
   if (len > maxWidth) {
     char tempPath[MAX_PATH];
     char *lastSlash = strrchr(remainder, '/');
+
+    // Special case: If the rest of the path is one long directory
+    // name, or if it is only a slash at the beginning
     if (!lastSlash || lastSlash == remainder) {
-      strncpy(tempPath, remainder, maxWidth - 3); // Truncate if no slash found
+      // truncate to fit this limit, and add space for '...'
+      strncpy(tempPath, remainder, maxWidth - 3);
       tempPath[maxWidth - 3] = '\0';
+      // tempPath will have 'personal/writing/story_10/cha'
+      
     } else {
       int lastSegmentLen = strlen(lastSlash);
       if (lastSegmentLen > maxWidth - 3) {
