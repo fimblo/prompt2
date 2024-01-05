@@ -252,7 +252,7 @@ int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
 // return 0 if no upstream
 // and 1 if successful
 int getRepoDivergence(struct RepoContext *context,
-                       struct CurrentState *state) {
+                      struct CurrentState *state) {
   if (context->head_ref == NULL) return 0;
 
   char full_remote_branch_name[128];
