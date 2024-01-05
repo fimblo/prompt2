@@ -24,39 +24,13 @@ const char *state_names[ENUM_SIZE] = {
 };
 
 
-void setDefaultValues(struct RepoContext *context, struct CurrentState *state) {
-  // Internal things. Uninteresting for user
-  context->repo_obj                  = NULL;
-  context->repo_path                 = NULL;
-  context->head_ref                  = NULL;
-  context->head_oid                  = NULL;
-  context->status_list               = NULL;
+/* ================================================== */
+/* Helper functions                                   */
+/* ================================================== */
 
-
-  // External stuff. User prolly interested in these
-  state->repo_name                   = NULL;
-  state->branch_name                 = NULL;
-
-  state->status_repo                 = NO_DATA;
-  state->ahead                       = -1;
-  state->behind                      = -1;
-
-  state->status_staged               = NO_DATA;
-  state->staged_changes_num          = -1;
-
-  state->status_unstaged             = NO_DATA;
-  state->unstaged_changes_num        = -1;
-
-  state->conflict_num                = -1;
-  state->rebase_in_progress          = 0;
-
-  state->aws_token_is_valid          = 0;
-  state->aws_token_remaining_hours   = -1;
-  state->aws_token_remaining_minutes = -1;
-}
-
-
-// helper function. not exported
+/**
+ * Helper Given a path, returns root of git repo or empty string
+ */
 const char *__findGitRepositoryPath(const char *path) {
   git_buf repo_path = { 0 };
   int error = git_repository_discover(&repo_path, path, 0, NULL);
@@ -90,7 +64,9 @@ const char *__findGitRepositoryPath(const char *path) {
   }
 }
 
-// helper function. not exported
+/**
+ * Helper: Figure out divergence between local and upstream branches.
+ */
 int __calculateDivergence(git_repository *repo,
                           const git_oid *local_oid,
                           const git_oid *upstream_oid,
@@ -130,11 +106,43 @@ int __calculateDivergence(git_repository *repo,
   return 0;
 }
 
+/**
+ * Sets up RepoContext and CurrentState so that they are useable.
+ */
+void setDefaultValues(struct RepoContext *context, struct CurrentState *state) {
+  // Internal things. Uninteresting for user
+  context->repo_obj                  = NULL;
+  context->repo_path                 = NULL;
+  context->head_ref                  = NULL;
+  context->head_oid                  = NULL;
+  context->status_list               = NULL;
 
 
+  // External stuff. User prolly interested in these
+  state->repo_name                   = NULL;
+  state->branch_name                 = NULL;
 
-// return 0 if unable to open git repo
-// return 1 if git repo was opened
+  state->status_repo                 = NO_DATA;
+  state->ahead                       = -1;
+  state->behind                      = -1;
+
+  state->status_staged               = NO_DATA;
+  state->staged_changes_num          = -1;
+
+  state->status_unstaged             = NO_DATA;
+  state->unstaged_changes_num        = -1;
+
+  state->conflict_num                = -1;
+  state->rebase_in_progress          = 0;
+
+  state->aws_token_is_valid          = 0;
+  state->aws_token_remaining_hours   = -1;
+  state->aws_token_remaining_minutes = -1;
+}
+
+/**
+ * Prep RepoContext with git repo info
+ */
 int populateRepoContext(struct RepoContext *context, const char *path) {
   const char *git_repository_path;
   git_repository *repo     = NULL;
@@ -165,20 +173,28 @@ int populateRepoContext(struct RepoContext *context, const char *path) {
   return 1;
 }
 
+/**
+ * set RepoContext with repo name and return it
+ */
 const char * getRepoName(struct RepoContext *context, struct CurrentState *state) {
   if (context->head_ref == NULL) return state_names[NO_DATA];
   state->repo_name = strrchr(context->repo_path, '/') + 1;
   return state->repo_name;
 }
 
+/**
+ * set RepoContext with repo branch and return it
+ */
 const char * getBranchName(struct RepoContext *context, struct CurrentState *state) {
   if (context->head_ref == NULL) return state_names[NO_DATA];
   state->branch_name = git_reference_shorthand(context->head_ref);
   return state->branch_name;
 }
 
-// 0 if fail to get repo status
-// 1 if success
+/**
+ * Get the current Git repository's status, including staged and
+ * unstaged changes, and conflicts.
+ */
 int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
   if (context->head_ref == NULL) return 0;
 
@@ -249,8 +265,11 @@ int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
   return 1;
 }
 
-// return 0 if no upstream
-// and 1 if successful
+/**
+ * Calculate the divergence of the current Git repository from its
+ * upstream branch, updating the state with information on how many
+ * commits it is ahead or behind.
+ */
 int getRepoDivergence(struct RepoContext *context,
                       struct CurrentState *state) {
   if (context->head_ref == NULL) return 0;
@@ -300,9 +319,10 @@ int getRepoDivergence(struct RepoContext *context,
   return 1;
 }
 
-
-// 1 if we are in ann interactive rebase
-// 0 otherwise
+/**
+ * Determine if a Git repository is currently in an interactive rebase
+ * state
+ */
 int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *state) {
   char rebaseMergePath[PATH_MAX];
   char rebaseApplyPath[PATH_MAX];
@@ -317,9 +337,10 @@ int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *
   return 0;
 }
 
-// return -1 if unable to get token expiry time
-// 0 if token exists and is invalid
-// 1 if token exists and is valid
+/**
+ * Check the validity of the AWS SSO login token and calculates the
+ * remaining time until the token expires
+ */
 int getAWSContext(struct CurrentState *state) {
   const char *home_dir = getenv("HOME");
   if (!home_dir) return 0;
@@ -394,7 +415,9 @@ int getAWSContext(struct CurrentState *state) {
   return state->aws_token_is_valid;
 }
 
-
+/**
+ * Retrieve the full path of the current working directory
+ */
 const char *getCWDFull(struct CurrentState *state) {
   static char cwd_path[PATH_MAX];
   getcwd(cwd_path, sizeof(cwd_path));
@@ -402,6 +425,9 @@ const char *getCWDFull(struct CurrentState *state) {
   return cwd_path;
 }
 
+/**
+ * Obtain the basename (the last component) of the current working directory
+ */
 const char *getCWDBasename(struct CurrentState *state) {
   static char cwd_path[PATH_MAX];
   static char wd[PATH_MAX];
@@ -411,7 +437,10 @@ const char *getCWDBasename(struct CurrentState *state) {
   return wd;
 }
 
-
+/**
+ * Generate a path relative to the root of the Git repository, using
+ * '+' to represent the root
+ */
 const char *getCWDFromGitRepo(struct RepoContext *context, struct CurrentState *state) {
   if (context->head_ref == NULL) return strdup("NO_DATA");
 
@@ -429,6 +458,10 @@ const char *getCWDFromGitRepo(struct RepoContext *context, struct CurrentState *
   return wd;
 }
 
+/**
+ * Retrieve the current working directory path, replacing the home
+ * directory part with '~' if applicable
+ */
 const char *getCWDFromHome(struct CurrentState *state) {
   static char cwd_path[PATH_MAX];
   static char wd[PATH_MAX];
@@ -453,6 +486,9 @@ const char *getCWDFromHome(struct CurrentState *state) {
   return wd;
 }
 
+/**
+ * Memory management
+ */
 void cleanupResources(struct RepoContext *context) {
   if (context->repo_obj) {
     git_repository_free(context->repo_obj);
@@ -475,6 +511,10 @@ void cleanupResources(struct RepoContext *context) {
   }
 }
 
+/**
+ * Shortens a filesystem path to a specified maximum width by
+ * truncating the beginning of the string
+ */
 void pathTruncateSimple(char *originalPath, int maxWidth) {
 
   // Sanity checks
@@ -506,8 +546,11 @@ void pathTruncateSimple(char *originalPath, int maxWidth) {
   strcpy(originalPath, rebuildPath);
 }
 
-
-
+/**
+ * Shortens a filesystem path to a specified maximum width by
+ * abbreviating intermediate directories while keeping the last
+ * directory in full.
+ */
 void pathTruncateAccordion(char *originalPath, int maxWidth) {
 
   // Sanity checks
