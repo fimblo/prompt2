@@ -1,5 +1,5 @@
 #include <stdio.h>
-//#include <stdlib.h>
+#include <stdlib.h>
 //#include <unistd.h>
 #include <string.h>
 //#include <sys/ioctl.h>
@@ -15,7 +15,31 @@
     personal/writing/story_10/chapter_18/section_30                len 47
 */
 
-// TODO: optional width as param
+void truncatePath(char *originalPath, int maxWidth) {
+  int originalPathLen = strlen(originalPath);
+  if (originalPathLen <= maxWidth) {
+    return;
+  }
+
+  int shrinkage = originalPathLen - maxWidth;
+  if (shrinkage <= 3) {
+    shrinkage = 3; // for the ellipsis
+  }
+  else {
+    shrinkage += 3;
+}
+
+
+  char rebuildPath[originalPathLen + 1]; // +1 for the null terminator
+  strcpy(rebuildPath, "..."); // Start with an ellipsis
+
+  strncat(rebuildPath, originalPath + shrinkage, originalPathLen - shrinkage);
+
+  // Copy the result back to originalPath
+  strcpy(originalPath, rebuildPath);
+}
+
+
 
 void accordionPath(char *originalPath, int maxWidth) {
   int originalPathLen = strlen(originalPath);
@@ -77,12 +101,18 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  char path[MAX_PATH];
-  strncpy(path, argv[1], MAX_PATH - 1);
-  path[MAX_PATH - 1] = '\0';
+  char path1[MAX_PATH];
+  strncpy(path1, argv[1], MAX_PATH - 1);
+  path1[MAX_PATH - 1] = '\0';
+  accordionPath(path1, atoi(argv[2]));
+  truncatePath(path1, atoi(argv[2]));
+  printf("%s\n", path1);
 
-  accordionPath(path, 40);
-  printf("%s\n", path);
+  char path2[MAX_PATH];
+  strncpy(path2, argv[1], MAX_PATH - 1);
+  path2[MAX_PATH - 1] = '\0';
+  truncatePath(path2, atoi(argv[2]));
+  printf("%s\n", path2);
 
   return 0;
 }
