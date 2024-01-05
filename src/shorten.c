@@ -60,7 +60,8 @@ void accordionPath(char *originalPath, int maxWidth) {
     strcpy(tmpPath, originalPath);
   }
 
-
+  char lastToken[originalPathLen];  // for the dir the user is standing in
+  int shortDirWasUsed;
   char *token = strtok(tmpPath, "/"); 
   while (token != NULL) { 
     int shortDirLength = 3; // +1 for slash, +1 for nullchar
@@ -75,14 +76,24 @@ void accordionPath(char *originalPath, int maxWidth) {
     if (tmpPathLength >= maxWidth) {
       tmpPathLength = tmpPathLength - shinkage;
       strcat(rebuildPath, shortDir);
+      shortDirWasUsed = 1;
     }
     else {
       strcat(rebuildPath, longDir);
+      shortDirWasUsed = 0;
     }
-      
-    //    printf("%s (%d)\n", rebuildPath, (int)strlen(rebuildPath));
+    
+    strcpy(lastToken, token);
     token = strtok(NULL, "/"); 
   }
+
+  if (shortDirWasUsed) {
+    char *lastSlash = strrchr(rebuildPath, '/');
+    if (lastSlash != NULL) {
+        strcpy(lastSlash + 1, lastToken);
+    }
+  }
+
 
   strcpy(originalPath, rebuildPath);
 }
