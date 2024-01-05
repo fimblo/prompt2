@@ -1,7 +1,7 @@
 #include <git2.h>
 #include <stdio.h>
 
-#include "git-status.h"
+#include "get-status.h"
 
 //int main(int argc, char *argv[]) {
 int main(void) {

@@ -1,5 +1,5 @@
-#ifndef GITSTATUS_H
-#define GITSTATUS_H
+#ifndef GETSTATUS_H
+#define GETSTATUS_H
 /*
   header file for git-status.c
 */
@@ -71,4 +71,4 @@ const char *getCWDFromGitRepo(struct RepoContext *context, struct CurrentState *
 const char *getCWDFromHome(struct CurrentState *state);
 void cleanupResources(struct RepoContext *context);
 
-#endif //GITSTATUS_H
+#endif //GETSTATUS_H

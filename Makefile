@@ -9,7 +9,7 @@ BUILD_DIR = build
 BIN_DIR = bin
 
 TARGET = $(BIN_DIR)/test-functions
-SOURCES = $(SRC_DIR)/git-status.c $(SRC_DIR)/test-functions.c
+SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/test-functions.c
 OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SOURCES))
 
 .PHONY: all build run install install-local clean test help

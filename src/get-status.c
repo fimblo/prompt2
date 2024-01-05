@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "git-status.h"
+#include "get-status.h"
 
 const char *state_names[ENUM_SIZE] = {
   "NO_DATA",
