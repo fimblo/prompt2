@@ -70,5 +70,7 @@ const char *getCWDBasename(struct CurrentState *state);
 const char *getCWDFromGitRepo(struct RepoContext *context, struct CurrentState *state);
 const char *getCWDFromHome(struct CurrentState *state);
 void cleanupResources(struct RepoContext *context);
+void pathTruncateSimple(char *originalPath, int maxWidth);
+void pathTruncateAccordion(char *originalPath, int maxWidth);
 
 #endif //GETSTATUS_H
