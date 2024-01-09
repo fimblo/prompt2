@@ -2,43 +2,51 @@ CC = gcc
 CFLAGS = -Wall -Wextra
 INCLUDE_DIR = /opt/homebrew/include
 LIB_DIR = /opt/homebrew/lib
-LIBS = -lgit2 -ljson-c
+LIBS = -lgit2 -ljson-c -lyaml
 
 SRC_DIR = src
 BUILD_DIR = build
 BIN_DIR = bin
 
-TARGET = $(BIN_DIR)/test-functions
-SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/test-functions.c
-OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SOURCES))
+TEST_TARGET = $(BIN_DIR)/test-functions
+TEST_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/test-functions.c
+TEST_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SOURCES))
+
+PROMPT_TARGET = $(BIN_DIR)/prompt
+PROMPT_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/prompt.c
+PROMPT_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(PROMPT_SOURCES))
 
 .PHONY: all build run install install-local clean test help
 
 all: build test
 
-build: $(TARGET)
+build: $(TEST_TARGET) $(PROMPT_TARGET)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
-$(TARGET): $(OBJECTS)
+$(TEST_TARGET): $(TEST_OBJECTS)
+	@mkdir -p $(BIN_DIR)
+	$(CC) -L$(LIB_DIR) $^ -o $@ $(LIBS)
+
+$(PROMPT_TARGET): $(PROMPT_OBJECTS)
 	@mkdir -p $(BIN_DIR)
 	$(CC) -L$(LIB_DIR) $^ -o $@ $(LIBS)
 
 run: build test
-	@echo "Run: $(TARGET)"
+	@echo "Run: $(TEST_TARGET)"
 	@echo "-------------------------"
-	@$(TARGET)
+	@$(TEST_TARGET)
 
-install: $(TARGET)
-	install -m 755 $(TARGET) /usr/local/bin
+install: $(TEST_TARGET)
+	install -m 755 $(TEST_TARGET) /usr/local/bin
 
-install-local: $(TARGET)
-	install -m 755 $(TARGET) $(HOME)/bin
+install-local: $(TEST_TARGET)
+	install -m 755 $(TEST_TARGET) $(HOME)/bin
 
 clean:
-	rm -f $(BUILD_DIR)/*.o $(TARGET)
+	rm -f $(BUILD_DIR)/*.o $(TEST_TARGET)
 
 test:
 	bats test
