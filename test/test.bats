@@ -215,9 +215,9 @@ load test_helper_functions
   # - and it should be in sync with remote
   echo "$output" > "$HOME/assert-file"
   assert Repo.name        'myRepo'
-  assert Repo.status      'UP_TO_DATE'
-  assert Repo.ahead       '0'
-  assert Repo.behind      '0'
+  assert Diverge.status      'UP_TO_DATE'
+  assert Diverge.ahead       '0'
+  assert Diverge.behind      '0'
 }
 
 # --------------------------------------------------
@@ -303,8 +303,8 @@ load test_helper_functions
   # then
   # - should be ahead by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Repo.status      'MODIFIED'
-  assert Repo.ahead       '1'
+  assert Diverge.status      'MODIFIED'
+  assert Diverge.ahead       '1'
 }
 
 # --------------------------------------------------
@@ -340,8 +340,8 @@ load test_helper_functions
   # then
   # - should be behind by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Repo.status      'MODIFIED'
-  assert Repo.behind      '1'
+  assert Diverge.status      'MODIFIED'
+  assert Diverge.behind      '1'
 }
 
 # --------------------------------------------------
@@ -386,9 +386,9 @@ load test_helper_functions
   # - should be ahead by one commit
   # - .. and behind by one
   echo "$output" > "$HOME/assert-file"
-  assert Repo.status      'MODIFIED'
-  assert Repo.ahead       '1'
-  assert Repo.behind      '1'
+  assert Diverge.status      'MODIFIED'
+  assert Diverge.ahead       '1'
+  assert Diverge.behind      '1'
 }
 
 # --------------------------------------------------
@@ -426,9 +426,9 @@ load test_helper_functions
   # Then check that conflict_num has increased to 1
   # .. and that Repo.status is changed to NO_UPSTREAM
   echo "$output" > "$HOME/assert-file"
-  assert Repo.status       'NO_UPSTREAM'
-  assert Conflict.num      '1'
-  assert Repo.rebase_in_progress '1'
+  assert Diverge.status       'NO_UPSTREAM'
+  assert Repo.conflict.num         '1'
+  assert Repo.rebase_active   '1'
 }
 
 # --------------------------------------------------
@@ -475,8 +475,8 @@ load test_helper_functions
   echo "$output" > "$HOME/assert-file"
   assert Staged.status     'MODIFIED'
   assert Staged.num        '1'
-  assert Repo.status       'NO_UPSTREAM'
-  assert Conflict.num      '0'
+  assert Diverge.status       'NO_UPSTREAM'
+  assert Repo.conflict.num      '0'
 }
 
 # --------------------------------------------------
@@ -524,9 +524,9 @@ load test_helper_functions
   echo "$output" > "$HOME/assert-file"
   assert Staged.status     'UP_TO_DATE'
   assert Staged.num        '0'
-  assert Repo.status       'NO_UPSTREAM'
-  assert Conflict.num      '0'
-  assert Repo.rebase_in_progress '1'
+  assert Diverge.status       'NO_UPSTREAM'
+  assert Repo.conflict.num      '0'
+  assert Repo.rebase_active '1'
 }
 
 # --------------------------------------------------
@@ -558,9 +558,9 @@ load test_helper_functions
   echo "$output" > "$HOME/assert-file"
   assert Staged.status     'UP_TO_DATE'
   assert Staged.num        '0'
-  assert Repo.status       'NO_UPSTREAM'
-  assert Conflict.num      '0'
-  assert Repo.rebase_in_progress '1'
+  assert Diverge.status       'NO_UPSTREAM'
+  assert Repo.conflict.num      '0'
+  assert Repo.rebase_active '1'
 }
 
 # --------------------------------------------------
