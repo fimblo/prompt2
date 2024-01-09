@@ -630,8 +630,7 @@ load test_helper_functions
   run -0 $TEST_FUNCTION
   cat $HOME/.aws/sso/cache/token.json > /dev/stderr
 
-  # then it should tell us that the aws_token is not valid
-  # .. and all remaining time counters should be 0
+  # then it should tell us that the aws_token is valid
   echo "$output" > "$HOME/assert-file"
   assert AWS.token_is_valid          '1'
   assert AWS.token_remaining_hours   '2'
