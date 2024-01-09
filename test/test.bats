@@ -613,9 +613,9 @@ load test_helper_functions
   # given a valid aws token
   mkdir -p $HOME/.aws/sso/cache
   if [[ "$(uname)" == "Linux" ]]; then
-    timestamp=$(date --date='+135 minutes' +"%Y-%m-%dT%H:%M:%SZ")
+    timestamp=$(date -u --date='+135 minutes' +"%Y-%m-%dT%H:%M:%SZ")
   else
-    timestamp=$(date -v+135M +"%Y-%m-%dT%H:%M:%SZ")
+    timestamp=$(date -u -v+135M +"%Y-%m-%dT%H:%M:%SZ")
   fi
 
   cat<<-EOF>$HOME/.aws/sso/cache/token.json

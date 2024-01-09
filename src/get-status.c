@@ -393,7 +393,7 @@ int getAWSContext(struct CurrentState *state) {
   const char *expires_at_str = json_object_get_string(expires_at);
   struct tm tm;
   strptime(expires_at_str, "%Y-%m-%dT%H:%M:%SZ", &tm);
-  time_t expires_at_time = mktime(&tm);
+  time_t expires_at_time = timegm(&tm);
 
   json_object_put(parsed_json);
 
