@@ -62,6 +62,11 @@ struct CurrentState {
 void setDefaultValues(struct RepoContext *repo_context, struct CurrentState *state);
 
 /**
+ * Given a path, returns root of git repo or empty string
+ */
+const char *findGitRepositoryPath(const char *path);
+
+/**
  * Prep RepoContext with git repo info
  */
 int populateRepoContext(struct RepoContext *context, const char *path);

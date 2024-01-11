@@ -28,41 +28,6 @@ const char *state_names[ENUM_SIZE] = {
 /* Helper functions                                   */
 /* ================================================== */
 
-/**
- * Helper Given a path, returns root of git repo or empty string
- */
-const char *__findGitRepositoryPath(const char *path) {
-  git_buf repo_path = { 0 };
-  int error = git_repository_discover(&repo_path, path, 0, NULL);
-
-  if (error == 0) {
-    char *last_slash = strstr(repo_path.ptr, "/.git/");
-    if (last_slash) {
-      *last_slash = '\0';  // Null-terminate the string at the last slash
-    }
-    char *result = strdup(repo_path.ptr);  // Duplicate the path before freeing the buffer
-    git_buf_free(&repo_path);
-    return result;
-  }
-
-  // Check if we've reached the file system root
-  if (strcmp(path, "/") == 0 || strcmp(path, ".") == 0) {
-    return strdup("");
-  }
-
-  // Move to the parent directory
-  char *last_slash = strrchr(path, '/');
-  if (last_slash) {
-    char parent_path[last_slash - path + 1];
-    strncpy(parent_path, path, last_slash - path);
-    parent_path[last_slash - path] = '\0';
-
-    return __findGitRepositoryPath(parent_path);
-  }
-  else {
-    return strdup("");
-  }
-}
 
 /**
  * Helper: Figure out divergence between local and upstream branches.
@@ -141,6 +106,25 @@ void setDefaultValues(struct RepoContext *context, struct CurrentState *state) {
 }
 
 /**
+ * Given a path, returns root of git repo or empty string
+ */
+const char *findGitRepositoryPath(const char *path) {
+  git_buf repo_path = { 0 };
+  int error = git_repository_discover(&repo_path, path, 0, NULL);
+
+  if (error == 0) {
+    char *last_slash = strstr(repo_path.ptr, "/.git/");
+    if (last_slash) *last_slash = '\0';
+
+    char *result = strdup(repo_path.ptr);
+    git_buf_free(&repo_path);
+    return result;
+  }
+
+  return strdup("");
+}
+
+/**
  * Prep RepoContext with git repo info
  */
 int populateRepoContext(struct RepoContext *context, const char *path) {
@@ -149,11 +133,18 @@ int populateRepoContext(struct RepoContext *context, const char *path) {
   git_reference *head_ref  = NULL;
   const git_oid * head_oid = NULL;
 
-  git_repository_path = __findGitRepositoryPath(path);
-  if (strlen(git_repository_path) == 0) {
-    free((void *) git_repository_path);
-    return 0;
+  if (context->repo_path == NULL) {
+    git_repository_path = findGitRepositoryPath(path);
+
+    if (strlen(git_repository_path) == 0) {
+      free((void *) git_repository_path);
+      return 0;
+    }
   }
+  else {
+    git_repository_path = context->repo_path;
+  }
+
 
   if (git_repository_open(&repo, git_repository_path) != 0) {
     free((void *) git_repository_path);
