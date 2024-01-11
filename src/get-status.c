@@ -72,6 +72,26 @@ int __calculateDivergence(git_repository *repo,
 }
 
 /**
+ * Helper: Determine if a Git repository is currently in an
+ * interactive rebase state
+ */
+int __checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *state) {
+  char rebaseMergePath[PATH_MAX];
+  char rebaseApplyPath[PATH_MAX];
+  snprintf(rebaseMergePath, sizeof(rebaseMergePath), "%s/.git/rebase-merge", context->repo_path);
+  snprintf(rebaseApplyPath, sizeof(rebaseApplyPath), "%s/.git/rebase-apply", context->repo_path);
+
+  struct stat mergeStat, applyStat;
+  if (stat(rebaseMergePath, &mergeStat) == 0 || stat(rebaseApplyPath, &applyStat) == 0) {
+    state->rebase_in_progress = 1;
+    return 1;
+  }
+  return 0;
+}
+
+
+
+/**
  * Sets up RepoContext and CurrentState so that they are useable.
  */
 void setDefaultValues(struct RepoContext *context, struct CurrentState *state) {
@@ -253,6 +273,8 @@ int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
   state->unstaged_changes_num = unstaged_changes;
   state->conflict_num = conflicts;
 
+
+  __checkForInteractiveRebase(context, state);
   return 1;
 }
 
@@ -308,24 +330,6 @@ int getRepoDivergence(struct RepoContext *context,
 
   git_reference_free(upstream_ref);
   return 1;
-}
-
-/**
- * Determine if a Git repository is currently in an interactive rebase
- * state
- */
-int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *state) {
-  char rebaseMergePath[PATH_MAX];
-  char rebaseApplyPath[PATH_MAX];
-  snprintf(rebaseMergePath, sizeof(rebaseMergePath), "%s/.git/rebase-merge", context->repo_path);
-  snprintf(rebaseApplyPath, sizeof(rebaseApplyPath), "%s/.git/rebase-apply", context->repo_path);
-
-  struct stat mergeStat, applyStat;
-  if (stat(rebaseMergePath, &mergeStat) == 0 || stat(rebaseApplyPath, &applyStat) == 0) {
-    state->rebase_in_progress = 1;
-    return 1;
-  }
-  return 0;
 }
 
 /**

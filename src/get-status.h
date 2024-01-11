@@ -96,12 +96,6 @@ int getRepoDivergence(struct RepoContext *context,
                        struct CurrentState *state);
 
 /**
- * Determine if a Git repository is currently in an interactive rebase
- * state
- */
-int checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *state);
-
-/**
  * Check the validity of the AWS SSO login token and calculates the
  * remaining time until the token expires
  */

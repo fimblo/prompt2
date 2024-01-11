@@ -24,8 +24,8 @@ int main(void) {
 
   printf("Repo.name %s\n",          getRepoName(&context, &state));
   printf("Repo.branch.name %s\n",   getBranchName(&context, &state));
-  printf("Repo.rebase_active %d\n", checkForInteractiveRebase(&context, &state));
-  printf("Repo.conflict.num %d\n",       state.conflict_num);
+  printf("Repo.rebase_active %d\n", state.rebase_in_progress);
+  printf("Repo.conflict.num %d\n",  state.conflict_num);
 
   printf("Diverge.status %s\n",     state_names[state.status_repo]);
   printf("Diverge.ahead %d\n",      state.ahead);
