@@ -17,23 +17,19 @@ enum states {
 extern const char *state_names[ENUM_SIZE];
 
 
-// data for internal functions
-struct RepoContext {
+struct CurrentState {
+  // internal - probably uninteresting for user
   git_repository  *repo_obj;
   const char      *repo_path;
-
   git_reference   *head_ref;
   const git_oid   *head_oid;
-
   git_status_list *status_list;
-};
 
-// data for the user
-struct CurrentState {
+
+  // external - probably useful for user
   const char *cwd_full;
   const char *cwd_basename;
   const char *cwd_git_path;
-  
 
   const char *repo_name;
   const char *branch_name;
@@ -59,7 +55,7 @@ struct CurrentState {
 /**
  * Sets up RepoContext and CurrentState so that they are useable.
  */
-void setDefaultValues(struct RepoContext *repo_context, struct CurrentState *state);
+void setDefaultValues(struct CurrentState *state);
 
 /**
  * Given a path, returns root of git repo or empty string
@@ -69,31 +65,30 @@ const char *findGitRepositoryPath(const char *path);
 /**
  * Prep RepoContext with git repo info
  */
-int populateRepoContext(struct RepoContext *context, const char *path);
+int populateRepoContext(struct CurrentState *state, const char *path);
 
 /**
  * set RepoContext with repo name and return it
  */
-const char * getRepoName(struct RepoContext *context, struct CurrentState *state);
+const char * getRepoName(struct CurrentState *state);
 
 /**
  * set RepoContext with repo branch and return it
  */
-const char * getBranchName(struct RepoContext *context, struct CurrentState *state);
+const char * getBranchName(struct CurrentState *state);
 
 /**
  * Get the current Git repository's status, including staged and
  * unstaged changes, and conflicts.
  */
-int getRepoStatus(struct RepoContext *context, struct CurrentState *state);
+int getRepoStatus(struct CurrentState *state);
 
 /**
  * Calculate the divergence of the current Git repository from its
  * upstream branch, updating the state with information on how many
  * commits it is ahead or behind.
  */
-int getRepoDivergence(struct RepoContext *context,
-                       struct CurrentState *state);
+int getRepoDivergence(struct CurrentState *state);
 
 /**
  * Check the validity of the AWS SSO login token and calculates the
@@ -115,7 +110,7 @@ const char *getCWDBasename(struct CurrentState *state);
  * Generate a path relative to the root of the Git repository, using
  * '+' to represent the root
  */
-const char *getCWDFromGitRepo(struct RepoContext *context, struct CurrentState *state);
+const char *getCWDFromGitRepo(struct CurrentState *state);
 
 /**
  * Retrieve the current working directory path, replacing the home
@@ -126,7 +121,7 @@ const char *getCWDFromHome(struct CurrentState *state);
 /**
  * Memory management
  */
-void cleanupResources(struct RepoContext *context);
+void cleanupResources(struct CurrentState *state);
 
 /**
  * Shortens a filesystem path to a specified maximum width by

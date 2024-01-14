@@ -75,11 +75,11 @@ int __calculateDivergence(git_repository *repo,
  * Helper: Determine if a Git repository is currently in an
  * interactive rebase state
  */
-int __checkForInteractiveRebase(struct RepoContext *context, struct CurrentState *state) {
+int __checkForInteractiveRebase(struct CurrentState *state) {
   char rebaseMergePath[PATH_MAX];
   char rebaseApplyPath[PATH_MAX];
-  snprintf(rebaseMergePath, sizeof(rebaseMergePath), "%s/.git/rebase-merge", context->repo_path);
-  snprintf(rebaseApplyPath, sizeof(rebaseApplyPath), "%s/.git/rebase-apply", context->repo_path);
+  snprintf(rebaseMergePath, sizeof(rebaseMergePath), "%s/.git/rebase-merge", state->repo_path);
+  snprintf(rebaseApplyPath, sizeof(rebaseApplyPath), "%s/.git/rebase-apply", state->repo_path);
 
   struct stat mergeStat, applyStat;
   if (stat(rebaseMergePath, &mergeStat) == 0 || stat(rebaseApplyPath, &applyStat) == 0) {
@@ -92,15 +92,15 @@ int __checkForInteractiveRebase(struct RepoContext *context, struct CurrentState
 
 
 /**
- * Sets up RepoContext and CurrentState so that they are useable.
+ * Sets up CurrentState so that they are useable.
  */
-void setDefaultValues(struct RepoContext *context, struct CurrentState *state) {
+void setDefaultValues(struct CurrentState *state) {
   // Internal things. Uninteresting for user
-  context->repo_obj                  = NULL;
-  context->repo_path                 = NULL;
-  context->head_ref                  = NULL;
-  context->head_oid                  = NULL;
-  context->status_list               = NULL;
+  state->repo_obj                  = NULL;
+  state->repo_path                 = NULL;
+  state->head_ref                  = NULL;
+  state->head_oid                  = NULL;
+  state->status_list               = NULL;
 
 
   // External stuff. User prolly interested in these
@@ -147,13 +147,13 @@ const char *findGitRepositoryPath(const char *path) {
 /**
  * Prep RepoContext with git repo info
  */
-int populateRepoContext(struct RepoContext *context, const char *path) {
+int populateRepoContext(struct CurrentState *state, const char *path) {
   const char *git_repository_path;
   git_repository *repo     = NULL;
   git_reference *head_ref  = NULL;
   const git_oid * head_oid = NULL;
 
-  if (context->repo_path == NULL) {
+  if (state->repo_path == NULL) {
     git_repository_path = findGitRepositoryPath(path);
 
     if (strlen(git_repository_path) == 0) {
@@ -162,7 +162,7 @@ int populateRepoContext(struct RepoContext *context, const char *path) {
     }
   }
   else {
-    git_repository_path = context->repo_path;
+    git_repository_path = state->repo_path;
   }
 
 
@@ -177,28 +177,28 @@ int populateRepoContext(struct RepoContext *context, const char *path) {
   }
   head_oid = git_reference_target(head_ref);
 
-  context->repo_path = git_repository_path;  // "/path/to/projectName"
-  context->repo_obj  = repo;
-  context->head_ref  = head_ref;
-  context->head_oid  = head_oid;
+  state->repo_path = git_repository_path;  // "/path/to/projectName"
+  state->repo_obj  = repo;
+  state->head_ref  = head_ref;
+  state->head_oid  = head_oid;
   return 1;
 }
 
 /**
  * set RepoContext with repo name and return it
  */
-const char * getRepoName(struct RepoContext *context, struct CurrentState *state) {
-  if (context->head_ref == NULL) return state_names[NO_DATA];
-  state->repo_name = strrchr(context->repo_path, '/') + 1;
+const char * getRepoName(struct CurrentState *state) {
+  if (state->head_ref == NULL) return state_names[NO_DATA];
+  state->repo_name = strrchr(state->repo_path, '/') + 1;
   return state->repo_name;
 }
 
 /**
  * set RepoContext with repo branch and return it
  */
-const char * getBranchName(struct RepoContext *context, struct CurrentState *state) {
-  if (context->head_ref == NULL) return state_names[NO_DATA];
-  state->branch_name = git_reference_shorthand(context->head_ref);
+const char * getBranchName(struct CurrentState *state) {
+  if (state->head_ref == NULL) return state_names[NO_DATA];
+  state->branch_name = git_reference_shorthand(state->head_ref);
   return state->branch_name;
 }
 
@@ -206,8 +206,8 @@ const char * getBranchName(struct RepoContext *context, struct CurrentState *sta
  * Get the current Git repository's status, including staged and
  * unstaged changes, and conflicts.
  */
-int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
-  if (context->head_ref == NULL) return 0;
+int getRepoStatus(struct CurrentState *state) {
+  if (state->head_ref == NULL) return 0;
 
   // First get the status-list which we'll iterate through
 #pragma GCC diagnostic push
@@ -219,13 +219,13 @@ int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
   opts.flags = GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX;
 
   git_status_list *status_list = NULL;
-  if (git_status_list_new(&status_list, context->repo_obj, &opts) != 0) {
-    git_reference_free(context->head_ref);
-    git_repository_free(context->repo_obj);
-    free((void *) context->repo_path);
+  if (git_status_list_new(&status_list, state->repo_obj, &opts) != 0) {
+    git_reference_free(state->head_ref);
+    git_repository_free(state->repo_obj);
+    free((void *) state->repo_path);
     return 0;
   }
-  context->status_list = status_list;
+  state->status_list = status_list;
 
 
   // Now iterate
@@ -274,7 +274,7 @@ int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
   state->conflict_num = conflicts;
 
 
-  __checkForInteractiveRebase(context, state);
+  __checkForInteractiveRebase(state);
   return 1;
 }
 
@@ -283,18 +283,17 @@ int getRepoStatus(struct RepoContext *context, struct CurrentState *state) {
  * upstream branch, updating the state with information on how many
  * commits it is ahead or behind.
  */
-int getRepoDivergence(struct RepoContext *context,
-                      struct CurrentState *state) {
-  if (context->head_ref == NULL) return 0;
+int getRepoDivergence(struct CurrentState *state) {
+  if (state->head_ref == NULL) return 0;
 
   char full_remote_branch_name[128];
-  sprintf(full_remote_branch_name, "refs/remotes/origin/%s", git_reference_shorthand(context->head_ref));
+  sprintf(full_remote_branch_name, "refs/remotes/origin/%s", git_reference_shorthand(state->head_ref));
 
   git_reference *upstream_ref = NULL;
   const git_oid *upstream_oid;
   const int retval =
     git_reference_lookup(&upstream_ref,
-                         context->repo_obj,
+                         state->repo_obj,
                          full_remote_branch_name);
   if (retval != 0) {
     // If there is no upstream ref, this is a stand-alone branch
@@ -312,8 +311,8 @@ int getRepoDivergence(struct RepoContext *context,
     return 0;
   }
 
-  __calculateDivergence(context->repo_obj,
-                        context->head_oid,
+  __calculateDivergence(state->repo_obj,
+                        state->head_oid,
                         upstream_oid,
                         &state->ahead,
                         &state->behind);
@@ -325,7 +324,7 @@ int getRepoDivergence(struct RepoContext *context,
     state->status_repo = MODIFIED;
   }
 
-  /* if (git_oid_cmp(context->head_oid, upstream_oid) != 0) */
+  /* if (git_oid_cmp(state->head_oid, upstream_oid) != 0) */
   /*   state->status_repo = MODIFIED; */
 
   git_reference_free(upstream_ref);
@@ -436,13 +435,13 @@ const char *getCWDBasename(struct CurrentState *state) {
  * Generate a path relative to the root of the Git repository, using
  * '+' to represent the root
  */
-const char *getCWDFromGitRepo(struct RepoContext *context, struct CurrentState *state) {
-  if (context->head_ref == NULL) return strdup("NO_DATA");
+const char *getCWDFromGitRepo(struct CurrentState *state) {
+  if (state->head_ref == NULL) return strdup("NO_DATA");
 
   static char cwd_path[PATH_MAX];
   static char wd[PATH_MAX];
   getcwd(cwd_path, sizeof(cwd_path));
-  size_t common_length = strspn(context->repo_path, cwd_path);
+  size_t common_length = strspn(state->repo_path, cwd_path);
   if (common_length == strlen(cwd_path)) {
     sprintf(wd, "+/");
   }
@@ -484,25 +483,25 @@ const char *getCWDFromHome(struct CurrentState *state) {
 /**
  * Memory management
  */
-void cleanupResources(struct RepoContext *context) {
-  if (context->repo_obj) {
-    git_repository_free(context->repo_obj);
-    context->repo_obj = NULL;
+void cleanupResources(struct CurrentState *state) {
+  if (state->repo_obj) {
+    git_repository_free(state->repo_obj);
+    state->repo_obj = NULL;
   }
-  if (context->repo_path) {
-    free((void *) context->repo_path);
-    context->repo_path = NULL;
+  if (state->repo_path) {
+    free((void *) state->repo_path);
+    state->repo_path = NULL;
   }
-  if (context->head_ref) {
-    git_reference_free(context->head_ref);
-    context->head_ref = NULL;
+  if (state->head_ref) {
+    git_reference_free(state->head_ref);
+    state->head_ref = NULL;
   }
 
   // context-head_oid is handled internally by libgit2. Apparently.
 
-  if (context->status_list) {
-    git_status_list_free(context->status_list);
-    context->status_list = NULL;
+  if (state->status_list) {
+    git_status_list_free(state->status_list);
+    state->status_list = NULL;
   }
 }
 

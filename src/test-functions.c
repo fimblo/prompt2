@@ -5,25 +5,24 @@
 
 //int main(int argc, char *argv[]) {
 int main(void) {
-  struct RepoContext context;
   struct CurrentState state;
 
   git_libgit2_init();
-  setDefaultValues(&context, &state);
+  setDefaultValues(&state);
 
-  populateRepoContext(&context, ".");
-  getRepoStatus(&context, &state);
+  populateRepoContext(&state, ".");
+  getRepoStatus(&state);
 
-  getRepoDivergence(&context, &state);
+  getRepoDivergence(&state);
 
 
   printf("CWD.full %s\n",           getCWDFull(&state));
   printf("CWD.basename %s\n",       getCWDBasename(&state));
-  printf("CWD.git_path %s\n",       getCWDFromGitRepo(&context, &state));
+  printf("CWD.git_path %s\n",       getCWDFromGitRepo(&state));
   printf("CWD.home_path %s\n",      getCWDFromHome(&state));
 
-  printf("Repo.name %s\n",          getRepoName(&context, &state));
-  printf("Repo.branch.name %s\n",   getBranchName(&context, &state));
+  printf("Repo.name %s\n",          getRepoName(&state));
+  printf("Repo.branch.name %s\n",   getBranchName(&state));
   printf("Repo.rebase_active %d\n", state.rebase_in_progress);
   printf("Repo.conflict.num %d\n",  state.conflict_num);
 
@@ -43,7 +42,7 @@ int main(void) {
   printf("AWS.token_remaining_hours %d\n", state.aws_token_remaining_hours);
   printf("AWS.token_remaining_minutes %d\n", state.aws_token_remaining_minutes);
 
-  cleanupResources(&context);
+  cleanupResources(&state);
   git_libgit2_shutdown();
   return 0;
 }
