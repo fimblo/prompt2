@@ -1,8 +1,9 @@
-/*
-  git-status.c
+#ifdef __linux__
+  #define _XOPEN_SOURCE
+  #define _POSIX_C_SOURCE 200809L
+  #define _GNU_SOURCE
+#endif
 
-  Assortment of functions to get git status
-*/
 #include <dirent.h>
 #include <git2.h>
 #include <json-c/json.h>
@@ -22,7 +23,6 @@ const char *state_names[ENUM_SIZE] = {
   "UP_TO_DATE",
   "MODIFIED"
 };
-
 
 /* ================================================== */
 /* Helper functions                                   */
