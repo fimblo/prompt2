@@ -89,65 +89,28 @@ int __checkForInteractiveRebase(struct CurrentState *state) {
   return 0;
 }
 
-
-
 /**
- * Sets up CurrentState so that they are useable.
+ * Helper: set RepoContext with repo name and return it
  */
-void setDefaultValues(struct CurrentState *state) {
-  // Internal things. Uninteresting for user
-  state->repo_obj                  = NULL;
-  state->repo_path                 = NULL;
-  state->head_ref                  = NULL;
-  state->head_oid                  = NULL;
-  state->status_list               = NULL;
-
-
-  // External stuff. User prolly interested in these
-  state->repo_name                   = NULL;
-  state->branch_name                 = NULL;
-
-  state->status_repo                 = NO_DATA;
-  state->ahead                       = -1;
-  state->behind                      = -1;
-
-  state->status_staged               = NO_DATA;
-  state->staged_changes_num          = -1;
-
-  state->status_unstaged             = NO_DATA;
-  state->unstaged_changes_num        = -1;
-
-  state->conflict_num                = -1;
-  state->rebase_in_progress          = 0;
-
-  state->aws_token_is_valid          = 0;
-  state->aws_token_remaining_hours   = -1;
-  state->aws_token_remaining_minutes = -1;
+const char * __getRepoName(struct CurrentState *state) {
+  if (state->head_ref == NULL) return state_names[NO_DATA];
+  state->repo_name = strrchr(state->repo_path, '/') + 1;
+  return state->repo_name;
 }
 
 /**
- * Given a path, returns root of git repo or empty string
+ * Helper: set RepoContext with repo branch and return it
  */
-const char *findGitRepositoryPath(const char *path) {
-  git_buf repo_path = { 0 };
-  int error = git_repository_discover(&repo_path, path, 0, NULL);
-
-  if (error == 0) {
-    char *last_slash = strstr(repo_path.ptr, "/.git/");
-    if (last_slash) *last_slash = '\0';
-
-    char *result = strdup(repo_path.ptr);
-    git_buf_free(&repo_path);
-    return result;
-  }
-
-  return strdup("");
+const char * __getBranchName(struct CurrentState *state) {
+  if (state->head_ref == NULL) return state_names[NO_DATA];
+  state->branch_name = git_reference_shorthand(state->head_ref);
+  return state->branch_name;
 }
 
 /**
- * Prep RepoContext with git repo info
+ * Helper: Prep RepoContext with git repo info
  */
-int populateRepoContext(struct CurrentState *state, const char *path) {
+int __populateRepoContext(struct CurrentState *state, const char *path) {
   const char *git_repository_path;
   git_repository *repo     = NULL;
   git_reference *head_ref  = NULL;
@@ -181,32 +144,15 @@ int populateRepoContext(struct CurrentState *state, const char *path) {
   state->repo_obj  = repo;
   state->head_ref  = head_ref;
   state->head_oid  = head_oid;
+  
   return 1;
 }
 
 /**
- * set RepoContext with repo name and return it
+ * Helper: Get the current Git repository's status, including staged
+ * and unstaged changes, and conflicts.
  */
-const char * getRepoName(struct CurrentState *state) {
-  if (state->head_ref == NULL) return state_names[NO_DATA];
-  state->repo_name = strrchr(state->repo_path, '/') + 1;
-  return state->repo_name;
-}
-
-/**
- * set RepoContext with repo branch and return it
- */
-const char * getBranchName(struct CurrentState *state) {
-  if (state->head_ref == NULL) return state_names[NO_DATA];
-  state->branch_name = git_reference_shorthand(state->head_ref);
-  return state->branch_name;
-}
-
-/**
- * Get the current Git repository's status, including staged and
- * unstaged changes, and conflicts.
- */
-int getRepoStatus(struct CurrentState *state) {
+int __getRepoStatus(struct CurrentState *state) {
   if (state->head_ref == NULL) return 0;
 
   // First get the status-list which we'll iterate through
@@ -279,11 +225,11 @@ int getRepoStatus(struct CurrentState *state) {
 }
 
 /**
- * Calculate the divergence of the current Git repository from its
- * upstream branch, updating the state with information on how many
- * commits it is ahead or behind.
+ * Helper: Calculate the divergence of the current Git repository from
+ * its upstream branch, updating the state with information on how
+ * many commits it is ahead or behind.
  */
-int getRepoDivergence(struct CurrentState *state) {
+int __getRepoDivergence(struct CurrentState *state) {
   if (state->head_ref == NULL) return 0;
 
   char full_remote_branch_name[128];
@@ -330,6 +276,83 @@ int getRepoDivergence(struct CurrentState *state) {
   git_reference_free(upstream_ref);
   return 1;
 }
+
+
+
+
+/* ================================================== */
+/* Exported functions                                 */
+/* ================================================== */
+
+/**
+ * Sets up CurrentState so that they are useable.
+ */
+void setDefaultValues(struct CurrentState *state) {
+  // Internal things. Uninteresting for user
+  state->repo_obj                  = NULL;
+  state->repo_path                 = NULL;
+  state->head_ref                  = NULL;
+  state->head_oid                  = NULL;
+  state->status_list               = NULL;
+
+
+  // External stuff. User prolly interested in these
+  state->repo_name                   = NULL;
+  state->branch_name                 = NULL;
+
+  state->status_repo                 = NO_DATA;
+  state->ahead                       = -1;
+  state->behind                      = -1;
+
+  state->status_staged               = NO_DATA;
+  state->staged_changes_num          = -1;
+
+  state->status_unstaged             = NO_DATA;
+  state->unstaged_changes_num        = -1;
+
+  state->conflict_num                = -1;
+  state->rebase_in_progress          = 0;
+
+  state->aws_token_is_valid          = 0;
+  state->aws_token_remaining_hours   = -1;
+  state->aws_token_remaining_minutes = -1;
+}
+
+/**
+ * Given a path, returns root of git repo or empty string
+ */
+const char *findGitRepositoryPath(const char *path) {
+  git_buf repo_path = { 0 };
+  int error = git_repository_discover(&repo_path, path, 0, NULL);
+
+  if (error == 0) {
+    char *last_slash = strstr(repo_path.ptr, "/.git/");
+    if (last_slash) *last_slash = '\0';
+
+    char *result = strdup(repo_path.ptr);
+    git_buf_free(&repo_path);
+    return result;
+  }
+
+  return strdup("");
+}
+
+
+
+/**
+ * Gather all git-related context.
+ */
+
+int gatherGitContext(struct CurrentState *state) {
+  __populateRepoContext(state, ".");
+  __getRepoName(state);
+  __getBranchName(state);
+  __getRepoStatus(state);
+  __getRepoDivergence(state);
+
+  return 1;
+}
+
 
 /**
  * Check the validity of the AWS SSO login token and calculates the

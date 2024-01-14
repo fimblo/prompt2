@@ -63,32 +63,9 @@ void setDefaultValues(struct CurrentState *state);
 const char *findGitRepositoryPath(const char *path);
 
 /**
- * Prep RepoContext with git repo info
+ * Gather all git-related context.
  */
-int populateRepoContext(struct CurrentState *state, const char *path);
-
-/**
- * set RepoContext with repo name and return it
- */
-const char * getRepoName(struct CurrentState *state);
-
-/**
- * set RepoContext with repo branch and return it
- */
-const char * getBranchName(struct CurrentState *state);
-
-/**
- * Get the current Git repository's status, including staged and
- * unstaged changes, and conflicts.
- */
-int getRepoStatus(struct CurrentState *state);
-
-/**
- * Calculate the divergence of the current Git repository from its
- * upstream branch, updating the state with information on how many
- * commits it is ahead or behind.
- */
-int getRepoDivergence(struct CurrentState *state);
+int gatherGitContext(struct CurrentState *state);
 
 /**
  * Check the validity of the AWS SSO login token and calculates the
