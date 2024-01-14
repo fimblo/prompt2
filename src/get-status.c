@@ -378,7 +378,7 @@ int gatherAWSContext(struct CurrentState *state) {
 
   while ((entry = readdir(dir)) != NULL) {
     if (entry->d_type == DT_REG) {
-      char file_path[1024];
+      char file_path[2048];
       snprintf(file_path, sizeof(file_path), "%s/%s", cache_dir, entry->d_name);
 
       if (stat(file_path, &file_stat) == 0) {
