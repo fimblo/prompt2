@@ -313,7 +313,7 @@ void initialiseState(struct CurrentState *state) {
   state->conflict_num                = -1;
   state->rebase_in_progress          = 0;
 
-  state->aws_token_is_valid          = 0;
+  state->aws_token_is_valid          = -1;
   state->aws_token_remaining_hours   = -1;
   state->aws_token_remaining_minutes = -1;
 }
@@ -360,13 +360,16 @@ int gatherGitContext(struct CurrentState *state) {
  */
 int gatherAWSContext(struct CurrentState *state) {
   const char *home_dir = getenv("HOME");
-  if (!home_dir) return 0;
+  if (!home_dir) return -1; // error
 
   char cache_dir[1024];
   snprintf(cache_dir, sizeof(cache_dir), "%s/.aws/sso/cache", home_dir);
 
   DIR *dir = opendir(cache_dir);
-  if (!dir) return 0;
+  if (!dir) { // cache dir doesn't exist.
+    state->aws_token_is_valid = 0; // so invalid
+    return 0;
+  }
 
   struct dirent *entry;
   struct stat file_stat;
@@ -388,10 +391,14 @@ int gatherAWSContext(struct CurrentState *state) {
   }
   closedir(dir);
 
-  if (newest_mtime == 0) return -1;
+  if (newest_mtime == 0) { // no files exist in cachedir
+    state->aws_token_is_valid = 0; // so invalid.
+    return 0;
+  }
+
 
   FILE *file = fopen(newest_file, "r");
-  if (!file) return -1;
+  if (!file) return -1; // can't read - so error
 
   struct json_object *parsed_json, *expires_at;
   char buffer[4096];
@@ -404,7 +411,7 @@ int gatherAWSContext(struct CurrentState *state) {
 
   if (!json_object_object_get_ex(parsed_json, "expiresAt", &expires_at)) {
     json_object_put(parsed_json);
-    return -1;
+    return -1; // error because invalid json
   }
 
   const char *expires_at_str = json_object_get_string(expires_at);
