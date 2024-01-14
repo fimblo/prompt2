@@ -8,7 +8,7 @@ int main(void) {
   struct CurrentState state;
 
   git_libgit2_init();
-  setDefaultValues(&state);
+  initialiseState(&state);
 
   gatherGitContext(&state);
 

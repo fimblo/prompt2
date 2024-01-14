@@ -287,7 +287,7 @@ int __getRepoDivergence(struct CurrentState *state) {
 /**
  * Sets up CurrentState so that they are useable.
  */
-void setDefaultValues(struct CurrentState *state) {
+void initialiseState(struct CurrentState *state) {
   // Internal things. Uninteresting for user
   state->repo_obj                  = NULL;
   state->repo_path                 = NULL;
@@ -358,7 +358,7 @@ int gatherGitContext(struct CurrentState *state) {
  * Check the validity of the AWS SSO login token and calculates the
  * remaining time until the token expires
  */
-int getAWSContext(struct CurrentState *state) {
+int gatherAWSContext(struct CurrentState *state) {
   const char *home_dir = getenv("HOME");
   if (!home_dir) return 0;
 

@@ -53,9 +53,9 @@ struct CurrentState {
 };
 
 /**
- * Sets up RepoContext and CurrentState so that they are useable.
+ * Sets up CurrentState with default values
  */
-void setDefaultValues(struct CurrentState *state);
+void initialiseState(struct CurrentState *state);
 
 /**
  * Given a path, returns root of git repo or empty string
@@ -71,7 +71,7 @@ int gatherGitContext(struct CurrentState *state);
  * Check the validity of the AWS SSO login token and calculates the
  * remaining time until the token expires
  */
-int getAWSContext(struct CurrentState *state);
+int gatherAWSContext(struct CurrentState *state);
 
 /**
  * Retrieve the full path of the current working directory
