@@ -11,6 +11,22 @@ TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-functions"
 
 load test_helper_functions
 
+
+# --------------------------------------------------
+@test "running from a non-git-repo" {
+  # Given
+  # - it's not a git repo
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - is_git_repo should be 0
+
+  echo "$output" > "$HOME/assert-file"
+  assert Repo.is_git_repo 0
+}
+
 # --------------------------------------------------
 @test "running from HOME" {
   # Given
@@ -21,12 +37,14 @@ load test_helper_functions
   run -0 $TEST_FUNCTION
 
   # Then
+  # - is_git_repo should be 0
   # - full-path should point all the way to HOME
   # - basename should contain the name of the directory of HOME
   # - home_path should print ~/
   # - git_path should be NO_DATA
 
   echo "$output" > "$HOME/assert-file"
+  assert Repo.is_git_repo 0
   assert CWD.full      $(realpath $HOME)
   assert CWD.basename  $(basename $PWD)
   assert CWD.home_path "${PWD/$HOME/\~\/}"
@@ -45,11 +63,13 @@ load test_helper_functions
   run -0 $TEST_FUNCTION
 
   # Then
+  # - is_git_repo should be 0
   # - full path should be $HOME/tmp.XXXXXX
   # - basename should be tmp.XXXXXX
   # - home_path should be ~/tmp.XXXXXX
   # - git_path should be NO_DATA
   echo "$output" > "$HOME/assert-file"
+  assert Repo.is_git_repo 0
   assert CWD.full      $tmpdir
   assert CWD.basename  $(basename $tmpdir)
   assert CWD.home_path "${PWD/$HOME/\~}"
@@ -69,11 +89,13 @@ load test_helper_functions
   run -0 $TEST_FUNCTION
 
   # Then
+  # - is_git_repo should be 0
   # - full path should point at /tmp/tmp.XXXXXX
   # - basename should be tmp.XXXXXX
   # - home_path should be the same as fullpath
   # - git_path should be NO_DATA
   echo "$output" > "$HOME/assert-file"
+  assert Repo.is_git_repo 0
   assert CWD.full      $(realpath $PWD)
   assert CWD.basename  $(basename $PWD)
   assert CWD.home_path "${PWD/$HOME/\~\/}"
@@ -91,8 +113,12 @@ load test_helper_functions
 
 
   # Then
-  # - it should behave as if it was a normal (non-git) directory
+  # - it should almost behave as if it was a normal (non-git) directory
+  #
+  # More specifically, everything except is_git_repo should be the
+  # same as a non-git directory
   echo "$output" > "$HOME/assert-file"
+  assert Repo.is_git_repo 1
   assert CWD.full      $(realpath $PWD)
   assert CWD.basename  $(basename $PWD)
   assert CWD.home_path "${PWD/$HOME/\~\/}"
@@ -113,6 +139,7 @@ load test_helper_functions
   # Then
   # - it should behave as if it was a normal (non-git) directory
   echo "$output" > "$HOME/assert-file"
+  assert Repo.is_git_repo 1
   assert CWD.full      $(realpath $PWD)
   assert CWD.basename  $(basename $PWD)
   assert CWD.home_path "${PWD/$HOME/\~\/}"

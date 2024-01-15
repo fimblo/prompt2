@@ -297,6 +297,7 @@ void initialiseState(struct CurrentState *state) {
 
 
   // External stuff. User prolly interested in these
+  state->is_git_repo                 = 0;
   state->repo_name                   = NULL;
   state->branch_name                 = NULL;
 
@@ -646,3 +647,19 @@ void pathTruncateAccordion(char *originalPath, int maxWidth) {
 
   strcpy(originalPath, rebuildPath);
 }
+
+/**
+ * Checks if the given path is a git repository
+ */
+int isGitRepo(const char *path) {
+	int isRepo = 0;
+	git_repository *repo = NULL;
+	int error = git_repository_open_ext(&repo, path, 0, NULL);
+	if (error == 0) {
+		isRepo = 1;
+		git_repository_free(repo);
+	}
+	return isRepo;
+}
+
+	

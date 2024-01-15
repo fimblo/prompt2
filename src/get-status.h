@@ -34,6 +34,7 @@ struct CurrentState {
   const char *repo_name;
   const char *branch_name;
 
+  int is_git_repo;
   int status_repo;
   int ahead;
   int behind;
@@ -56,6 +57,11 @@ struct CurrentState {
  * Sets up CurrentState with default values
  */
 void initialiseState(struct CurrentState *state);
+
+/**
+ * Checks if the given path is a git repository
+ */
+int isGitRepo(const char *path);
 
 /**
  * Given a path, returns root of git repo or empty string
@@ -112,5 +118,6 @@ void pathTruncateSimple(char *originalPath, int maxWidth);
  * directory in full.
  */
 void pathTruncateAccordion(char *originalPath, int maxWidth);
+
 
 #endif //GETSTATUS_H

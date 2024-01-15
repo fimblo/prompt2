@@ -9,7 +9,7 @@ int main(void) {
 
   git_libgit2_init();
   initialiseState(&state);
-
+  state.is_git_repo = isGitRepo(".");
   gatherGitContext(&state);
 
 
@@ -18,6 +18,7 @@ int main(void) {
   printf("CWD.git_path %s\n",       getCWDFromGitRepo(&state));
   printf("CWD.home_path %s\n",      getCWDFromHome(&state));
 
+  printf("Repo.is_git_repo %d\n",   state.is_git_repo);
   printf("Repo.name %s\n",          state.repo_name);
   printf("Repo.branch.name %s\n",   state.branch_name);
   printf("Repo.rebase_active %d\n", state.rebase_in_progress);
