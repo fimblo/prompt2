@@ -10,24 +10,25 @@ Sample output from `test-functions`
 
 #+begin_example
 $ bin/test-functions
-CWD.full /Users/fimblo/github/prompt2 # full path to .
-CWD.basename prompt2                  # basename of .
-CWD.git_path +/                       # I'm at the root of the git repo
-CWD.home_path ~/github/prompt2        # path to . from HOME
-Repo.name prompt2                     # name of git repo
-Repo.branch.name main                 # name of branch
-Repo.status UP_TO_DATE                # status of repo compared to remote
-Repo.ahead 0                          # number of commits ahead remote
-Repo.behind 0                         # number of commits behind remote
-Staged.status UP_TO_DATE              # status of staged
-Staged.num 0                          # number of staged files
-Unstaged.status MODIFIED              # status of tracked unstaged files
-Unstaged.num 1                        # number of changed unstaged files
-Conflict.num 0                        # number of conflicts in repo
-Repo.rebase_in_progress 0             # if rebase is in progress
-AWS.token_is_valid 0                  # if there is a valid AWS SSO token
-AWS.token_remaining_hours 0           # AWS SSO token: how many hours are remaining
-AWS.token_remaining_minutes 0         # AWS SSO token: how many minutes are remaining
+CWD.full                     # full path to .
+CWD.basename                 # basename of .
+CWD.git_path                 # I'm at the root of the git repo
+CWD.home_path                # path to . from HOME
+Repo.is_git_repo             # if . is a git repo
+Repo.name                    # name of git repo
+Repo.branch.name             # name of branch
+Repo.rebase_active           # if rebase is in progress
+Repo.conflict.num            # number of conflicts in repo
+Diverge.status               # status of repo compared to remote
+Diverge.ahead                # number of commits ahead remote
+Diverge.behind               # number of commits behind remote
+Staged.status                # status of staged
+Staged.num                   # number of staged files
+Unstaged.status              # status of tracked unstaged files
+Unstaged.num                 # number of changed unstaged files
+AWS.token_is_valid           # if there is a valid AWS SSO token
+AWS.token_remaining_hours    # AWS SSO token: how many hours are remaining
+AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining
 #+end_example
 
 
