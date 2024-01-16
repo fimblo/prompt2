@@ -1,4 +1,6 @@
 * prompt2
+[[https://github.com/fimblo/prompt2/actions/workflows/c.yml/badge.svg]]
+
 another prompt generator for the terminal
 
 - Right now, just working on =git-status.{c,h}=, and using =test-function.c= to test the lib.
