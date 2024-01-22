@@ -111,41 +111,47 @@ const char * __getBranchName(struct CurrentState *state) {
  * Helper: Prep RepoContext with git repo info
  */
 int __populateRepoContext(struct CurrentState *state, const char *path) {
-  const char *git_repository_path;
-  git_repository *repo     = NULL;
-  git_reference *head_ref  = NULL;
-  const git_oid * head_oid = NULL;
+  int result = 0; // Default to failure
+  const char *git_repository_path = NULL;
+  git_repository *repo = NULL;
+  git_reference *head_ref = NULL;
+  const git_oid *head_oid = NULL;
 
   if (state->repo_path == NULL) {
     git_repository_path = findGitRepositoryPath(path);
-
     if (strlen(git_repository_path) == 0) {
-      free((void *) git_repository_path);
-      return 0;
+      goto cleanup; // Path not found, cleanup and exit
     }
-  }
-  else {
+  } else {
     git_repository_path = state->repo_path;
   }
 
-
   if (git_repository_open(&repo, git_repository_path) != 0) {
-    free((void *) git_repository_path);
-    git_repository_free(repo);
-    return 0;
+    goto cleanup; // Failed to open repository, cleanup and exit
   }
 
   if (git_repository_head(&head_ref, repo) != 0) {
-    return 0;
+    goto cleanup; // Failed to get repository head, cleanup and exit
   }
   head_oid = git_reference_target(head_ref);
 
-  state->repo_path = git_repository_path;  // "/path/to/projectName"
-  state->repo_obj  = repo;
-  state->head_ref  = head_ref;
-  state->head_oid  = head_oid;
-  
-  return 1;
+  // Success, update state
+  state->repo_path = git_repository_path;
+  state->repo_obj = repo;
+  state->head_ref = head_ref;
+  state->head_oid = head_oid;
+  result = 1; // Success
+
+cleanup:
+  if (result == 0) {
+    if (repo != NULL) {
+      git_repository_free(repo);
+    }
+    if (git_repository_path != NULL && state->repo_path == NULL) {
+      free((void *)git_repository_path);
+    }
+  }
+  return result;
 }
 
 /**
