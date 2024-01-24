@@ -12,11 +12,13 @@ int main(void) {
   state.is_git_repo = isGitRepo(".");
   gatherGitContext(&state);
 
+  const char* cwd_from_gitrepo = getCWDFromGitRepo(&state);
+  const char* cwd_from_home = getCWDFromHome(&state);
 
   printf("CWD.full %s\n",           state.cwd_full);
   printf("CWD.basename %s\n",       state.cwd_basename);
-  printf("CWD.git_path %s\n",       getCWDFromGitRepo(&state));
-  printf("CWD.home_path %s\n",      getCWDFromHome(&state));
+  printf("CWD.git_path %s\n",       cwd_from_gitrepo);
+  printf("CWD.home_path %s\n",      cwd_from_home);
 
   printf("Repo.is_git_repo %d\n",   state.is_git_repo);
   printf("Repo.name %s\n",          state.repo_name);
