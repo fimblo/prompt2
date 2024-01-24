@@ -1,110 +1,130 @@
 #include <git2.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "get-status.h"
+#include "uthash.h"
+#include "stdio.h"
 
-char *substitute(const char *text, const char *search, const char *replacement);
 
+typedef struct {
+  const char *command;      // key
+  const char *replacement;  // value
+  UT_hash_handle hh;        // makes this structure hashable
+} instruction_t;
+instruction_t *instructions = NULL;
 
+// Function to add entries to the hash table
+void add_instruction(const char *command, const char *replacement) {
+  instruction_t *i = malloc(sizeof(instruction_t));
+  if (i == NULL) {
+    // handle malloc failure
+    exit(-1);
+  }
+  i->command = command;
+  i->replacement = replacement;
+  HASH_ADD_KEYPTR(hh, instructions, i->command, strlen(i->command), i);
+}
+
+// Function to find an entry in the hash table
+const char *find_replacement(const char *command) {
+  instruction_t *i;
+  HASH_FIND_STR(instructions, command, i);
+  return i ? i->replacement : NULL;
+}
 
 
 int main(void) {
-
-  /*
-  1. [x] check first in the code if we are in a gitrepo (cd .. look for .git)
-  2. [x] If no, then print non-git prompt and exit
-  3. [x] initialize git and run all info-gathering functions and update state
-  4. [ ] check if ~/.aws/.. exists. If no, return
-  5. [ ] run getAWSContext()
-
-  Consider making all functions have the same signature.
-  Consider merging CurrentState and RepoContext into one struct
-     
-
-  */
   git_libgit2_init();
   struct CurrentState state;
   initialiseState(&state);
   gatherGitContext(&state);
 
   state.repo_path = findGitRepositoryPath(".");
-  printf("'%s'\n", state.repo_path);
   if (strlen(state.repo_path) == 0) {
     free((void *) state.repo_path);
     printf("$ ");
     return 0;
   }
 
+  gatherAWSContext(&state);
+  const char *undigestedPrompt = getenv("GP2_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ \n";
+
+  const char* cwd_from_gitrepo = getCWDFromGitRepo(&state);
+  const char* cwd_from_home = getCWDFromHome(&state);
+  add_instruction("CWD.full",                     state.cwd_full);
+  add_instruction("CWD.basename",                 state.cwd_basename);
+  add_instruction("CWD.git_path",                 cwd_from_gitrepo);
+  add_instruction("CWD.home_path",                cwd_from_home);
+
+  add_instruction("Repo.is_git_repo",             state.is_git_repo);
+  add_instruction("Repo.name",                    state.repo_name);
+  add_instruction("Repo.branch.name",             state.branch_name);
+  add_instruction("Repo.rebase_active",           state.rebase_in_progress);
+  add_instruction("Repo.conflict.num",            state.conflict_num);
+
+  add_instruction("Diverge.status",               state_names[state.status_repo]);
+  add_instruction("Diverge.ahead",                state.ahead);
+  add_instruction("Diverge.behind",               state.behind);
+
+  add_instruction("Staged.status",                state_names[state.status_staged]);
+  add_instruction("Staged.num",                   state.staged_changes_num);
+  add_instruction("Unstaged.status",              state_names[state.status_unstaged]);
+  add_instruction("Unstaged.num",                 state.unstaged_changes_num);
+
+  add_instruction("AWS.token_is_valid",           state.aws_token_is_valid);
+  add_instruction("AWS.token_remaining_hours",    state.aws_token_remaining_hours);
+  add_instruction("AWS.token_remaining_minutes",  state.aws_token_remaining_minutes);
 
 
-  const char *undigestedPrompt = getenv("GP2_PROMPT") ?: "@{CWD.full}:@{Repo.name}\n$ \n";
-
-  const char *instructions[][2] = {
-    { "@{CWD.full}",  getCWDFull(&state)  },
-    { "@{Repo.name}", state.repo_name     },
-  };
 
 
-  /*
-    Later, instead of walking through the prompt for every
-    instruction, instead walk through prompt and populate a new prompt
-    for the instructions we find. This will be much less inefficient
-   */
-  char *prompt = strdup(undigestedPrompt);
-  for (unsigned long i = 0; i < sizeof(instructions) / sizeof(instructions[0]); i++) {
-    prompt = substitute(prompt, instructions[i][0], instructions[i][1]);
+  char digestedPrompt[1024] = {0};
+  const char *ptr = undigestedPrompt;
+  char command[256];
+  int commandIndex = 0;
+  int inCommand = 0;
+  
+  while (*ptr) {
+    if (*ptr == '@' && *(ptr + 1) == '{') {
+      inCommand = 1;
+      commandIndex = 0;
+      ptr += 2; // Skip past the '@{'
+    } else if (*ptr == '}' && inCommand) {
+      inCommand = 0;
+      command[commandIndex] = '\0'; // Null-terminate the command string
+  
+      // Look up the command and append its value to digestedPrompt
+      const char *replacement = find_replacement(command);
+      if (replacement) {
+        strcat(digestedPrompt, replacement);
+      } else {
+        // Command not found, append the original command
+        strcat(digestedPrompt, "@{");
+        strcat(digestedPrompt, command);
+        strcat(digestedPrompt, "}");
+      }
+      ptr++; // Move past the '}'
+    } else if (inCommand) {
+      // We are inside a command, accumulate characters
+      command[commandIndex++] = *ptr++;
+    } else {
+      // We are outside a command, copy character directly to digestedPrompt
+      char str[2] = {*ptr++, '\0'};
+      strcat(digestedPrompt, str);
+    }
   }
+  
+  // Output the digested prompt
+  printf("%s", digestedPrompt);
 
-  printf("%s", prompt);
-  free(prompt);
-
+  
   cleanupResources(&state);
   git_libgit2_shutdown();
+  instruction_t *current_entry, *tmp;
+    HASH_ITER(hh, instructions, current_entry, tmp) {
+    HASH_DEL(instructions, current_entry);
+    free(current_entry);
+  }
+
+
   return 0;
 }
 
-
-
-/**
- * Helper function that performs a string substitution operation.
- * It searches for occurrences of a 'search' string within a 'text'
- * string and replaces them with a 'replacement' string.
- *
- * @param text        The original string where substitutions should
- *                    be made.
- * @param search      The substring to look for within the 'text'.
- * @param replacement The string to replace 'search' with.
- * @return Returns a new string with all instances of 'search'
- *         replaced by 'replacement'.
- */
-char *substitute(const char *text, const char *search, const char *replacement) {
-  char *message = strdup(text);
-  char *found = strstr(message, search);
-
-  while (found) {
-    size_t prefix_length = found - message;
-    size_t suffix_length = strlen(found + strlen(search));
-
-    size_t new_length = prefix_length + strlen(replacement) + suffix_length + 1;
-    char *temp = malloc(new_length);  // Allocate temporary buffer for the new string
-
-    strncpy(temp, message, prefix_length);
-    temp[prefix_length] = '\0';
-
-    strcat(temp, replacement);
-
-    // If there's still a suffix, copy it to the new string
-    if (suffix_length > 0) {
-      strcat(temp, found + strlen(search));
-    }
-
-    free(message);  // Free the old 'message'
-    message = temp;  // Set 'message' to the new string
-
-    found = strstr(message, search);  // Search for the next occurrence
-  }
-
-  return message;
-}
