@@ -111,7 +111,7 @@ const char * __getBranchName(struct CurrentState *state) {
  * Helper: Prep RepoContext with git repo info
  */
 int __populateRepoContext(struct CurrentState *state, const char *path) {
-  int result = 0; // Default to failure
+  int result = -1; // Default to failure
   const char *git_repository_path = NULL;
   git_repository *repo = NULL;
   git_reference *head_ref = NULL;
@@ -140,17 +140,17 @@ int __populateRepoContext(struct CurrentState *state, const char *path) {
   state->repo_obj = repo;
   state->head_ref = head_ref;
   state->head_oid = head_oid;
-  result = 1; // Success
+  result = 0;
+  return result;
 
 cleanup:
-  if (result == 0) {
-    if (repo != NULL) {
+   if (repo != NULL) {
       git_repository_free(repo);
     }
     if (git_repository_path != NULL && state->repo_path == NULL) {
       free((void *)git_repository_path);
     }
-  }
+  
   return result;
 }
 
@@ -159,7 +159,7 @@ cleanup:
  * and unstaged changes, and conflicts.
  */
 int __getRepoStatus(struct CurrentState *state) {
-  if (state->head_ref == NULL) return 0;
+  if (state->head_ref == NULL) return 1;
 
   // First get the status-list which we'll iterate through
 #pragma GCC diagnostic push
@@ -175,7 +175,7 @@ int __getRepoStatus(struct CurrentState *state) {
     git_reference_free(state->head_ref);
     git_repository_free(state->repo_obj);
     free((void *) state->repo_path);
-    return 0;
+    return 1;
   }
   state->status_list = status_list;
 
@@ -227,7 +227,7 @@ int __getRepoStatus(struct CurrentState *state) {
 
 
   __checkForInteractiveRebase(state);
-  return 1;
+  return 0;
 }
 
 /**
@@ -236,7 +236,7 @@ int __getRepoStatus(struct CurrentState *state) {
  * many commits it is ahead or behind.
  */
 int __getRepoDivergence(struct CurrentState *state) {
-  if (state->head_ref == NULL) return 0;
+  if (state->head_ref == NULL) return 1;
 
   char full_remote_branch_name[128];
   sprintf(full_remote_branch_name, "refs/remotes/origin/%s", git_reference_shorthand(state->head_ref));
@@ -251,7 +251,7 @@ int __getRepoDivergence(struct CurrentState *state) {
     // If there is no upstream ref, this is a stand-alone branch
     state->status_repo = NO_UPSTREAM;
     git_reference_free(upstream_ref);
-    return 0;
+    return 1;
   }
 
   upstream_oid = git_reference_target(upstream_ref);
@@ -260,7 +260,7 @@ int __getRepoDivergence(struct CurrentState *state) {
   // Not certain about this. TODO: check
   if (upstream_oid == NULL) {
     state->status_repo = NO_UPSTREAM;
-    return 0;
+    return 1;
   }
 
   __calculateDivergence(state->repo_obj,
@@ -280,7 +280,7 @@ int __getRepoDivergence(struct CurrentState *state) {
   /*   state->status_repo = MODIFIED; */
 
   git_reference_free(upstream_ref);
-  return 1;
+  return 0;
 }
 
 
@@ -348,6 +348,8 @@ const char *findGitRepositoryPath(const char *path) {
 
 /**
  * Gather all git-related context.
+ *
+ * TODO: take return values into consideration
  */
 
 int gatherGitContext(struct CurrentState *state) {
@@ -357,7 +359,7 @@ int gatherGitContext(struct CurrentState *state) {
   __getRepoStatus(state);
   __getRepoDivergence(state);
 
-  return 1;
+  return 0;
 }
 
 
