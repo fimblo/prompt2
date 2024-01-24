@@ -112,6 +112,9 @@ const char * __getBranchName(struct CurrentState *state) {
  */
 int __populateRepoContext(struct CurrentState *state, const char *path) {
   int result = -1; // Default to failure
+
+  state->is_git_repo = (isGitRepo(path) == 0) ? "1" : "0";
+
   const char *git_repository_path = NULL;
   git_repository *repo = NULL;
   git_reference *head_ref = NULL;
@@ -306,7 +309,7 @@ void initialiseState(struct CurrentState *state) {
   state->cwd_full                    = NULL;
   state->cwd_basename                = NULL;
 
-  state->is_git_repo                 = 0;
+  state->is_git_repo                 = NULL;
   state->repo_name                   = NULL;
   state->branch_name                 = NULL;
 
@@ -649,13 +652,14 @@ void pathTruncateAccordion(char *originalPath, int maxWidth) {
 
 /**
  * Checks if the given path is a git repository
+ * @return 0 if true, 1 if false
  */
 int isGitRepo(const char *path) {
-	int isRepo = 0;
+	int isRepo = 1;
 	git_repository *repo = NULL;
 	int error = git_repository_open_ext(&repo, path, 0, NULL);
 	if (error == 0) {
-		isRepo = 1;
+		isRepo = 0;
 		git_repository_free(repo);
 	}
 	return isRepo;

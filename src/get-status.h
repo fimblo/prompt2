@@ -34,7 +34,7 @@ struct CurrentState {
   const char *repo_name;
   const char *branch_name;
 
-  int is_git_repo;
+  const char *is_git_repo;
   int status_repo;
   int ahead;
   int behind;
