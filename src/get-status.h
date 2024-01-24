@@ -73,10 +73,17 @@ const char *findGitRepositoryPath(const char *path);
  */
 int gatherGitContext(struct CurrentState *state);
 
+
 /**
  * Check the validity of the AWS SSO login token and calculates the
- * remaining time until the token expires
- */
+ * remaining time until the token expires.
+ * 
+ * Note that this function breaks convention by returning 1 if
+ * successful(valid), to mirror the value stored in
+ * `state->aws_token_is_valid`.
+ *
+ * @return -1 for errors, 0 if token is invalid, 1 if it's valid.
+   */
 int gatherAWSContext(struct CurrentState *state);
 
 /**
