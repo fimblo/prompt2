@@ -13,8 +13,8 @@ int main(void) {
   gatherGitContext(&state);
 
 
-  printf("CWD.full %s\n",           getCWDFull(&state));
-  printf("CWD.basename %s\n",       getCWDBasename(&state));
+  printf("CWD.full %s\n",           state.cwd_full);
+  printf("CWD.basename %s\n",       state.cwd_basename);
   printf("CWD.git_path %s\n",       getCWDFromGitRepo(&state));
   printf("CWD.home_path %s\n",      getCWDFromHome(&state));
 

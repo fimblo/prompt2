@@ -87,16 +87,6 @@ int gatherGitContext(struct CurrentState *state);
 int gatherAWSContext(struct CurrentState *state);
 
 /**
- * Retrieve the full path of the current working directory
- */
-const char *getCWDFull(struct CurrentState *state);
-
-/**
- * Obtain the basename (the last component) of the current working directory
- */
-const char *getCWDBasename(struct CurrentState *state);
-
-/**
  * Generate a path relative to the root of the Git repository, using
  * '+' to represent the root
  */

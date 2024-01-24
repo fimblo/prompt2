@@ -303,6 +303,9 @@ void initialiseState(struct CurrentState *state) {
 
 
   // External stuff. User prolly interested in these
+  state->cwd_full                    = NULL;
+  state->cwd_basename                = NULL;
+
   state->is_git_repo                 = 0;
   state->repo_name                   = NULL;
   state->branch_name                 = NULL;
@@ -323,7 +326,18 @@ void initialiseState(struct CurrentState *state) {
   state->aws_token_is_valid          = -1;
   state->aws_token_remaining_hours   = -1;
   state->aws_token_remaining_minutes = -1;
+
+
+  // get current working directory and basename
+  static char cwd_path[PATH_MAX];
+  getcwd(cwd_path, sizeof(cwd_path));
+  state->cwd_full = cwd_path;
+
+  static char wd[PATH_MAX];
+  sprintf(wd, "%s", basename(cwd_path));
+  state->cwd_basename = wd;
 }
+
 
 /**
  * Given a path, returns root of git repo or empty string
@@ -343,7 +357,6 @@ const char *findGitRepositoryPath(const char *path) {
 
   return strdup("");
 }
-
 
 
 /**
@@ -453,43 +466,19 @@ int gatherAWSContext(struct CurrentState *state) {
 }
 
 /**
- * Retrieve the full path of the current working directory
- */
-const char *getCWDFull(struct CurrentState *state) {
-  static char cwd_path[PATH_MAX];
-  getcwd(cwd_path, sizeof(cwd_path));
-  state->cwd_full = cwd_path;
-  return cwd_path;
-}
-
-/**
- * Obtain the basename (the last component) of the current working directory
- */
-const char *getCWDBasename(struct CurrentState *state) {
-  static char cwd_path[PATH_MAX];
-  static char wd[PATH_MAX];
-  getcwd(cwd_path, sizeof(cwd_path));
-  sprintf(wd, "%s", basename(cwd_path));
-  state->cwd_basename = wd;
-  return wd;
-}
-
-/**
  * Generate a path relative to the root of the Git repository, using
  * '+' to represent the root
  */
 const char *getCWDFromGitRepo(struct CurrentState *state) {
   if (state->head_ref == NULL) return strdup("NO_DATA");
 
-  static char cwd_path[PATH_MAX];
   static char wd[PATH_MAX];
-  getcwd(cwd_path, sizeof(cwd_path));
-  size_t common_length = strspn(state->repo_path, cwd_path);
-  if (common_length == strlen(cwd_path)) {
+  size_t common_length = strspn(state->repo_path, state->cwd_full);
+  if (common_length == strlen(state->cwd_full)) {
     sprintf(wd, "+/");
   }
   else {
-    sprintf(wd, "+/%s", cwd_path + common_length + 1);
+    sprintf(wd, "+/%s", state->cwd_full + common_length + 1);
   }
   state->cwd_git_path = wd;
   return wd;
@@ -500,23 +489,21 @@ const char *getCWDFromGitRepo(struct CurrentState *state) {
  * directory part with '~' if applicable
  */
 const char *getCWDFromHome(struct CurrentState *state) {
-  static char cwd_path[PATH_MAX];
   static char wd[PATH_MAX];
   char *home_path = getenv("HOME");
 
-  getcwd(cwd_path, sizeof(cwd_path));
-  if (strncmp(cwd_path, home_path, strlen(home_path)) == 0) {
+  if (strncmp(state->cwd_full, home_path, strlen(home_path)) == 0) {
     // Inside HOME directory
-    if (strlen(cwd_path) == strlen(home_path)) {
+    if (strlen(state->cwd_full) == strlen(home_path)) {
       // At HOME root
       sprintf(wd, "~/");
     } else {
       // Deeper in HOME directory
-      sprintf(wd, "~%s", cwd_path + strlen(home_path));
+      sprintf(wd, "~%s", state->cwd_full + strlen(home_path));
     }
   } else {
     // Outside HOME directory
-    strcpy(wd, cwd_path);
+    strcpy(wd, state->cwd_full);
   }
 
   state->cwd_git_path = wd;
