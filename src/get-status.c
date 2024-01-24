@@ -147,12 +147,12 @@ int __populateRepoContext(struct CurrentState *state, const char *path) {
   return result;
 
 cleanup:
-   if (repo != NULL) {
-      git_repository_free(repo);
-    }
-    if (git_repository_path != NULL && state->repo_path == NULL) {
-      free((void *)git_repository_path);
-    }
+  if (repo != NULL) {
+    git_repository_free(repo);
+  }
+  if (git_repository_path != NULL && state->repo_path == NULL) {
+    free((void *)git_repository_path);
+  }
   
   return result;
 }
