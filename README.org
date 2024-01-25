@@ -36,9 +36,10 @@ AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining
 
 ** Prerequisites
 *** Debian
-- =apt-get install build-essential bats libjson-c-dev=
+- =apt-get install build-essential libgit2 bats libjson-c-dev uthash-dev=
 *** Mac
-- =xcode-select --install ; brew install bats json-c=
+- =xcode-select --install ; brew install libgit2 bats json-c uthash=
+- ... and if you're bash is the default provided by the OS, you'll need to =brew install bash=
 ** Building and testing
 - =make= will build and run all tests.
 - =make help= will print all targets
