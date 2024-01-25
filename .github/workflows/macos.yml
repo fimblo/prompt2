@@ -17,11 +17,17 @@ jobs:
     - name: Install dependencies
       run: |
         brew install libgit2 json-c uthash
-        brew install bats-core
+        brew install bash bats-core
 
     - name: Build binary
       run: make build
     
     - name: Run tests
       run: |
+        # meta about environment
+        bash --version
+        echo $-
+        bats --version
+
+        # run test
         make test

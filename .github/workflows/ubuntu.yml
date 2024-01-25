@@ -26,5 +26,12 @@ jobs:
     - name: Build binary
       run: make build
 
-    - name: Test binary
-      run: make test
+    - name: Run tests
+      run: |
+        # meta about environment
+        bash --version
+        echo $-
+        bats --version
+        
+        # run test
+        make test
