@@ -1,0 +1,58 @@
+name: "Build and test (Ubuntu)"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  build-ubuntu:
+    name: Build on Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install libgit2-dev libjson-c-dev uthash-dev
+
+    - name: Build binary
+      run: make build
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-functions
+        path: bin/test-functions
+
+
+  test:
+    name: Test on Ubuntu
+    needs: build-ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install libgit2-dev libjson-c-dev uthash-dev
+
+        curl -Lo bats-core.tar.gz https://github.com/bats-core/bats-core/archive/v1.10.0.tar.gz
+        tar -xzf bats-core.tar.gz
+        cd bats-core-1.10.0
+        sudo ./install.sh /usr/local
+
+
+    - uses: actions/download-artifact@v2
+      with:
+        name: test-functions
+    
+    - name: Run tests
+      run: |
+        mkdir -p bin
+        mv test-functions bin/
+        chmod +x bin/test-functions
+        make test
