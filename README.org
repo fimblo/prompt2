@@ -1,5 +1,6 @@
 * prompt2
 [[https://github.com/fimblo/prompt2/actions/workflows/ubuntu.yml/badge.svg]]
+[[https://github.com/fimblo/prompt2/actions/workflows/macos.yml/badge.svg]]
 
 another prompt generator for the terminal
 

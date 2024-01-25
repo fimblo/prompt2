@@ -1,0 +1,27 @@
+name: "[macos] Build and test"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  build-and-test:
+    name: build and test
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        brew install libgit2 json-c uthash
+        brew install bats-core
+
+    - name: Build binary
+      run: make build
+    
+    - name: Run tests
+      run: |
+        make test
