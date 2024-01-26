@@ -43,8 +43,7 @@ int main(void) {
   initialiseState(&state);
   gatherGitContext(&state);
 
-  state.repo_path = findGitRepositoryPath(".");
-  if (strlen(state.repo_path) == 0) {
+  if (isGitRepo(".")) {
     free((void *) state.repo_path);
     printf("$ ");
     return 0;
