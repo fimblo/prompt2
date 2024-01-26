@@ -30,6 +30,12 @@ const char *find_replacement(const char *command) {
   return i ? i->replacement : NULL;
 }
 
+const char *itoa(int val) {
+  static char buf[32] = {0};
+  snprintf(buf, sizeof(buf), "%d", val);
+  return buf;
+}
+
 
 int main(void) {
   git_libgit2_init();
@@ -57,21 +63,21 @@ int main(void) {
   add_instruction("Repo.is_git_repo",             state.is_git_repo);
   add_instruction("Repo.name",                    state.repo_name);
   add_instruction("Repo.branch.name",             state.branch_name);
-  add_instruction("Repo.rebase_active",           state.rebase_in_progress);
-  add_instruction("Repo.conflict.num",            state.conflict_num);
+  add_instruction("Repo.rebase_active",           itoa(state.rebase_in_progress));
+  add_instruction("Repo.conflict.num",            itoa(state.conflict_num));
 
   add_instruction("Diverge.status",               state_names[state.status_repo]);
-  add_instruction("Diverge.ahead",                state.ahead);
-  add_instruction("Diverge.behind",               state.behind);
+  add_instruction("Diverge.ahead",                itoa(state.ahead));
+  add_instruction("Diverge.behind",               itoa(state.behind));
 
   add_instruction("Staged.status",                state_names[state.status_staged]);
-  add_instruction("Staged.num",                   state.staged_changes_num);
+  add_instruction("Staged.num",                   itoa(state.staged_changes_num));
   add_instruction("Unstaged.status",              state_names[state.status_unstaged]);
-  add_instruction("Unstaged.num",                 state.unstaged_changes_num);
+  add_instruction("Unstaged.num",                 itoa(state.unstaged_changes_num));
 
-  add_instruction("AWS.token_is_valid",           state.aws_token_is_valid);
-  add_instruction("AWS.token_remaining_hours",    state.aws_token_remaining_hours);
-  add_instruction("AWS.token_remaining_minutes",  state.aws_token_remaining_minutes);
+  add_instruction("AWS.token_is_valid",           itoa(state.aws_token_is_valid));
+  add_instruction("AWS.token_remaining_hours",    itoa(state.aws_token_remaining_hours));
+  add_instruction("AWS.token_remaining_minutes",  itoa(state.aws_token_remaining_minutes));
 
 
 
