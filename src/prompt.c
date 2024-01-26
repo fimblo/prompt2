@@ -19,7 +19,11 @@ void add_instruction(const char *command, const char *replacement) {
     exit(-1);
   }
   i->command = command;
-  i->replacement = replacement;
+  i->replacement = strdup(replacement);
+  if (i->replacement == NULL) {
+    free(i);
+    exit(-1);
+  }
   HASH_ADD_KEYPTR(hh, instructions, i->command, strlen(i->command), i);
 }
 
@@ -31,6 +35,7 @@ const char *find_replacement(const char *command) {
 }
 
 const char *itoa(int val) {
+  //printf("'%d'\n", val);
   static char buf[32] = {0};
   snprintf(buf, sizeof(buf), "%d", val);
   return buf;
@@ -126,6 +131,7 @@ int main(void) {
   instruction_t *current_entry, *tmp;
     HASH_ITER(hh, instructions, current_entry, tmp) {
     HASH_DEL(instructions, current_entry);
+    free((char*)current_entry->replacement);
     free(current_entry);
   }
 
