@@ -38,8 +38,9 @@ const char *itoa(int val) {
 
 
 int main(void) {
-  git_libgit2_init();
   struct CurrentState state;
+
+  git_libgit2_init();
   initialiseState(&state);
   gatherGitContext(&state);
 
@@ -50,10 +51,10 @@ int main(void) {
   }
 
   gatherAWSContext(&state);
-  const char *undigestedPrompt = getenv("GP2_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ \n";
-
   const char* cwd_from_gitrepo = getCWDFromGitRepo(&state);
   const char* cwd_from_home = getCWDFromHome(&state);
+
+
   add_instruction("CWD.full",                     state.cwd_full);
   add_instruction("CWD.basename",                 state.cwd_basename);
   add_instruction("CWD.git_path",                 cwd_from_gitrepo);
@@ -79,8 +80,7 @@ int main(void) {
   add_instruction("AWS.token_remaining_minutes",  itoa(state.aws_token_remaining_minutes));
 
 
-
-
+  const char *undigestedPrompt = getenv("GP2_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ \n";
   char digestedPrompt[1024] = {0};
   const char *ptr = undigestedPrompt;
   char command[256];
