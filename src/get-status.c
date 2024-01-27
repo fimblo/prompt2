@@ -106,7 +106,7 @@ const char * __getBranchName(struct CurrentState *state) {
 int __populateRepoContext(struct CurrentState *state, const char *path) {
   int result = -1; // Default to failure
 
-  state->is_git_repo = (isGitRepo(path) == 0) ? "1" : "0";
+  state->is_git_repo = (isGitRepo(path) == 0) ? 1 : 0;
 
   const char *git_repository_path = NULL;
   git_repository *repo = NULL;
@@ -291,7 +291,7 @@ void initialiseState(struct CurrentState *state) {
   state->cwd_full                    = NULL;
   state->cwd_basename                = NULL;
 
-  state->is_git_repo                 = NULL;
+  state->is_git_repo                 = -1;
   state->repo_name                   = NULL;
   state->branch_name                 = NULL;
 

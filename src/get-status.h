@@ -23,7 +23,7 @@ struct CurrentState {
   const char *repo_name;
   const char *branch_name;
 
-  const char *is_git_repo;
+  int is_git_repo;
 
   int has_upstream;
 
