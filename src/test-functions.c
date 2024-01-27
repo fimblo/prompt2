@@ -29,8 +29,8 @@ int main(void) {
   printf("Diverge.ahead %d\n",      state.ahead);
   printf("Diverge.behind %d\n",     state.behind);
 
-  printf("Staged.num %d\n",         state.staged_changes_num);
-  printf("Unstaged.num %d\n",       state.unstaged_changes_num);
+  printf("Staged.num %d\n",         state.staged_num);
+  printf("Unstaged.num %d\n",       state.unstaged_num);
   printf("Untracked.num %d\n",      state.untracked_num);
 
 

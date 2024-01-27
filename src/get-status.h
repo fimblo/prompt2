@@ -29,8 +29,8 @@ struct CurrentState {
 
   int ahead;
   int behind;
-  int staged_changes_num;
-  int unstaged_changes_num;
+  int staged_num;
+  int unstaged_num;
   int untracked_num;
 
   int conflict_num;

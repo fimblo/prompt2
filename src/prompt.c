@@ -76,8 +76,8 @@ int main(void) {
   add_instruction("Diverge.ahead",                itoa(state.ahead));
   add_instruction("Diverge.behind",               itoa(state.behind));
 
-  add_instruction("Staged.num",                   itoa(state.staged_changes_num));
-  add_instruction("Unstaged.num",                 itoa(state.unstaged_changes_num));
+  add_instruction("Staged.num",                   itoa(state.staged_num));
+  add_instruction("Unstaged.num",                 itoa(state.unstaged_num));
   add_instruction("Untracked.num",                itoa(state.untracked_num));
 
   add_instruction("AWS.token_is_valid",           itoa(state.aws_token_is_valid));

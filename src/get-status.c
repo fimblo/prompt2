@@ -213,8 +213,8 @@ int __getRepoStatus(struct CurrentState *state) {
     }
   }
 
-  state->staged_changes_num = staged_changes;
-  state->unstaged_changes_num = unstaged_changes;
+  state->staged_num = staged_changes;
+  state->unstaged_num = unstaged_changes;
   state->conflict_num = conflicts;
   state->untracked_num = untracked;
 
@@ -299,12 +299,12 @@ void initialiseState(struct CurrentState *state) {
   state->ahead                       = -1;
   state->behind                      = -1;
 
-  state->staged_changes_num          = -1;
-  state->unstaged_changes_num        = -1;
+  state->staged_num                  = -1;
+  state->unstaged_num                = -1;
   state->untracked_num               = -1;
 
   state->conflict_num                = -1;
-  state->rebase_in_progress          = 0;
+  state->rebase_in_progress          =  0;
 
   state->aws_token_is_valid          = -1;
   state->aws_token_remaining_hours   = -1;
