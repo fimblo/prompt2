@@ -41,57 +41,42 @@ const char *itoa(int val) {
   return buf;
 }
 
+void addDefaultInstructions(struct CurrentState *state) {
+  const char* cwd_from_gitrepo = getCWDFromGitRepo(state);
+  const char* cwd_from_home = getCWDFromHome(state);
 
-int main(void) {
-  struct CurrentState state;
-
-  git_libgit2_init();
-  initialiseState(&state);
-  gatherGitContext(&state);
-
-  if (isGitRepo(".")) {
-    free((void *) state.repo_path);
-    const char *nonGitPrompt = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
-    printf("%s", nonGitPrompt);
-    return 0;
-  }
-
-  gatherAWSContext(&state);
-  const char* cwd_from_gitrepo = getCWDFromGitRepo(&state);
-  const char* cwd_from_home = getCWDFromHome(&state);
-
-
-  add_instruction("CWD.full",                     state.cwd_full);
-  add_instruction("CWD.basename",                 state.cwd_basename);
+  add_instruction("CWD.full",                     state->cwd_full);
+  add_instruction("CWD.basename",                 state->cwd_basename);
   add_instruction("CWD.git_path",                 cwd_from_gitrepo);
   add_instruction("CWD.home_path",                cwd_from_home);
 
-  add_instruction("Repo.is_git_repo",             itoa(state.is_git_repo));
-  add_instruction("Repo.name",                    state.repo_name);
-  add_instruction("Repo.branch_name",             state.branch_name);
-  add_instruction("Repo.rebase_active",           itoa(state.is_rebase_in_progress));
-  add_instruction("Repo.conflict_num",            itoa(state.conflict_num));
+  add_instruction("Repo.is_git_repo",             itoa(state->is_git_repo));
+  add_instruction("Repo.name",                    state->repo_name);
+  add_instruction("Repo.branch_name",             state->branch_name);
+  add_instruction("Repo.rebase_active",           itoa(state->is_rebase_in_progress));
+  add_instruction("Repo.conflict_num",            itoa(state->conflict_num));
 
-  add_instruction("Repo.has_upstream",            itoa(state.has_upstream));
-  add_instruction("Repo.ahead",                   itoa(state.ahead_num));
-  add_instruction("Repo.behind",                  itoa(state.behind_num));
+  add_instruction("Repo.has_upstream",            itoa(state->has_upstream));
+  add_instruction("Repo.ahead",                   itoa(state->ahead_num));
+  add_instruction("Repo.behind",                  itoa(state->behind_num));
 
-  add_instruction("Repo.staged_num",              itoa(state.staged_num));
-  add_instruction("Repo.modified_num",            itoa(state.modified_num));
-  add_instruction("Repo.untracked_num",           itoa(state.untracked_num));
+  add_instruction("Repo.staged_num",              itoa(state->staged_num));
+  add_instruction("Repo.modified_num",            itoa(state->modified_num));
+  add_instruction("Repo.untracked_num",           itoa(state->untracked_num));
 
-  add_instruction("AWS.token_is_valid",           itoa(state.aws_token_is_valid));
-  add_instruction("AWS.token_remaining_hours",    itoa(state.aws_token_remaining_hours));
-  add_instruction("AWS.token_remaining_minutes",  itoa(state.aws_token_remaining_minutes));
+  add_instruction("AWS.token_is_valid",           itoa(state->aws_token_is_valid));
+  add_instruction("AWS.token_remaining_hours",    itoa(state->aws_token_remaining_hours));
+  add_instruction("AWS.token_remaining_minutes",  itoa(state->aws_token_remaining_minutes));
+}
 
 
-  const char *undigestedPrompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ ";
+const char *parsePrompt(const char *undigestedPrompt) {
   char digestedPrompt[1024] = {0};
   const char *ptr = undigestedPrompt;
   char command[256];
   int commandIndex = 0;
   int inCommand = 0;
-  
+
   while (*ptr) {
     if (*ptr == '@' && *(ptr + 1) == '{') {
       inCommand = 1;
@@ -121,8 +106,30 @@ int main(void) {
       strcat(digestedPrompt, str);
     }
   }
-  
-  // Output the digested prompt
+
+  return strdup(digestedPrompt);
+}
+
+
+int main(void) {
+  struct CurrentState state;
+
+  git_libgit2_init();
+
+  if (isGitRepo(".")) {
+    const char *nonGitPrompt = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
+    printf("%s", nonGitPrompt);
+    return 0;
+  }
+
+  initialiseState(&state);
+  gatherGitContext(&state);
+  gatherAWSContext(&state);
+  addDefaultInstructions(&state);
+
+
+  const char *undigestedPrompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ ";
+  const char *digestedPrompt = parsePrompt(undigestedPrompt);
   printf("%s", digestedPrompt);
 
   
