@@ -34,6 +34,7 @@ int main(void) {
   printf("Staged.num %d\n",         state.staged_changes_num);
   printf("Unstaged.status %s\n",    state_names[state.status_unstaged]);
   printf("Unstaged.num %d\n",       state.unstaged_changes_num);
+  printf("Untracked.num %d\n",      state.untracked_num);
 
 
   gatherAWSContext(&state);

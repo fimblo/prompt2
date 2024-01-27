@@ -45,6 +45,8 @@ struct CurrentState {
   int status_unstaged;
   int unstaged_changes_num;
 
+  int untracked_num;
+
   int conflict_num;
   int rebase_in_progress;
 

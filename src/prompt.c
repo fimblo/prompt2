@@ -80,6 +80,7 @@ int main(void) {
   add_instruction("Staged.num",                   itoa(state.staged_changes_num));
   add_instruction("Unstaged.status",              state_names[state.status_unstaged]);
   add_instruction("Unstaged.num",                 itoa(state.unstaged_changes_num));
+  add_instruction("Untracked.num",                itoa(state.untracked_num));
 
   add_instruction("AWS.token_is_valid",           itoa(state.aws_token_is_valid));
   add_instruction("AWS.token_remaining_hours",    itoa(state.aws_token_remaining_hours));

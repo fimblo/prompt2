@@ -167,6 +167,25 @@ load test_helper_functions
 }
 
 # --------------------------------------------------
+@test "creating some untracked files updates state" {
+  # Given
+  # - we have a repo with some tracked files
+  # - and we create three new files (untracked)
+  helper__new_repo_and_commit "newfile" "some text"
+
+  touch one two three
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+
+
+  # Then
+  # - we should find three untracked files detected
+  echo "$output" > "$HOME/assert-file"
+  assert Untracked.num    3
+}
+
+# --------------------------------------------------
 @test "modifying tracked file" {
   # Given
   # - we create an empty git repo with one tracked file

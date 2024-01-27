@@ -23,6 +23,7 @@ GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Staged.status       '@{Staged.status}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Staged.num          '@{Staged.num}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Unstaged.status     '@{Unstaged.status}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Unstaged.num        '@{Unstaged.num}'\n"
+GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Untracked.num       '@{Untracked.num}'\n"
 
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}AWS.token_is_valid          '@{AWS.token_is_valid}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}AWS.token_remaining_hours   '@{AWS.token_remaining_hours}'\n"

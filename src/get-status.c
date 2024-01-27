@@ -171,7 +171,7 @@ int __getRepoStatus(struct CurrentState *state) {
 #pragma GCC diagnostic pop
 
   opts.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
-  opts.flags = GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX;
+  opts.flags = GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX | GIT_STATUS_OPT_INCLUDE_UNTRACKED;
 
   git_status_list *status_list = NULL;
   if (git_status_list_new(&status_list, state->repo_obj, &opts) != 0) {
@@ -187,6 +187,7 @@ int __getRepoStatus(struct CurrentState *state) {
   int staged_changes   = 0;
   int unstaged_changes = 0;
   int conflicts        = 0;
+  int untracked        = 0;
 
   int status_count = git_status_list_entrycount(status_list);
   for (int i = 0; i < status_count; i++) {
@@ -215,6 +216,10 @@ int __getRepoStatus(struct CurrentState *state) {
       state->status_unstaged = MODIFIED;
       unstaged_changes++;
     }
+
+    if (entry->status & GIT_STATUS_WT_NEW) {
+      untracked++;
+    }
   }
 
   if (staged_changes == 0)   {
@@ -227,6 +232,7 @@ int __getRepoStatus(struct CurrentState *state) {
   state->staged_changes_num = staged_changes;
   state->unstaged_changes_num = unstaged_changes;
   state->conflict_num = conflicts;
+  state->untracked_num = untracked;
 
 
   __checkForInteractiveRebase(state);
@@ -322,6 +328,8 @@ void initialiseState(struct CurrentState *state) {
 
   state->status_unstaged             = NO_DATA;
   state->unstaged_changes_num        = -1;
+
+  state->untracked_num               = -1;
 
   state->conflict_num                = -1;
   state->rebase_in_progress          = 0;

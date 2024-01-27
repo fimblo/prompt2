@@ -27,6 +27,7 @@ Staged.status                # status of staged
 Staged.num                   # number of staged files
 Unstaged.status              # status of tracked unstaged files
 Unstaged.num                 # number of changed unstaged files
+Untracked.num                # number of untracked files
 AWS.token_is_valid           # if there is a valid AWS SSO token
 AWS.token_remaining_hours    # AWS SSO token: how many hours are remaining
 AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining
