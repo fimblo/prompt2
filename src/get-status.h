@@ -34,7 +34,7 @@ struct CurrentState {
   int untracked_num;
 
   int conflict_num;
-  int rebase_in_progress;
+  int is_rebase_in_progress;
 
   int aws_token_is_valid; // 0 if invalid, 1 if valid, -1 if error
   int aws_token_remaining_hours;

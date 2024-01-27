@@ -22,7 +22,7 @@ int main(void) {
   printf("Repo.is_git_repo %s\n",   state.is_git_repo);
   printf("Repo.name %s\n",          state.repo_name);
   printf("Repo.branch.name %s\n",   state.branch_name);
-  printf("Repo.rebase_active %d\n", state.rebase_in_progress);
+  printf("Repo.rebase_active %d\n", state.is_rebase_in_progress);
   printf("Repo.conflict.num %d\n",  state.conflict_num);
 
   printf("Repo.has_upstream %d\n",  state.has_upstream);

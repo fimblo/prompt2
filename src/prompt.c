@@ -69,7 +69,7 @@ int main(void) {
   add_instruction("Repo.is_git_repo",             state.is_git_repo);
   add_instruction("Repo.name",                    state.repo_name);
   add_instruction("Repo.branch.name",             state.branch_name);
-  add_instruction("Repo.rebase_active",           itoa(state.rebase_in_progress));
+  add_instruction("Repo.rebase_active",           itoa(state.is_rebase_in_progress));
   add_instruction("Repo.conflict.num",            itoa(state.conflict_num));
 
   add_instruction("Repo.has_upstream",            itoa(state.has_upstream));

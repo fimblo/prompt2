@@ -76,7 +76,7 @@ int __checkForInteractiveRebase(struct CurrentState *state) {
 
   struct stat mergeStat, applyStat;
   if (stat(rebaseMergePath, &mergeStat) == 0 || stat(rebaseApplyPath, &applyStat) == 0) {
-    state->rebase_in_progress = 1;
+    state->is_rebase_in_progress = 1;
     return 1;
   }
   return 0;
@@ -296,15 +296,15 @@ void initialiseState(struct CurrentState *state) {
   state->branch_name                 = NULL;
 
   state->has_upstream                = -1;
-  state->ahead_num                       = -1;
-  state->behind_num                      = -1;
+  state->ahead_num                   = -1;
+  state->behind_num                  = -1;
 
   state->staged_num                  = -1;
   state->unstaged_num                = -1;
   state->untracked_num               = -1;
 
   state->conflict_num                = -1;
-  state->rebase_in_progress          =  0;
+  state->is_rebase_in_progress       =  0;
 
   state->aws_token_is_valid          = -1;
   state->aws_token_remaining_hours   = -1;
