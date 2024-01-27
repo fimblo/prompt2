@@ -20,8 +20,8 @@ Repo.name                    # name of git repo
 Repo.branch.name             # name of branch
 Repo.rebase_active           # if rebase is in progress
 Repo.conflict.num            # number of conflicts in repo
-Diverge.ahead                # number of commits ahead remote
-Diverge.behind               # number of commits behind remote
+Repo.ahead                   # number of commits ahead of remote
+Repo.behind                  # number of commits behind remote
 Staged.num                   # number of staged files
 Unstaged.num                 # number of changed unstaged files
 Untracked.num                # number of untracked files

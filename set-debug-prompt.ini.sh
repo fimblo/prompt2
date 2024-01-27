@@ -16,8 +16,8 @@ GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.rebase_active  '@{Repo.rebase_active}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.conflict.num   '@{Repo.conflict.num}'\n"
 
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.has_upstream   '@{Repo.has_upstream}'\n"
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Diverge.ahead       '@{Diverge.ahead}'\n"
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Diverge.behind      '@{Diverge.behind}'\n"
+GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.ahead          '@{Repo.ahead}'\n"
+GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.behind         '@{Repo.behind}'\n"
 
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Staged.num          '@{Staged.num}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Unstaged.num        '@{Unstaged.num}'\n"

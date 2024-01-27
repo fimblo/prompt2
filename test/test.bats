@@ -264,8 +264,8 @@ load test_helper_functions
   echo "$output" > "$HOME/assert-file"
   assert Repo.name        'myRepo'
   assert Repo.has_upstream   '1'
-  assert Diverge.ahead       '0'
-  assert Diverge.behind      '0'
+  assert Repo.ahead       '0'
+  assert Repo.behind      '0'
 }
 
 # --------------------------------------------------
@@ -349,7 +349,7 @@ load test_helper_functions
   # then
   # - should be ahead by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Diverge.ahead       '1'
+  assert Repo.ahead       '1'
 }
 
 # --------------------------------------------------
@@ -385,7 +385,7 @@ load test_helper_functions
   # then
   # - should be behind by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Diverge.behind      '1'
+  assert Repo.behind      '1'
 }
 
 # --------------------------------------------------
@@ -430,8 +430,8 @@ load test_helper_functions
   # - should be ahead by one commit
   # - .. and behind by one
   echo "$output" > "$HOME/assert-file"
-  assert Diverge.ahead       '1'
-  assert Diverge.behind      '1'
+  assert Repo.ahead       '1'
+  assert Repo.behind      '1'
 }
 
 # --------------------------------------------------

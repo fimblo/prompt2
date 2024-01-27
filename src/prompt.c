@@ -73,8 +73,8 @@ int main(void) {
   add_instruction("Repo.conflict.num",            itoa(state.conflict_num));
 
   add_instruction("Repo.has_upstream",            itoa(state.has_upstream));
-  add_instruction("Diverge.ahead",                itoa(state.ahead_num));
-  add_instruction("Diverge.behind",               itoa(state.behind_num));
+  add_instruction("Repo.ahead",                   itoa(state.ahead_num));
+  add_instruction("Repo.behind",                  itoa(state.behind_num));
 
   add_instruction("Staged.num",                   itoa(state.staged_num));
   add_instruction("Unstaged.num",                 itoa(state.unstaged_num));
