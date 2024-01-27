@@ -79,6 +79,7 @@ int __checkForInteractiveRebase(struct CurrentState *state) {
     state->is_rebase_in_progress = 1;
     return 1;
   }
+  state->is_rebase_in_progress = 0;
   return 0;
 }
 
@@ -304,7 +305,7 @@ void initialiseState(struct CurrentState *state) {
   state->untracked_num               = -1;
 
   state->conflict_num                = -1;
-  state->is_rebase_in_progress       =  0;
+  state->is_rebase_in_progress       = -1;
 
   state->aws_token_is_valid          = -1;
   state->aws_token_remaining_hours   = -1;
