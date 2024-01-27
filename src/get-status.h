@@ -46,6 +46,7 @@ void initialiseState(struct CurrentState *state);
 
 /**
  * Checks if the given path is a git repository
+ * @return 0 if true, 1 if false
  */
 int isGitRepo(const char *path);
 

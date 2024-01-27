@@ -116,7 +116,7 @@ int main(void) {
 
   git_libgit2_init();
 
-  if (isGitRepo(".")) {
+  if (isGitRepo(".") != 0) {
     const char *nonGitPrompt = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
     printf("%s", nonGitPrompt);
     return 0;
