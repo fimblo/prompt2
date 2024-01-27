@@ -17,14 +17,14 @@ CWD.git_path                 # I'm at the root of the git repo
 CWD.home_path                # path to . from HOME
 Repo.is_git_repo             # if . is a git repo
 Repo.name                    # name of git repo
-Repo.branch.name             # name of branch
+Repo.branch_name             # name of branch
 Repo.rebase_active           # if rebase is in progress
-Repo.conflict.num            # number of conflicts in repo
+Repo.conflict_num            # number of conflicts in repo
 Repo.ahead                   # number of commits ahead of remote
 Repo.behind                  # number of commits behind remote
-Staged.num                   # number of staged files
-Unstaged.num                 # number of changed unstaged files
-Untracked.num                # number of untracked files
+Staged_num                   # number of staged files
+Modified_num                 # number of changed modified files
+Untracked_num                # number of untracked files
 AWS.token_is_valid           # if there is a valid AWS SSO token
 AWS.token_remaining_hours    # AWS SSO token: how many hours are remaining
 AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining

@@ -30,7 +30,7 @@ struct CurrentState {
   int ahead_num;
   int behind_num;
   int staged_num;
-  int unstaged_num;
+  int modified_num;
   int untracked_num;
 
   int conflict_num;

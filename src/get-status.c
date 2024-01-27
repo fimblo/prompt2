@@ -153,7 +153,7 @@ cleanup:
 
 /**
  * Helper: Get the current Git repository's status, including staged
- * and unstaged changes, and conflicts.
+ * and modified changes, and conflicts.
  */
 int __getRepoStatus(struct CurrentState *state) {
   if (state->head_ref == NULL) return 1;
@@ -179,7 +179,7 @@ int __getRepoStatus(struct CurrentState *state) {
 
   // Now iterate
   int staged_changes   = 0;
-  int unstaged_changes = 0;
+  int modified_changes = 0;
   int conflicts        = 0;
   int untracked        = 0;
 
@@ -201,12 +201,12 @@ int __getRepoStatus(struct CurrentState *state) {
       staged_changes++;
     }
 
-    // Check for unstaged changes
+    // Check for modified changes
     if (entry->status & (GIT_STATUS_WT_MODIFIED |
                          GIT_STATUS_WT_DELETED  |
                          GIT_STATUS_WT_RENAMED  |
                          GIT_STATUS_WT_TYPECHANGE)) {
-      unstaged_changes++;
+      modified_changes++;
     }
 
     if (entry->status & GIT_STATUS_WT_NEW) {
@@ -215,7 +215,7 @@ int __getRepoStatus(struct CurrentState *state) {
   }
 
   state->staged_num = staged_changes;
-  state->unstaged_num = unstaged_changes;
+  state->modified_num = modified_changes;
   state->conflict_num = conflicts;
   state->untracked_num = untracked;
 
@@ -301,7 +301,7 @@ void initialiseState(struct CurrentState *state) {
   state->behind_num                  = -1;
 
   state->staged_num                  = -1;
-  state->unstaged_num                = -1;
+  state->modified_num                = -1;
   state->untracked_num               = -1;
 
   state->conflict_num                = -1;

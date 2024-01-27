@@ -21,17 +21,17 @@ int main(void) {
 
   printf("Repo.is_git_repo %d\n",   state.is_git_repo);
   printf("Repo.name %s\n",          state.repo_name);
-  printf("Repo.branch.name %s\n",   state.branch_name);
+  printf("Repo.branch_name %s\n",   state.branch_name);
   printf("Repo.rebase_active %d\n", state.is_rebase_in_progress);
-  printf("Repo.conflict.num %d\n",  state.conflict_num);
+  printf("Repo.conflict_num %d\n",  state.conflict_num);
 
   printf("Repo.has_upstream %d\n",  state.has_upstream);
   printf("Repo.ahead %d\n",         state.ahead_num);
   printf("Repo.behind %d\n",        state.behind_num);
 
-  printf("Staged.num %d\n",         state.staged_num);
-  printf("Unstaged.num %d\n",       state.unstaged_num);
-  printf("Untracked.num %d\n",      state.untracked_num);
+  printf("Staged_num %d\n",         state.staged_num);
+  printf("Modified_num %d\n",       state.modified_num);
+  printf("Untracked_num %d\n",      state.untracked_num);
 
 
   gatherAWSContext(&state);

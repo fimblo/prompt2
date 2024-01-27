@@ -184,7 +184,7 @@ load test_helper_functions
   # Then
   # - we should find three untracked files detected
   echo "$output" > "$HOME/assert-file"
-  assert Untracked.num    3
+  assert Untracked_num    3
 }
 
 # --------------------------------------------------
@@ -198,9 +198,9 @@ load test_helper_functions
   # When we test the prompt lib
   run -0 $TEST_FUNCTION
 
-  # Then we should find one unstaged file
+  # Then we should find one Modified file
   echo "$output" > "$HOME/assert-file"
-  assert Unstaged.num     '1'
+  assert Modified_num     '1'
 }
 
 # --------------------------------------------------
@@ -233,9 +233,9 @@ load test_helper_functions
   # when we run the prompt lib
   run -0 $TEST_FUNCTION
 
-  # then the branch.name should be 'featureBranch'
+  # then the branch_name should be 'featureBranch'
   echo "$output" > "$HOME/assert-file"
-  assert Repo.branch.name 'featureBranch'
+  assert Repo.branch_name 'featureBranch'
 }
 
 # --------------------------------------------------
@@ -292,7 +292,7 @@ load test_helper_functions
   # then
   # - should be ahead by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Unstaged.num     '1'
+  assert Modified_num     '1'
 }
 
 # --------------------------------------------------
@@ -320,7 +320,7 @@ load test_helper_functions
   # then
   # - should be ahead by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Staged.num     '1'
+  assert Staged_num     '1'
 }
 
 # --------------------------------------------------
@@ -469,7 +469,7 @@ load test_helper_functions
   # Then check that conflict_num has increased to 1
   # .. and that Repo.has_upstream should be 0
   echo "$output" > "$HOME/assert-file"
-  assert Repo.conflict.num         '1'
+  assert Repo.conflict_num         '1'
   assert Repo.rebase_active   '1'
   assert Repo.has_upstream '0'
 }
@@ -515,9 +515,9 @@ load test_helper_functions
   # .. number of staged should be 1
   # .. and Repo.has_upstream should still be 0
   echo "$output" > "$HOME/assert-file"
-  assert Staged.num        '1'
+  assert Staged_num        '1'
   assert Repo.has_upstream '0'
-  assert Repo.conflict.num      '0'
+  assert Repo.conflict_num      '0'
 }
 
 # --------------------------------------------------
@@ -561,8 +561,8 @@ load test_helper_functions
   # Then number of conflicts should be zero
   # .. number of staged should be 0
   echo "$output" > "$HOME/assert-file"
-  assert Staged.num        '0'
-  assert Repo.conflict.num      '0'
+  assert Staged_num        '0'
+  assert Repo.conflict_num      '0'
   assert Repo.rebase_active '1'
 }
 
@@ -591,8 +591,8 @@ load test_helper_functions
   # Then number of conflicts should be zero
   # .. number of staged should be 0
   echo "$output" > "$HOME/assert-file"
-  assert Staged.num        '0'
-  assert Repo.conflict.num      '0'
+  assert Staged_num        '0'
+  assert Repo.conflict_num      '0'
   assert Repo.rebase_active '1'
 }
 
