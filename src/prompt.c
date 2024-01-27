@@ -51,7 +51,8 @@ int main(void) {
 
   if (isGitRepo(".")) {
     free((void *) state.repo_path);
-    printf("$ ");
+    const char *nonGitPrompt = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
+    printf("%s", nonGitPrompt);
     return 0;
   }
 
@@ -85,7 +86,7 @@ int main(void) {
   add_instruction("AWS.token_remaining_minutes",  itoa(state.aws_token_remaining_minutes));
 
 
-  const char *undigestedPrompt = getenv("GP2_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ \n";
+  const char *undigestedPrompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ ";
   char digestedPrompt[1024] = {0};
   const char *ptr = undigestedPrompt;
   char command[256];
