@@ -27,8 +27,8 @@ struct CurrentState {
 
   int has_upstream;
 
-  int ahead;
-  int behind;
+  int ahead_num;
+  int behind_num;
   int staged_num;
   int unstaged_num;
   int untracked_num;

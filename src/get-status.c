@@ -260,8 +260,8 @@ int __getRepoDivergence(struct CurrentState *state) {
   __calculateDivergence(state->repo_obj,
                         state->head_oid,
                         upstream_oid,
-                        &state->ahead,
-                        &state->behind);
+                        &state->ahead_num,
+                        &state->behind_num);
 
 
   git_reference_free(upstream_ref);
@@ -296,8 +296,8 @@ void initialiseState(struct CurrentState *state) {
   state->branch_name                 = NULL;
 
   state->has_upstream                = -1;
-  state->ahead                       = -1;
-  state->behind                      = -1;
+  state->ahead_num                       = -1;
+  state->behind_num                      = -1;
 
   state->staged_num                  = -1;
   state->unstaged_num                = -1;

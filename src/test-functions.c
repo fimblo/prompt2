@@ -26,8 +26,8 @@ int main(void) {
   printf("Repo.conflict.num %d\n",  state.conflict_num);
 
   printf("Repo.has_upstream %d\n",  state.has_upstream);
-  printf("Diverge.ahead %d\n",      state.ahead);
-  printf("Diverge.behind %d\n",     state.behind);
+  printf("Diverge.ahead %d\n",      state.ahead_num);
+  printf("Diverge.behind %d\n",     state.behind_num);
 
   printf("Staged.num %d\n",         state.staged_num);
   printf("Unstaged.num %d\n",       state.unstaged_num);
