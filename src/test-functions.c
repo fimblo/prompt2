@@ -29,9 +29,9 @@ int main(void) {
   printf("Repo.ahead %d\n",         state.ahead_num);
   printf("Repo.behind %d\n",        state.behind_num);
 
-  printf("Staged_num %d\n",         state.staged_num);
-  printf("Modified_num %d\n",       state.modified_num);
-  printf("Untracked_num %d\n",      state.untracked_num);
+  printf("Repo.staged_num %d\n",    state.staged_num);
+  printf("Repo.modified_num %d\n",  state.modified_num);
+  printf("Repo.untracked_num %d\n", state.untracked_num);
 
 
   gatherAWSContext(&state);

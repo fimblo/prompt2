@@ -76,9 +76,9 @@ int main(void) {
   add_instruction("Repo.ahead",                   itoa(state.ahead_num));
   add_instruction("Repo.behind",                  itoa(state.behind_num));
 
-  add_instruction("Staged_num",                   itoa(state.staged_num));
-  add_instruction("Modified_num",                 itoa(state.modified_num));
-  add_instruction("Untracked_num",                itoa(state.untracked_num));
+  add_instruction("Repo.staged_num",              itoa(state.staged_num));
+  add_instruction("Repo.modified_num",            itoa(state.modified_num));
+  add_instruction("Repo.untracked_num",           itoa(state.untracked_num));
 
   add_instruction("AWS.token_is_valid",           itoa(state.aws_token_is_valid));
   add_instruction("AWS.token_remaining_hours",    itoa(state.aws_token_remaining_hours));

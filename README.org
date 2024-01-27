@@ -22,9 +22,9 @@ Repo.rebase_active           # if rebase is in progress
 Repo.conflict_num            # number of conflicts in repo
 Repo.ahead                   # number of commits ahead of remote
 Repo.behind                  # number of commits behind remote
-Staged_num                   # number of staged files
-Modified_num                 # number of changed modified files
-Untracked_num                # number of untracked files
+Repo.staged_num              # number of staged files
+Repo.modified_num            # number of changed modified files
+Repo.untracked_num           # number of untracked files
 AWS.token_is_valid           # if there is a valid AWS SSO token
 AWS.token_remaining_hours    # AWS SSO token: how many hours are remaining
 AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining

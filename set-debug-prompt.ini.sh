@@ -19,9 +19,9 @@ GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.has_upstream   '@{Repo.has_upstream}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.ahead          '@{Repo.ahead}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.behind         '@{Repo.behind}'\n"
 
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Staged_num          '@{Staged_num}'\n"
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Modified_num        '@{Modified_num}'\n"
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Untracked_num       '@{Untracked_num}'\n"
+GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.staged_num     '@{Repo.staged_num}'\n"
+GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.modified_num   '@{Repo.modified_num}'\n"
+GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.untracked_num  '@{Repo.untracked_num}'\n"
 
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}AWS.token_is_valid          '@{AWS.token_is_valid}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}AWS.token_remaining_hours   '@{AWS.token_remaining_hours}'\n"
