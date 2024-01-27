@@ -20,12 +20,9 @@ Repo.name                    # name of git repo
 Repo.branch.name             # name of branch
 Repo.rebase_active           # if rebase is in progress
 Repo.conflict.num            # number of conflicts in repo
-Diverge.status               # status of repo compared to remote
 Diverge.ahead                # number of commits ahead remote
 Diverge.behind               # number of commits behind remote
-Staged.status                # status of staged
 Staged.num                   # number of staged files
-Unstaged.status              # status of tracked unstaged files
 Unstaged.num                 # number of changed unstaged files
 Untracked.num                # number of untracked files
 AWS.token_is_valid           # if there is a valid AWS SSO token

@@ -25,14 +25,11 @@ int main(void) {
   printf("Repo.rebase_active %d\n", state.rebase_in_progress);
   printf("Repo.conflict.num %d\n",  state.conflict_num);
 
-  printf("Diverge.status %s\n",     state_names[state.status_repo]);
+  printf("Repo.has_upstream %d\n",  state.has_upstream);
   printf("Diverge.ahead %d\n",      state.ahead);
   printf("Diverge.behind %d\n",     state.behind);
 
-
-  printf("Staged.status %s\n",      state_names[state.status_staged]);
   printf("Staged.num %d\n",         state.staged_changes_num);
-  printf("Unstaged.status %s\n",    state_names[state.status_unstaged]);
   printf("Unstaged.num %d\n",       state.unstaged_changes_num);
   printf("Untracked.num %d\n",      state.untracked_num);
 

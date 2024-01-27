@@ -6,17 +6,6 @@
 #include <git2.h>
 
 
-enum states {
-  NO_DATA,
-  NO_UPSTREAM,
-  UP_TO_DATE,
-  MODIFIED,
-  ENUM_SIZE
-};
-
-extern const char *state_names[ENUM_SIZE];
-
-
 struct CurrentState {
   // internal - probably uninteresting for user
   git_repository  *repo_obj;
@@ -35,16 +24,13 @@ struct CurrentState {
   const char *branch_name;
 
   const char *is_git_repo;
-  int status_repo;
+
+  int has_upstream;
+
   int ahead;
   int behind;
-
-  int status_staged;
   int staged_changes_num;
-
-  int status_unstaged;
   int unstaged_changes_num;
-
   int untracked_num;
 
   int conflict_num;

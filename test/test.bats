@@ -123,6 +123,8 @@ load test_helper_functions
   assert CWD.basename  $(basename $PWD)
   assert CWD.home_path "${PWD/$HOME/\~\/}"
   assert CWD.git_path  "NO_DATA"
+  assert Repo.has_upstream '-1'
+
 }
 
 # --------------------------------------------------
@@ -198,7 +200,6 @@ load test_helper_functions
 
   # Then we should find one unstaged file
   echo "$output" > "$HOME/assert-file"
-  assert Unstaged.status  'MODIFIED'
   assert Unstaged.num     '1'
 }
 
@@ -258,10 +259,11 @@ load test_helper_functions
 
   # then
   # - the repo name should be 'myRepo'
+  # - we should detect that there is a remote
   # - and it should be in sync with remote
   echo "$output" > "$HOME/assert-file"
   assert Repo.name        'myRepo'
-  assert Diverge.status      'UP_TO_DATE'
+  assert Repo.has_upstream   '1'
   assert Diverge.ahead       '0'
   assert Diverge.behind      '0'
 }
@@ -290,7 +292,6 @@ load test_helper_functions
   # then
   # - should be ahead by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Unstaged.status  'MODIFIED'
   assert Unstaged.num     '1'
 }
 
@@ -319,7 +320,6 @@ load test_helper_functions
   # then
   # - should be ahead by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Staged.status  'MODIFIED'
   assert Staged.num     '1'
 }
 
@@ -349,7 +349,6 @@ load test_helper_functions
   # then
   # - should be ahead by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Diverge.status      'MODIFIED'
   assert Diverge.ahead       '1'
 }
 
@@ -386,7 +385,6 @@ load test_helper_functions
   # then
   # - should be behind by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Diverge.status      'MODIFIED'
   assert Diverge.behind      '1'
 }
 
@@ -432,7 +430,6 @@ load test_helper_functions
   # - should be ahead by one commit
   # - .. and behind by one
   echo "$output" > "$HOME/assert-file"
-  assert Diverge.status      'MODIFIED'
   assert Diverge.ahead       '1'
   assert Diverge.behind      '1'
 }
@@ -470,11 +467,11 @@ load test_helper_functions
   run -0 $TEST_FUNCTION
 
   # Then check that conflict_num has increased to 1
-  # .. and that Repo.status is changed to NO_UPSTREAM
+  # .. and that Repo.has_upstream should be 0
   echo "$output" > "$HOME/assert-file"
-  assert Diverge.status       'NO_UPSTREAM'
   assert Repo.conflict.num         '1'
   assert Repo.rebase_active   '1'
+  assert Repo.has_upstream '0'
 }
 
 # --------------------------------------------------
@@ -515,13 +512,11 @@ load test_helper_functions
   run -0 $TEST_FUNCTION
 
   # Then number of conflicts should decrease to zero
-  # .. Staged.status should be MODIFIED
   # .. number of staged should be 1
-  # .. and Repo.status is still NO_UPSTREAM
+  # .. and Repo.has_upstream should still be 0
   echo "$output" > "$HOME/assert-file"
-  assert Staged.status     'MODIFIED'
   assert Staged.num        '1'
-  assert Diverge.status       'NO_UPSTREAM'
+  assert Repo.has_upstream '0'
   assert Repo.conflict.num      '0'
 }
 
@@ -564,13 +559,9 @@ load test_helper_functions
   run -0 $TEST_FUNCTION
 
   # Then number of conflicts should be zero
-  # .. Staged.status should be UP_TO_DATE
   # .. number of staged should be 0
-  # .. and Repo.status is still NO_UPSTREAM
   echo "$output" > "$HOME/assert-file"
-  assert Staged.status     'UP_TO_DATE'
   assert Staged.num        '0'
-  assert Diverge.status       'NO_UPSTREAM'
   assert Repo.conflict.num      '0'
   assert Repo.rebase_active '1'
 }
@@ -598,13 +589,9 @@ load test_helper_functions
   run -0 $TEST_FUNCTION
   
   # Then number of conflicts should be zero
-  # .. Staged.status should be UP_TO_DATE
   # .. number of staged should be 0
-  # .. and Repo.status is still NO_UPSTREAM
   echo "$output" > "$HOME/assert-file"
-  assert Staged.status     'UP_TO_DATE'
   assert Staged.num        '0'
-  assert Diverge.status       'NO_UPSTREAM'
   assert Repo.conflict.num      '0'
   assert Repo.rebase_active '1'
 }

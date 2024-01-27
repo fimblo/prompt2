@@ -17,13 +17,6 @@
 
 #include "get-status.h"
 
-const char *state_names[ENUM_SIZE] = {
-  "NO_DATA",
-  "NO_UPSTREAM",
-  "UP_TO_DATE",
-  "MODIFIED"
-};
-
 /* ================================================== */
 /* Helper functions                                   */
 /* ================================================== */
@@ -93,7 +86,7 @@ int __checkForInteractiveRebase(struct CurrentState *state) {
  * Helper: set RepoContext with repo name and return it
  */
 const char * __getRepoName(struct CurrentState *state) {
-  if (state->head_ref == NULL) return state_names[NO_DATA];
+  if (state->head_ref == NULL) return strdup("NO_DATA");
   state->repo_name = strrchr(state->repo_path, '/') + 1;
   return state->repo_name;
 }
@@ -102,7 +95,7 @@ const char * __getRepoName(struct CurrentState *state) {
  * Helper: set RepoContext with repo branch and return it
  */
 const char * __getBranchName(struct CurrentState *state) {
-  if (state->head_ref == NULL) return state_names[NO_DATA];
+  if (state->head_ref == NULL) return strdup("NO_DATA");
   state->branch_name = git_reference_shorthand(state->head_ref);
   return state->branch_name;
 }
@@ -204,7 +197,6 @@ int __getRepoStatus(struct CurrentState *state) {
                          GIT_STATUS_INDEX_RENAMED  |
                          GIT_STATUS_INDEX_DELETED  |
                          GIT_STATUS_INDEX_TYPECHANGE)) {
-      state->status_staged = MODIFIED;
       staged_changes++;
     }
 
@@ -213,20 +205,12 @@ int __getRepoStatus(struct CurrentState *state) {
                          GIT_STATUS_WT_DELETED  |
                          GIT_STATUS_WT_RENAMED  |
                          GIT_STATUS_WT_TYPECHANGE)) {
-      state->status_unstaged = MODIFIED;
       unstaged_changes++;
     }
 
     if (entry->status & GIT_STATUS_WT_NEW) {
       untracked++;
     }
-  }
-
-  if (staged_changes == 0)   {
-    state->status_staged   = UP_TO_DATE;
-  }
-  if (unstaged_changes == 0) {
-    state->status_unstaged = UP_TO_DATE;
   }
 
   state->staged_changes_num = staged_changes;
@@ -258,7 +242,7 @@ int __getRepoDivergence(struct CurrentState *state) {
                          full_remote_branch_name);
   if (retval != 0) {
     // If there is no upstream ref, this is a stand-alone branch
-    state->status_repo = NO_UPSTREAM;
+    state->has_upstream = 0;
     git_reference_free(upstream_ref);
     return 1;
   }
@@ -268,9 +252,10 @@ int __getRepoDivergence(struct CurrentState *state) {
   // if the upstream_oid is null, we assume it's a stand-alone branch.
   // Not certain about this. TODO: check
   if (upstream_oid == NULL) {
-    state->status_repo = NO_UPSTREAM;
+    state->has_upstream = 0;
     return 1;
   }
+  state->has_upstream = 1;
 
   __calculateDivergence(state->repo_obj,
                         state->head_oid,
@@ -278,15 +263,6 @@ int __getRepoDivergence(struct CurrentState *state) {
                         &state->ahead,
                         &state->behind);
 
-  if (state->ahead + state->behind == 0) {
-    state->status_repo = UP_TO_DATE;
-  }
-  else {
-    state->status_repo = MODIFIED;
-  }
-
-  /* if (git_oid_cmp(state->head_oid, upstream_oid) != 0) */
-  /*   state->status_repo = MODIFIED; */
 
   git_reference_free(upstream_ref);
   return 0;
@@ -319,16 +295,12 @@ void initialiseState(struct CurrentState *state) {
   state->repo_name                   = NULL;
   state->branch_name                 = NULL;
 
-  state->status_repo                 = NO_DATA;
+  state->has_upstream                = -1;
   state->ahead                       = -1;
   state->behind                      = -1;
 
-  state->status_staged               = NO_DATA;
   state->staged_changes_num          = -1;
-
-  state->status_unstaged             = NO_DATA;
   state->unstaged_changes_num        = -1;
-
   state->untracked_num               = -1;
 
   state->conflict_num                = -1;

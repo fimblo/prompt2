@@ -72,13 +72,11 @@ int main(void) {
   add_instruction("Repo.rebase_active",           itoa(state.rebase_in_progress));
   add_instruction("Repo.conflict.num",            itoa(state.conflict_num));
 
-  add_instruction("Diverge.status",               state_names[state.status_repo]);
+  add_instruction("Repo.has_upstream",            itoa(state.has_upstream));
   add_instruction("Diverge.ahead",                itoa(state.ahead));
   add_instruction("Diverge.behind",               itoa(state.behind));
 
-  add_instruction("Staged.status",                state_names[state.status_staged]);
   add_instruction("Staged.num",                   itoa(state.staged_changes_num));
-  add_instruction("Unstaged.status",              state_names[state.status_unstaged]);
   add_instruction("Unstaged.num",                 itoa(state.unstaged_changes_num));
   add_instruction("Untracked.num",                itoa(state.untracked_num));
 
