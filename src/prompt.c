@@ -54,15 +54,15 @@ void addDefaultInstructions(struct CurrentState *state) {
   add_instruction("Repo.name",                    state->repo_name);
   add_instruction("Repo.branch_name",             state->branch_name);
   add_instruction("Repo.rebase_active",           itoa(state->is_rebase_in_progress));
-  add_instruction("Repo.conflict_num",            itoa(state->conflict_num));
+  add_instruction("Repo.conflicts",               itoa(state->conflict_num));
 
   add_instruction("Repo.has_upstream",            itoa(state->has_upstream));
   add_instruction("Repo.ahead",                   itoa(state->ahead_num));
   add_instruction("Repo.behind",                  itoa(state->behind_num));
 
-  add_instruction("Repo.staged_num",              itoa(state->staged_num));
-  add_instruction("Repo.modified_num",            itoa(state->modified_num));
-  add_instruction("Repo.untracked_num",           itoa(state->untracked_num));
+  add_instruction("Repo.staged",                  itoa(state->staged_num));
+  add_instruction("Repo.modified",                itoa(state->modified_num));
+  add_instruction("Repo.untracked",               itoa(state->untracked_num));
 
   add_instruction("AWS.token_is_valid",           itoa(state->aws_token_is_valid));
   add_instruction("AWS.token_remaining_hours",    itoa(state->aws_token_remaining_hours));

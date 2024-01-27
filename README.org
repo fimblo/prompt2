@@ -19,12 +19,12 @@ Repo.is_git_repo             # if . is a git repo
 Repo.name                    # name of git repo
 Repo.branch_name             # name of branch
 Repo.rebase_active           # if rebase is in progress
-Repo.conflict_num            # number of conflicts in repo
+Repo.conflicts               # number of conflicts in repo
 Repo.ahead                   # number of commits ahead of remote
 Repo.behind                  # number of commits behind remote
-Repo.staged_num              # number of staged files
-Repo.modified_num            # number of changed modified files
-Repo.untracked_num           # number of untracked files
+Repo.staged                  # number of staged files
+Repo.modified                # number of changed modified files
+Repo.untracked               # number of untracked files
 AWS.token_is_valid           # if there is a valid AWS SSO token
 AWS.token_remaining_hours    # AWS SSO token: how many hours are remaining
 AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining

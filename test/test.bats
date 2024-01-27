@@ -184,7 +184,7 @@ load test_helper_functions
   # Then
   # - we should find three untracked files detected
   echo "$output" > "$HOME/assert-file"
-  assert Repo.untracked_num    3
+  assert Repo.untracked    3
 }
 
 # --------------------------------------------------
@@ -200,7 +200,7 @@ load test_helper_functions
 
   # Then we should find one Modified file
   echo "$output" > "$HOME/assert-file"
-  assert Repo.modified_num     '1'
+  assert Repo.modified     '1'
 }
 
 # --------------------------------------------------
@@ -292,7 +292,7 @@ load test_helper_functions
   # then
   # - should be ahead by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Repo.modified_num     '1'
+  assert Repo.modified     '1'
 }
 
 # --------------------------------------------------
@@ -320,7 +320,7 @@ load test_helper_functions
   # then
   # - should be ahead by one commit
   echo "$output" > "$HOME/assert-file"
-  assert Repo.staged_num     '1'
+  assert Repo.staged     '1'
 }
 
 # --------------------------------------------------
@@ -466,10 +466,10 @@ load test_helper_functions
   git pull || true  #force happy ending else test fails
   run -0 $TEST_FUNCTION
 
-  # Then check that conflict_num has increased to 1
+  # Then check that number of conflicts has increased to 1
   # .. and that Repo.has_upstream should be 0
   echo "$output" > "$HOME/assert-file"
-  assert Repo.conflict_num         '1'
+  assert Repo.conficts         '1'
   assert Repo.rebase_active   '1'
   assert Repo.has_upstream '0'
 }
@@ -515,9 +515,9 @@ load test_helper_functions
   # .. number of staged should be 1
   # .. and Repo.has_upstream should still be 0
   echo "$output" > "$HOME/assert-file"
-  assert Repo.staged_num        '1'
+  assert Repo.staged        '1'
   assert Repo.has_upstream '0'
-  assert Repo.conflict_num      '0'
+  assert Repo.conficts      '0'
 }
 
 # --------------------------------------------------
@@ -561,8 +561,8 @@ load test_helper_functions
   # Then number of conflicts should be zero
   # .. number of staged should be 0
   echo "$output" > "$HOME/assert-file"
-  assert Repo.staged_num        '0'
-  assert Repo.conflict_num      '0'
+  assert Repo.staged        '0'
+  assert Repo.conficts      '0'
   assert Repo.rebase_active '1'
 }
 
@@ -591,8 +591,8 @@ load test_helper_functions
   # Then number of conflicts should be zero
   # .. number of staged should be 0
   echo "$output" > "$HOME/assert-file"
-  assert Repo.staged_num        '0'
-  assert Repo.conflict_num      '0'
+  assert Repo.staged        '0'
+  assert Repo.conficts      '0'
   assert Repo.rebase_active '1'
 }
 

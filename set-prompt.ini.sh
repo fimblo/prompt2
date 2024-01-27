@@ -4,7 +4,7 @@ PROMPT_BIN=$(realpath $REPO_DIR/bin/prompt)
 unset REPO_DIR
 
 export GP2_NON_GIT_PROMPT="${TITLEBAR}\[\033[01;32m\]\u@\h\[\033[00m\] \[\033[01;34m\]\W\[\033[00m\] $ "
-export GP2_GIT_PROMPT="<@{Repo.name}><@{Repo.branch_name}> b/a(@{Repo.behind},@{Repo.ahead}) s(@{Repo.staged_num}) m(@{Repo.modified_num}) u(@{Repo.untracked_num}) @{CWD.home_path}\n$ ";
+export GP2_GIT_PROMPT="<@{Repo.name}><@{Repo.branch_name}> b/a(@{Repo.behind},@{Repo.ahead}) s(@{Repo.staged}) m(@{Repo.modified}) u(@{Repo.untracked}) @{CWD.home_path}\n$ ";
 
 prompt_cmd() {
   PS1="$($PROMPT_BIN)"
