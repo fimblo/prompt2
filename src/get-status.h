@@ -24,17 +24,15 @@ struct CurrentState {
   const char *branch_name;
 
   int is_git_repo;
-
   int has_upstream;
+  int conflict_num;
+  int is_rebase_in_progress;
 
   int ahead_num;
   int behind_num;
   int staged_num;
   int modified_num;
   int untracked_num;
-
-  int conflict_num;
-  int is_rebase_in_progress;
 
   int aws_token_is_valid; // 0 if invalid, 1 if valid, -1 if error
   int aws_token_remaining_hours;

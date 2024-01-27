@@ -135,7 +135,6 @@ int main(void) {
     free(current_entry);
   }
 
-
   return 0;
 }
 

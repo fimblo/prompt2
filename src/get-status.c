@@ -214,11 +214,10 @@ int __getRepoStatus(struct CurrentState *state) {
     }
   }
 
-  state->staged_num = staged_changes;
-  state->modified_num = modified_changes;
-  state->conflict_num = conflicts;
+  state->staged_num    = staged_changes;
+  state->modified_num  = modified_changes;
   state->untracked_num = untracked;
-
+  state->conflict_num  = conflicts;
 
   __checkForInteractiveRebase(state);
   return 0;
@@ -264,7 +263,6 @@ int __getRepoDivergence(struct CurrentState *state) {
                         &state->ahead_num,
                         &state->behind_num);
 
-
   git_reference_free(upstream_ref);
   return 0;
 }
@@ -281,31 +279,30 @@ int __getRepoDivergence(struct CurrentState *state) {
  */
 void initialiseState(struct CurrentState *state) {
   // Internal things. Uninteresting for user
-  state->repo_obj                  = NULL;
-  state->repo_path                 = NULL;
-  state->head_ref                  = NULL;
-  state->head_oid                  = NULL;
-  state->status_list               = NULL;
+  state->repo_obj                    = NULL;
+  state->repo_path                   = NULL;
+  state->head_ref                    = NULL;
+  state->head_oid                    = NULL;
+  state->status_list                 = NULL;
 
 
   // External stuff. User prolly interested in these
   state->cwd_full                    = NULL;
   state->cwd_basename                = NULL;
 
-  state->is_git_repo                 = -1;
   state->repo_name                   = NULL;
   state->branch_name                 = NULL;
 
+  state->is_git_repo                 = -1;
   state->has_upstream                = -1;
+  state->conflict_num                = -1;
+  state->is_rebase_in_progress       = -1;
+
   state->ahead_num                   = -1;
   state->behind_num                  = -1;
-
   state->staged_num                  = -1;
   state->modified_num                = -1;
   state->untracked_num               = -1;
-
-  state->conflict_num                = -1;
-  state->is_rebase_in_progress       = -1;
 
   state->aws_token_is_valid          = -1;
   state->aws_token_remaining_hours   = -1;
@@ -627,7 +624,6 @@ void pathTruncateAccordion(char *originalPath, int maxWidth) {
     }
   }
 
-
   strcpy(originalPath, rebuildPath);
 }
 
@@ -645,5 +641,3 @@ int isGitRepo(const char *path) {
 	}
 	return isRepo;
 }
-
-	
