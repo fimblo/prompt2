@@ -451,7 +451,7 @@ int gatherAWSContext(struct CurrentState *state) {
  * '+' to represent the root
  */
 const char *getCWDFromGitRepo(struct CurrentState *state) {
-  if (state->head_ref == NULL) return strdup("NO_DATA");
+  if (state->head_ref == NULL) return getCWDFromHome(state);
 
   static char wd[PATH_MAX];
   size_t common_length = strspn(state->repo_path, state->cwd_full);

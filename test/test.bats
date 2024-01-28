@@ -41,14 +41,14 @@ load test_helper_functions
   # - full-path should point all the way to HOME
   # - basename should contain the name of the directory of HOME
   # - home_path should print ~/
-  # - git_path should be NO_DATA
+  # - git_path should be the same as home_path (since we're not in a git repo)
 
   echo "$output" > "$HOME/assert-file"
   assert Repo.is_git_repo 0
   assert CWD.full      $(realpath $HOME)
   assert CWD.basename  $(basename $PWD)
   assert CWD.home_path "${PWD/$HOME/\~\/}"
-  assert CWD.git_path  "NO_DATA"
+  assert CWD.git_path  "${PWD/$HOME/\~\/}"
 }
 
 # --------------------------------------------------
@@ -67,13 +67,13 @@ load test_helper_functions
   # - full path should be $HOME/tmp.XXXXXX
   # - basename should be tmp.XXXXXX
   # - home_path should be ~/tmp.XXXXXX
-  # - git_path should be NO_DATA
+  # - git_path should be the same as home_path (since we're not in a git repo)
   echo "$output" > "$HOME/assert-file"
   assert Repo.is_git_repo 0
   assert CWD.full      $tmpdir
   assert CWD.basename  $(basename $tmpdir)
   assert CWD.home_path "${PWD/$HOME/\~}"
-  assert CWD.git_path  "NO_DATA"
+  assert CWD.git_path  "${PWD/$HOME/\~}"
 }
 
 # --------------------------------------------------
@@ -93,13 +93,14 @@ load test_helper_functions
   # - full path should point at /tmp/tmp.XXXXXX
   # - basename should be tmp.XXXXXX
   # - home_path should be the same as fullpath
+  # - git_path should be the same as home_path (since we're not in a git repo)
   # - git_path should be NO_DATA
   echo "$output" > "$HOME/assert-file"
   assert Repo.is_git_repo 0
   assert CWD.full      $(realpath $PWD)
   assert CWD.basename  $(basename $PWD)
   assert CWD.home_path "${PWD/$HOME/\~\/}"
-  assert CWD.git_path  "NO_DATA"
+  assert CWD.git_path  "${PWD/$HOME/\~\/}"
 }
 
 # --------------------------------------------------
@@ -122,7 +123,7 @@ load test_helper_functions
   assert CWD.full      $(realpath $PWD)
   assert CWD.basename  $(basename $PWD)
   assert CWD.home_path "${PWD/$HOME/\~\/}"
-  assert CWD.git_path  "NO_DATA"
+  assert CWD.git_path  "${PWD/$HOME/\~\/}"
   assert Repo.has_upstream '-1'
 
 }
@@ -145,7 +146,7 @@ load test_helper_functions
   assert CWD.full      $(realpath $PWD)
   assert CWD.basename  $(basename $PWD)
   assert CWD.home_path "${PWD/$HOME/\~\/}"
-  assert CWD.git_path  "NO_DATA"
+  assert CWD.git_path  "${PWD/$HOME/\~\/}"
 }
 
 # --------------------------------------------------
