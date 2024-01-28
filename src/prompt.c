@@ -1,8 +1,8 @@
 #include <git2.h>
-#include "get-status.h"
-#include "uthash.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <uthash.h>
 
+#include "get-status.h"
 
 typedef struct {
   const char *command;      // key
