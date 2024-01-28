@@ -469,7 +469,7 @@ load test_helper_functions
   # Then check that number of conflicts has increased to 1
   # .. and that Repo.has_upstream should be 0
   echo "$output" > "$HOME/assert-file"
-  assert Repo.conficts         '1'
+  assert Repo.conflicts        '1'
   assert Repo.rebase_active   '1'
   assert Repo.has_upstream '0'
 }
@@ -517,7 +517,7 @@ load test_helper_functions
   echo "$output" > "$HOME/assert-file"
   assert Repo.staged        '1'
   assert Repo.has_upstream '0'
-  assert Repo.conficts      '0'
+  assert Repo.conflicts      '0'
 }
 
 # --------------------------------------------------
@@ -562,7 +562,7 @@ load test_helper_functions
   # .. number of staged should be 0
   echo "$output" > "$HOME/assert-file"
   assert Repo.staged        '0'
-  assert Repo.conficts      '0'
+  assert Repo.conflicts      '0'
   assert Repo.rebase_active '1'
 }
 
@@ -592,7 +592,7 @@ load test_helper_functions
   # .. number of staged should be 0
   echo "$output" > "$HOME/assert-file"
   assert Repo.staged        '0'
-  assert Repo.conficts      '0'
+  assert Repo.conflicts      '0'
   assert Repo.rebase_active '1'
 }
 
