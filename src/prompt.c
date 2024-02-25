@@ -115,15 +115,14 @@ int main(void) {
   struct CurrentState state;
 
   git_libgit2_init();
+  initialiseState(&state);
 
-  if (isGitRepo(".") != 0) {
+  if (gatherGitContext(&state) != 0) {
     const char *nonGitPrompt = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
     printf("%s", nonGitPrompt);
     return 0;
   }
 
-  initialiseState(&state);
-  gatherGitContext(&state);
   gatherAWSContext(&state);
   addDefaultInstructions(&state);
 

@@ -44,14 +44,10 @@ struct CurrentState {
  */
 void initialiseState(struct CurrentState *state);
 
-/**
- * Checks if the given path is a git repository
- * @return 0 if true, 1 if false
- */
-int isGitRepo(const char *path);
 
 /**
  * Gather all git-related context.
+ * @returns 0 if . is inside a git-repo, 1 otherwise
  */
 int gatherGitContext(struct CurrentState *state);
 

@@ -21,6 +21,22 @@
 /* Helper functions                                   */
 /* ================================================== */
 
+
+/**
+ * Checks if the given path is a git repository
+ * @return 0 if true, 1 if false
+ */
+int __isGitRepo(const char *path) {
+	int isRepo = 1;
+	git_repository *repo = NULL;
+	int error = git_repository_open_ext(&repo, path, 0, NULL);
+	if (error == 0) {
+		isRepo = 0;
+		git_repository_free(repo);
+	}
+	return isRepo;
+}
+
 /**
  * Given a path, returns root of git repo or empty string
  */
@@ -126,7 +142,7 @@ const char * __getBranchName(struct CurrentState *state) {
 int __populateRepoContext(struct CurrentState *state, const char *path) {
   int result = -1; // Default to failure
 
-  state->is_git_repo = (isGitRepo(path) == 0) ? 1 : 0;
+  state->is_git_repo = (__isGitRepo(path) == 0) ? 1 : 0;
 
   const char *git_repository_path = NULL;
   git_repository *repo = NULL;
@@ -346,13 +362,15 @@ void initialiseState(struct CurrentState *state) {
  */
 
 int gatherGitContext(struct CurrentState *state) {
+  state->is_git_repo = __isGitRepo(".");
+
   __populateRepoContext(state, ".");
   __getRepoName(state);
   __getBranchName(state);
   __getRepoStatus(state);
   __getRepoDivergence(state);
 
-  return 0;
+  return state->is_git_repo;
 }
 
 
@@ -624,19 +642,4 @@ void pathTruncateAccordion(char *originalPath, int maxWidth) {
   }
 
   strcpy(originalPath, rebuildPath);
-}
-
-/**
- * Checks if the given path is a git repository
- * @return 0 if true, 1 if false
- */
-int isGitRepo(const char *path) {
-	int isRepo = 1;
-	git_repository *repo = NULL;
-	int error = git_repository_open_ext(&repo, path, 0, NULL);
-	if (error == 0) {
-		isRepo = 0;
-		git_repository_free(repo);
-	}
-	return isRepo;
 }
