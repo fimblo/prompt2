@@ -27,11 +27,11 @@
  * @return 0 if true, 1 if false
  */
 int __isGitRepo(const char *path) {
-	int isRepo = 1;
+	int isRepo = FAILURE_IS_NOT_GIT_REPO;
 	git_repository *repo = NULL;
 	int error = git_repository_open_ext(&repo, path, 0, NULL);
 	if (error == 0) {
-		isRepo = 0;
+		isRepo = SUCCESS_IS_GIT_REPO;
 		git_repository_free(repo);
 	}
 	return isRepo;
@@ -72,14 +72,14 @@ int __calculateDivergence(git_repository *repo,
   // init walker
   git_revwalk *walker = NULL;
   if (git_revwalk_new(&walker, repo) != 0) {
-    return -1;
+    return ERROR_GIT_REVWALK_CREATION;
   }
 
   // count number of commits ahead
   if (git_revwalk_push(walker, local_oid)    != 0 ||  // set where I want to start
       git_revwalk_hide(walker, upstream_oid) != 0) {  // set where the walk ends (exclusive)
     git_revwalk_free(walker);
-    return -2;
+    return ERROR_GIT_REVWALK_FORWARD;
   }
   while (git_revwalk_next(&id, walker) == 0) aheadCount++;
 
@@ -88,7 +88,7 @@ int __calculateDivergence(git_repository *repo,
   if (git_revwalk_push(walker, upstream_oid) != 0 || // set where I want to start
       git_revwalk_hide(walker, local_oid)    != 0) { // set where the walk ends (exclusive)
     git_revwalk_free(walker);
-    return -3;
+    return ERROR_GIT_REVWALK_BACKWARD;
   }
   while (git_revwalk_next(&id, walker) == 0) behindCount++;
 
@@ -96,26 +96,24 @@ int __calculateDivergence(git_repository *repo,
   *behind = behindCount;
 
   git_revwalk_free(walker);
-  return 0;
+  return SUCCESS;
 }
 
 /**
  * Helper: Determine if a Git repository is currently in an
  * interactive rebase state
  */
-int __checkForInteractiveRebase(struct CurrentState *state) {
+void __checkForInteractiveRebase(struct CurrentState *state) {
   char rebaseMergePath[PATH_MAX];
   char rebaseApplyPath[PATH_MAX];
   snprintf(rebaseMergePath, sizeof(rebaseMergePath), "%s/.git/rebase-merge", state->repo_path);
   snprintf(rebaseApplyPath, sizeof(rebaseApplyPath), "%s/.git/rebase-apply", state->repo_path);
 
   struct stat mergeStat, applyStat;
+  state->is_rebase_in_progress = 0;
   if (stat(rebaseMergePath, &mergeStat) == 0 || stat(rebaseApplyPath, &applyStat) == 0) {
     state->is_rebase_in_progress = 1;
-    return 1;
   }
-  state->is_rebase_in_progress = 0;
-  return 0;
 }
 
 /**
@@ -140,7 +138,7 @@ const char * __getBranchName(struct CurrentState *state) {
  * Helper: Prep RepoContext with git repo info
  */
 int __populateRepoContext(struct CurrentState *state, const char *path) {
-  int result = -1; // Default to failure
+  int result = FAILURE; // Default to failure
 
   state->is_git_repo = (__isGitRepo(path) == 0) ? 1 : 0;
 
@@ -172,8 +170,8 @@ int __populateRepoContext(struct CurrentState *state, const char *path) {
   state->repo_obj = repo;
   state->head_ref = head_ref;
   state->head_oid = head_oid;
-  result = 0;
-  return result;
+
+  return SUCCESS;
 
 cleanup:
   if (repo != NULL) {
@@ -191,7 +189,7 @@ cleanup:
  * and modified changes, and conflicts.
  */
 int __getRepoStatus(struct CurrentState *state) {
-  if (state->head_ref == NULL) return 1;
+  if (state->head_ref == NULL) return ERROR_GIT_NO_HEAD_REF;
 
   // First get the status-list which we'll iterate through
 #pragma GCC diagnostic push
@@ -207,7 +205,7 @@ int __getRepoStatus(struct CurrentState *state) {
     git_reference_free(state->head_ref);
     git_repository_free(state->repo_obj);
     free((void *) state->repo_path);
-    return 1;
+    return FAILURE_IS_NOT_GIT_REPO;
   }
   state->status_list = status_list;
 
@@ -255,7 +253,7 @@ int __getRepoStatus(struct CurrentState *state) {
   state->conflict_num  = conflicts;
 
   __checkForInteractiveRebase(state);
-  return 0;
+  return SUCCESS;
 }
 
 /**
@@ -264,7 +262,7 @@ int __getRepoStatus(struct CurrentState *state) {
  * many commits it is ahead or behind.
  */
 int __getRepoDivergence(struct CurrentState *state) {
-  if (state->head_ref == NULL) return 1;
+  if (state->head_ref == NULL) return ERROR_GIT_NO_HEAD_REF;
 
   char full_remote_branch_name[128];
   sprintf(full_remote_branch_name, "refs/remotes/origin/%s", git_reference_shorthand(state->head_ref));
@@ -279,7 +277,7 @@ int __getRepoDivergence(struct CurrentState *state) {
     // If there is no upstream ref, this is a stand-alone branch
     state->has_upstream = 0;
     git_reference_free(upstream_ref);
-    return 1;
+    return FAILURE_NO_GIT_UPSTREAM;
   }
 
   upstream_oid = git_reference_target(upstream_ref);
@@ -288,7 +286,7 @@ int __getRepoDivergence(struct CurrentState *state) {
   // Not certain about this. TODO: check
   if (upstream_oid == NULL) {
     state->has_upstream = 0;
-    return 1;
+    return FAILURE_NO_GIT_UPSTREAM;
   }
   state->has_upstream = 1;
 
@@ -299,7 +297,7 @@ int __getRepoDivergence(struct CurrentState *state) {
                         &state->behind_num);
 
   git_reference_free(upstream_ref);
-  return 0;
+  return SUCCESS;
 }
 
 
@@ -384,7 +382,7 @@ int gatherGitContext(struct CurrentState *state) {
   */
 int gatherAWSContext(struct CurrentState *state) {
   const char *home_dir = getenv("HOME");
-  if (!home_dir) return -1; // error
+  if (!home_dir) return ERROR; // error
 
   char cache_dir[1024];
   snprintf(cache_dir, sizeof(cache_dir), "%s/.aws/sso/cache", home_dir);
@@ -431,11 +429,11 @@ int gatherAWSContext(struct CurrentState *state) {
   fclose(file);
 
   parsed_json = json_tokener_parse(buffer);
-  if (!parsed_json) return -1;
+  if (!parsed_json) return ERROR;
 
   if (!json_object_object_get_ex(parsed_json, "expiresAt", &expires_at)) {
     json_object_put(parsed_json);
-    return -1; // error because invalid json
+    return ERROR; // error because invalid json
   }
 
   const char *expires_at_str = json_object_get_string(expires_at);

@@ -5,6 +5,27 @@
 */
 #include <git2.h>
 
+enum generic_return_values {
+  SUCCESS =  0,
+  FAILURE =  1,
+  ERROR   = -1,
+};
+
+enum aws_related_return_values {
+  SUCCESS_HAS_AWS_CONFIG    = 0,
+  FAILURE_HAS_NO_AWS_CONFIG = 1,
+};
+
+enum git_related_return_values {
+  SUCCESS_IS_GIT_REPO        = 0,
+  FAILURE_IS_NOT_GIT_REPO    = 1,
+  FAILURE_NO_GIT_UPSTREAM    = 2,
+  
+  ERROR_GIT_REVWALK_CREATION = -2,
+  ERROR_GIT_REVWALK_FORWARD  = -3,
+  ERROR_GIT_REVWALK_BACKWARD = -4,
+  ERROR_GIT_NO_HEAD_REF      = -5,
+};
 
 struct CurrentState {
   // internal - probably uninteresting for user
