@@ -21,6 +21,25 @@
 /* Helper functions                                   */
 /* ================================================== */
 
+/**
+ * Given a path, returns root of git repo or empty string
+ */
+const char *__findGitRepositoryPath(const char *path) {
+  git_buf repo_path = { 0 };
+  int error = git_repository_discover(&repo_path, path, 0, NULL);
+
+  if (error == 0) {
+    char *last_slash = strstr(repo_path.ptr, "/.git/");
+    if (last_slash) *last_slash = '\0';
+
+    char *result = strdup(repo_path.ptr);
+    git_buf_free(&repo_path);
+    return result;
+  }
+
+  return strdup("");
+}
+
 
 /**
  * Helper: Figure out divergence between local and upstream branches.
@@ -115,7 +134,7 @@ int __populateRepoContext(struct CurrentState *state, const char *path) {
   const git_oid *head_oid = NULL;
 
   if (state->repo_path == NULL) {
-    git_repository_path = findGitRepositoryPath(path);
+    git_repository_path = __findGitRepositoryPath(path);
     if (strlen(git_repository_path) == 0) {
       goto cleanup; // Path not found, cleanup and exit
     }
@@ -317,26 +336,6 @@ void initialiseState(struct CurrentState *state) {
   static char wd[PATH_MAX];
   sprintf(wd, "%s", basename(cwd_path));
   state->cwd_basename = wd;
-}
-
-
-/**
- * Given a path, returns root of git repo or empty string
- */
-const char *findGitRepositoryPath(const char *path) {
-  git_buf repo_path = { 0 };
-  int error = git_repository_discover(&repo_path, path, 0, NULL);
-
-  if (error == 0) {
-    char *last_slash = strstr(repo_path.ptr, "/.git/");
-    if (last_slash) *last_slash = '\0';
-
-    char *result = strdup(repo_path.ptr);
-    git_buf_free(&repo_path);
-    return result;
-  }
-
-  return strdup("");
 }
 
 

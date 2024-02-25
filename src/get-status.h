@@ -51,11 +51,6 @@ void initialiseState(struct CurrentState *state);
 int isGitRepo(const char *path);
 
 /**
- * Given a path, returns root of git repo or empty string
- */
-const char *findGitRepositoryPath(const char *path);
-
-/**
  * Gather all git-related context.
  */
 int gatherGitContext(struct CurrentState *state);
