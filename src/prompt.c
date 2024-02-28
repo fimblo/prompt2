@@ -36,7 +36,7 @@ const char *find_replacement(const char *command) {
 
 const char *itoa(int val) {
   //printf("'%d'\n", val);
-  static char buf[32] = {0};
+  static char buf[32] = "";
   snprintf(buf, sizeof(buf), "%d", val);
   return buf;
 }
@@ -71,7 +71,7 @@ void addDefaultInstructions(struct CurrentState *state) {
 
 
 const char *parsePrompt(const char *undigestedPrompt) {
-  char digestedPrompt[1024] = {0};
+  char digestedPrompt[1024] = "";
   const char *ptr = undigestedPrompt;
   char command[256];
   int commandIndex = 0;
