@@ -120,8 +120,11 @@ void __check_for_interactive_rebase(struct CurrentState *state) {
  * Helper: set RepoContext with repo name and return it
  */
 const char * __get_repo_name(struct CurrentState *state) {
-  if (state->head_ref == NULL) return strdup("NO_DATA");
-  state->repo_name = strrchr(state->repo_path, '/') + 1;
+  if (state->head_ref == NULL) {
+    state->repo_name = "NO_DATA";
+  } else {
+    state->repo_name = strrchr(state->repo_path, '/') + 1;
+  }
   return state->repo_name;
 }
 
@@ -129,8 +132,11 @@ const char * __get_repo_name(struct CurrentState *state) {
  * Helper: set RepoContext with repo branch and return it
  */
 const char * __get_branch_name(struct CurrentState *state) {
-  if (state->head_ref == NULL) return strdup("NO_DATA");
-  state->branch_name = git_reference_shorthand(state->head_ref);
+  if (state->head_ref == NULL) {
+    state->branch_name = "NO_DATA";
+  } else {
+    state->branch_name = git_reference_shorthand(state->head_ref);
+  }
   return state->branch_name;
 }
 
@@ -318,11 +324,11 @@ void initialise_state(struct CurrentState *state) {
 
 
   // External stuff. User prolly interested in these
-  state->cwd_full                    = NULL;
-  state->cwd_basename                = NULL;
+  state->cwd_full                    = "";
+  state->cwd_basename                = "";
 
-  state->repo_name                   = NULL;
-  state->branch_name                 = NULL;
+  state->repo_name                   = "";
+  state->branch_name                 = "";
 
   state->is_git_repo                 = -1;
   state->has_upstream                = -1;
