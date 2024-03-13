@@ -166,7 +166,7 @@ int main(void) {
   git_libgit2_init();
   initialise_state(&state);
 
-  if (gather_git_context(&state) != 0) {
+  if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
     const char *nonGitPrompt = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
     printf("%s", nonGitPrompt);
     return 0;

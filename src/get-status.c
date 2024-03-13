@@ -140,8 +140,6 @@ const char * __get_branch_name(struct CurrentState *state) {
 int __populate_repo_context(struct CurrentState *state, const char *path) {
   int result = FAILURE; // Default to failure
 
-  state->is_git_repo = (__is_git_repo(path) == 0) ? 1 : 0;
-
   const char *git_repository_path = NULL;
   git_repository *repo = NULL;
   git_reference *head_ref = NULL;
@@ -360,7 +358,10 @@ void initialise_state(struct CurrentState *state) {
  */
 
 int gather_git_context(struct CurrentState *state) {
-  state->is_git_repo = __is_git_repo(".");
+  // in state, 0 means false, 1 means true.
+  // when functions return 0, it's true, and 1 means false.
+  // very confusing.
+  state->is_git_repo = ! __is_git_repo(".");
 
   __populate_repo_context(state, ".");
   __get_repo_name(state);
@@ -368,7 +369,7 @@ int gather_git_context(struct CurrentState *state) {
   __get_repo_status(state);
   __get_repo_divergence(state);
 
-  return state->is_git_repo;
+  return ! state->is_git_repo;
 }
 
 
