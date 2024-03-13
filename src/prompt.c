@@ -36,39 +36,50 @@ const char *find_replacement(const char *command) {
   return i ? i->replacement : NULL;
 }
 
-const char *itoa(int val) {
-  //printf("'%d'\n", val);
-  static char buf[32] = "";
-  snprintf(buf, sizeof(buf), "%d", val);
-  return buf;
-}
-
 void addDefaultInstructions(struct CurrentState *state) {
   const char* cwd_from_gitrepo = getCWDFromGitRepo(state);
   const char* cwd_from_home = getCWDFromHome(state);
+
+  char buf[32];
 
   add_instruction("CWD.full",                     state->cwd_full);
   add_instruction("CWD.basename",                 state->cwd_basename);
   add_instruction("CWD.git_path",                 cwd_from_gitrepo);
   add_instruction("CWD.home_path",                cwd_from_home);
 
-  add_instruction("Repo.is_git_repo",             itoa(state->is_git_repo));
+  
+  snprintf(buf, sizeof(buf), "%d",                state->is_git_repo);
+  add_instruction("Repo.is_git_repo", buf);
+
   add_instruction("Repo.name",                    state->repo_name);
   add_instruction("Repo.branch_name",             state->branch_name);
-  add_instruction("Repo.rebase_active",           itoa(state->is_rebase_in_progress));
-  add_instruction("Repo.conflicts",               itoa(state->conflict_num));
 
-  add_instruction("Repo.has_upstream",            itoa(state->has_upstream));
-  add_instruction("Repo.ahead",                   itoa(state->ahead_num));
-  add_instruction("Repo.behind",                  itoa(state->behind_num));
+  snprintf(buf, sizeof(buf), "%d",                state->is_rebase_in_progress);
+  add_instruction("Repo.rebase_active", buf);
 
-  add_instruction("Repo.staged",                  itoa(state->staged_num));
-  add_instruction("Repo.modified",                itoa(state->modified_num));
-  add_instruction("Repo.untracked",               itoa(state->untracked_num));
+  snprintf(buf, sizeof(buf), "%d",                state->conflict_num);
+  add_instruction("Repo.conflicts", buf);
 
-  add_instruction("AWS.token_is_valid",           itoa(state->aws_token_is_valid));
-  add_instruction("AWS.token_remaining_hours",    itoa(state->aws_token_remaining_hours));
-  add_instruction("AWS.token_remaining_minutes",  itoa(state->aws_token_remaining_minutes));
+  snprintf(buf, sizeof(buf), "%d",                state->has_upstream);
+  add_instruction("Repo.has_upstream", buf);
+  snprintf(buf, sizeof(buf), "%d",                state->ahead_num);
+  add_instruction("Repo.ahead", buf);
+  snprintf(buf, sizeof(buf), "%d",                state->behind_num);
+  add_instruction("Repo.behind", buf);
+
+  snprintf(buf, sizeof(buf), "%d",                state->staged_num);
+  add_instruction("Repo.staged", buf);
+  snprintf(buf, sizeof(buf), "%d",                state->modified_num);
+  add_instruction("Repo.modified", buf);
+  snprintf(buf, sizeof(buf), "%d",                state->untracked_num);
+  add_instruction("Repo.untracked", buf);
+
+  snprintf(buf, sizeof(buf), "%d",                state->aws_token_is_valid);
+  add_instruction("AWS.token_is_valid", buf);
+  snprintf(buf, sizeof(buf), "%d",                state->aws_token_remaining_hours);
+  add_instruction("AWS.token_remaining_hours", buf);
+  snprintf(buf, sizeof(buf), "%d",                state->aws_token_remaining_minutes);
+  add_instruction("AWS.token_remaining_minutes", buf);
 }
 
 
