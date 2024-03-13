@@ -85,7 +85,7 @@ void add_default_instructions(struct CurrentState *state) {
 /**
  * Helper function.
  * Concatenates a string to digested_prompt if the resulting length is within bounds.
- * 
+ *
   */
 int my_strcat(char *digested_prompt, const char *addition) {
     if (strlen(digested_prompt) + strlen(addition) >= PROMPT_MAX_LEN) {
@@ -131,7 +131,7 @@ const char *parse_prompt(const char *undigested_prompt) {
     } else if (*ptr == '}' && in_command) {
       in_command = 0;
       command[command_index] = '\0'; // Null-terminate the command string
-  
+
       // Look up the command and append its value to digested_prompt
       const char *replacement = find_replacement(command);
       if (replacement) {
@@ -156,7 +156,7 @@ const char *parse_prompt(const char *undigested_prompt) {
   return strdup(digested_prompt);
 
   error:
-    return "PROMPT TOO LONG $ ";  
+    return "PROMPT TOO LONG $ ";
 }
 
 
@@ -180,7 +180,7 @@ int main(void) {
   const char *digested_prompt = parse_prompt(undigested_prompt);
   printf("%s", digested_prompt);
 
-  
+
   cleanup_resources(&state);
   git_libgit2_shutdown();
   instruction_t *current_entry, *tmp;
