@@ -4,6 +4,8 @@
 
 #include "get-status.h"
 
+#define COMMAND_MAX_LEN  256
+
 typedef struct {
   const char *command;      // key
   const char *replacement;  // value
@@ -71,9 +73,9 @@ void addDefaultInstructions(struct CurrentState *state) {
 
 
 const char *parsePrompt(const char *undigestedPrompt) {
-  char digestedPrompt[1024] = "";
+  char digestedPrompt[PROMPT_MAX_LEN] = "";
   const char *ptr = undigestedPrompt;
-  char command[256];
+  char command[COMMAND_MAX_LEN];
   int commandIndex = 0;
   int inCommand = 0;
 

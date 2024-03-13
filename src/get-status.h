@@ -5,6 +5,15 @@
 */
 #include <git2.h>
 
+
+/*
+  The prompt can be 4 * PATH_MAX.
+
+  This should be enough for multi-line prompts with many escape characters
+*/
+#define PROMPT_MAX_LEN 16384
+
+
 enum generic_return_values {
   SUCCESS =  0,
   FAILURE =  1,
