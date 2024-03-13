@@ -83,6 +83,19 @@ void addDefaultInstructions(struct CurrentState *state) {
 }
 
 
+/**
+ * Helper function.
+ * Concatenates a string to digestedPrompt if the resulting length is within bounds.
+ * 
+  */
+int my_strcat(char *digestedPrompt, const char *addition) {
+    if (strlen(digestedPrompt) + strlen(addition) >= PROMPT_MAX_LEN) {
+        return FAILURE; // The resulting string would be too long
+    }
+    strcat(digestedPrompt, addition); // Safe to concatenate
+    return SUCCESS;
+}
+
 const char *parsePrompt(const char *undigestedPrompt) {
   char digestedPrompt[PROMPT_MAX_LEN] = "";
   const char *ptr = undigestedPrompt;
@@ -102,12 +115,12 @@ const char *parsePrompt(const char *undigestedPrompt) {
       // Look up the command and append its value to digestedPrompt
       const char *replacement = find_replacement(command);
       if (replacement) {
-        strcat(digestedPrompt, replacement);
+        if(my_strcat(digestedPrompt, replacement) == FAILURE) { goto error; }
       } else {
         // Command not found, append the original command
-        strcat(digestedPrompt, "@{");
-        strcat(digestedPrompt, command);
-        strcat(digestedPrompt, "}");
+        if(my_strcat(digestedPrompt, "@{") == FAILURE) { goto error; }
+        if(my_strcat(digestedPrompt, command) == FAILURE) { goto error; }
+        if(my_strcat(digestedPrompt, "}") == FAILURE) { goto error; }
       }
       ptr++; // Move past the '}'
     } else if (inCommand) {
@@ -116,11 +129,14 @@ const char *parsePrompt(const char *undigestedPrompt) {
     } else {
       // We are outside a command, copy character directly to digestedPrompt
       char str[2] = {*ptr++, '\0'};
-      strcat(digestedPrompt, str);
+      if(my_strcat(digestedPrompt, str) == FAILURE) { goto error; }
     }
   }
 
   return strdup(digestedPrompt);
+
+  error:
+    return "PROMPT TOO LONG $ ";  
 }
 
 
