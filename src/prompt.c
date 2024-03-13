@@ -95,6 +95,27 @@ int my_strcat(char *digested_prompt, const char *addition) {
     return SUCCESS;
 }
 
+/**
+ * Parses a given input prompt string, replacing any embedded
+ * commands with their corresponding values.
+ *
+ * This function scans the input string for embedded commands, which
+ * are denoted by the syntax `@{command}`. Each command is looked up
+ * in a global hash table of instructions, and if found, the command
+ * is replaced by its associated value in the output string. If a
+ * command is not found, it is left unchanged in the output. The
+ * function ensures that the length of the digested prompt does not
+ * exceed `PROMPT_MAX_LEN`.
+ *
+ * @param undigested_prompt The input prompt string containing
+ *        embedded commands to be parsed.
+ *
+ * @return A dynamically allocated string containing the digested
+ *         prompt. If the resulting prompt would exceed
+ *         `PROMPT_MAX_LEN`, a predefined error message is returned
+ *         instead. The caller is responsible for freeing the returned
+ *         string.
+ */
 const char *parse_prompt(const char *undigested_prompt) {
   char digested_prompt[PROMPT_MAX_LEN] = "";
   const char *ptr = undigested_prompt;
