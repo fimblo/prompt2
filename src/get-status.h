@@ -70,16 +70,17 @@ struct CurrentState {
 };
 
 /**
+ * 
  * Sets up CurrentState with default values
  */
-void initialiseState(struct CurrentState *state);
+void initialise_state(struct CurrentState *state);
 
 
 /**
  * Gather all git-related context.
  * @returns 0 if . is inside a git-repo, 1 otherwise
  */
-int gatherGitContext(struct CurrentState *state);
+int gather_git_context(struct CurrentState *state);
 
 
 /**
@@ -92,37 +93,37 @@ int gatherGitContext(struct CurrentState *state);
  *
  * @return -1 for errors, 0 if token is invalid, 1 if it's valid.
    */
-int gatherAWSContext(struct CurrentState *state);
+int gather_aws_context(struct CurrentState *state);
 
 /**
  * Generate a path relative to the root of the Git repository, using
  * '+' to represent the root
  */
-const char *getCWDFromGitRepo(struct CurrentState *state);
+const char *get_cwd_from_gitrepo(struct CurrentState *state);
 
 /**
  * Retrieve the current working directory path, replacing the home
  * directory part with '~' if applicable
  */
-const char *getCWDFromHome(struct CurrentState *state);
+const char *get_cwd_from_home(struct CurrentState *state);
 
 /**
  * Memory management
  */
-void cleanupResources(struct CurrentState *state);
+void cleanup_resources(struct CurrentState *state);
 
 /**
  * Shortens a filesystem path to a specified maximum width by
  * truncating the beginning of the string
  */
-void pathTruncateSimple(char *originalPath, int maxWidth);
+void path_truncate_simple(char *original_path, int max_width);
 
 /**
  * Shortens a filesystem path to a specified maximum width by
  * abbreviating intermediate directories while keeping the last
  * directory in full.
  */
-void pathTruncateAccordion(char *originalPath, int maxWidth);
+void path_truncate_accordion(char *original_path, int max_width);
 
 
 #endif //GETSTATUS_H

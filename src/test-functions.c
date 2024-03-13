@@ -8,11 +8,11 @@ int main(void) {
   struct CurrentState state;
 
   git_libgit2_init();
-  initialiseState(&state);
-  gatherGitContext(&state);
+  initialise_state(&state);
+  gather_git_context(&state);
 
-  const char* cwd_from_gitrepo = getCWDFromGitRepo(&state);
-  const char* cwd_from_home = getCWDFromHome(&state);
+  const char* cwd_from_gitrepo = get_cwd_from_gitrepo(&state);
+  const char* cwd_from_home = get_cwd_from_home(&state);
 
   printf("CWD.full %s\n",           state.cwd_full);
   printf("CWD.basename %s\n",       state.cwd_basename);
@@ -34,12 +34,12 @@ int main(void) {
   printf("Repo.untracked %d\n",     state.untracked_num);
 
 
-  gatherAWSContext(&state);
+  gather_aws_context(&state);
   printf("AWS.token_is_valid %d\n", state.aws_token_is_valid);
   printf("AWS.token_remaining_hours %d\n", state.aws_token_remaining_hours);
   printf("AWS.token_remaining_minutes %d\n", state.aws_token_remaining_minutes);
 
-  cleanupResources(&state);
+  cleanup_resources(&state);
   git_libgit2_shutdown();
   return 0;
 }

@@ -26,21 +26,21 @@
  * Checks if the given path is a git repository
  * @return 0 if true, 1 if false
  */
-int __isGitRepo(const char *path) {
-	int isRepo = FAILURE_IS_NOT_GIT_REPO;
+int __is_git_repo(const char *path) {
+	int is_repo = FAILURE_IS_NOT_GIT_REPO;
 	git_repository *repo = NULL;
 	int error = git_repository_open_ext(&repo, path, 0, NULL);
 	if (error == 0) {
-		isRepo = SUCCESS_IS_GIT_REPO;
+		is_repo = SUCCESS_IS_GIT_REPO;
 		git_repository_free(repo);
 	}
-	return isRepo;
+	return is_repo;
 }
 
 /**
  * Given a path, returns root of git repo or empty string
  */
-const char *__findGitRepositoryPath(const char *path) {
+const char *__find_git_repository_path(const char *path) {
   git_buf repo_path = { 0 };
   int error = git_repository_discover(&repo_path, path, 0, NULL);
 
@@ -60,13 +60,13 @@ const char *__findGitRepositoryPath(const char *path) {
 /**
  * Helper: Figure out divergence between local and upstream branches.
  */
-int __calculateDivergence(git_repository *repo,
+int __calculate_divergence(git_repository *repo,
                           const git_oid *local_oid,
                           const git_oid *upstream_oid,
                           int *ahead,
                           int *behind) {
-  int aheadCount = 0;
-  int behindCount = 0;
+  int ahead_count = 0;
+  int behind_count = 0;
   git_oid id;
 
   // init walker
@@ -81,7 +81,7 @@ int __calculateDivergence(git_repository *repo,
     git_revwalk_free(walker);
     return ERROR_GIT_REVWALK_FORWARD;
   }
-  while (git_revwalk_next(&id, walker) == 0) aheadCount++;
+  while (git_revwalk_next(&id, walker) == 0) ahead_count++;
 
   // count number of commits behind
   git_revwalk_reset(walker);
@@ -90,10 +90,10 @@ int __calculateDivergence(git_repository *repo,
     git_revwalk_free(walker);
     return ERROR_GIT_REVWALK_BACKWARD;
   }
-  while (git_revwalk_next(&id, walker) == 0) behindCount++;
+  while (git_revwalk_next(&id, walker) == 0) behind_count++;
 
-  *ahead = aheadCount;
-  *behind = behindCount;
+  *ahead = ahead_count;
+  *behind = behind_count;
 
   git_revwalk_free(walker);
   return SUCCESS;
@@ -103,15 +103,15 @@ int __calculateDivergence(git_repository *repo,
  * Helper: Determine if a Git repository is currently in an
  * interactive rebase state
  */
-void __checkForInteractiveRebase(struct CurrentState *state) {
-  char rebaseMergePath[PATH_MAX];
-  char rebaseApplyPath[PATH_MAX];
-  snprintf(rebaseMergePath, sizeof(rebaseMergePath), "%s/.git/rebase-merge", state->repo_path);
-  snprintf(rebaseApplyPath, sizeof(rebaseApplyPath), "%s/.git/rebase-apply", state->repo_path);
+void __check_for_interactive_rebase(struct CurrentState *state) {
+  char rebase_merge_path[PATH_MAX];
+  char rebase_apply_path[PATH_MAX];
+  snprintf(rebase_merge_path, sizeof(rebase_merge_path), "%s/.git/rebase-merge", state->repo_path);
+  snprintf(rebase_apply_path, sizeof(rebase_apply_path), "%s/.git/rebase-apply", state->repo_path);
 
-  struct stat mergeStat, applyStat;
+  struct stat merge_stat, apply_stat;
   state->is_rebase_in_progress = 0;
-  if (stat(rebaseMergePath, &mergeStat) == 0 || stat(rebaseApplyPath, &applyStat) == 0) {
+  if (stat(rebase_merge_path, &merge_stat) == 0 || stat(rebase_apply_path, &apply_stat) == 0) {
     state->is_rebase_in_progress = 1;
   }
 }
@@ -119,7 +119,7 @@ void __checkForInteractiveRebase(struct CurrentState *state) {
 /**
  * Helper: set RepoContext with repo name and return it
  */
-const char * __getRepoName(struct CurrentState *state) {
+const char * __get_repo_name(struct CurrentState *state) {
   if (state->head_ref == NULL) return strdup("NO_DATA");
   state->repo_name = strrchr(state->repo_path, '/') + 1;
   return state->repo_name;
@@ -128,7 +128,7 @@ const char * __getRepoName(struct CurrentState *state) {
 /**
  * Helper: set RepoContext with repo branch and return it
  */
-const char * __getBranchName(struct CurrentState *state) {
+const char * __get_branch_name(struct CurrentState *state) {
   if (state->head_ref == NULL) return strdup("NO_DATA");
   state->branch_name = git_reference_shorthand(state->head_ref);
   return state->branch_name;
@@ -137,10 +137,10 @@ const char * __getBranchName(struct CurrentState *state) {
 /**
  * Helper: Prep RepoContext with git repo info
  */
-int __populateRepoContext(struct CurrentState *state, const char *path) {
+int __populate_repo_context(struct CurrentState *state, const char *path) {
   int result = FAILURE; // Default to failure
 
-  state->is_git_repo = (__isGitRepo(path) == 0) ? 1 : 0;
+  state->is_git_repo = (__is_git_repo(path) == 0) ? 1 : 0;
 
   const char *git_repository_path = NULL;
   git_repository *repo = NULL;
@@ -148,7 +148,7 @@ int __populateRepoContext(struct CurrentState *state, const char *path) {
   const git_oid *head_oid = NULL;
 
   if (state->repo_path == NULL) {
-    git_repository_path = __findGitRepositoryPath(path);
+    git_repository_path = __find_git_repository_path(path);
     if (strlen(git_repository_path) == 0) {
       goto cleanup; // Path not found, cleanup and exit
     }
@@ -188,7 +188,7 @@ cleanup:
  * Helper: Get the current Git repository's status, including staged
  * and modified changes, and conflicts.
  */
-int __getRepoStatus(struct CurrentState *state) {
+int __get_repo_status(struct CurrentState *state) {
   if (state->head_ref == NULL) return ERROR_GIT_NO_HEAD_REF;
 
   // First get the status-list which we'll iterate through
@@ -252,7 +252,7 @@ int __getRepoStatus(struct CurrentState *state) {
   state->untracked_num = untracked;
   state->conflict_num  = conflicts;
 
-  __checkForInteractiveRebase(state);
+  __check_for_interactive_rebase(state);
   return SUCCESS;
 }
 
@@ -261,7 +261,7 @@ int __getRepoStatus(struct CurrentState *state) {
  * its upstream branch, updating the state with information on how
  * many commits it is ahead or behind.
  */
-int __getRepoDivergence(struct CurrentState *state) {
+int __get_repo_divergence(struct CurrentState *state) {
   if (state->head_ref == NULL) return ERROR_GIT_NO_HEAD_REF;
 
   char full_remote_branch_name[128];
@@ -290,7 +290,7 @@ int __getRepoDivergence(struct CurrentState *state) {
   }
   state->has_upstream = 1;
 
-  __calculateDivergence(state->repo_obj,
+  __calculate_divergence(state->repo_obj,
                         state->head_oid,
                         upstream_oid,
                         &state->ahead_num,
@@ -310,7 +310,7 @@ int __getRepoDivergence(struct CurrentState *state) {
 /**
  * Sets up CurrentState so that they are useable.
  */
-void initialiseState(struct CurrentState *state) {
+void initialise_state(struct CurrentState *state) {
   // Internal things. Uninteresting for user
   state->repo_obj                    = NULL;
   state->repo_path                   = NULL;
@@ -359,14 +359,14 @@ void initialiseState(struct CurrentState *state) {
  * TODO: take return values into consideration
  */
 
-int gatherGitContext(struct CurrentState *state) {
-  state->is_git_repo = __isGitRepo(".");
+int gather_git_context(struct CurrentState *state) {
+  state->is_git_repo = __is_git_repo(".");
 
-  __populateRepoContext(state, ".");
-  __getRepoName(state);
-  __getBranchName(state);
-  __getRepoStatus(state);
-  __getRepoDivergence(state);
+  __populate_repo_context(state, ".");
+  __get_repo_name(state);
+  __get_branch_name(state);
+  __get_repo_status(state);
+  __get_repo_divergence(state);
 
   return state->is_git_repo;
 }
@@ -380,7 +380,7 @@ int gatherGitContext(struct CurrentState *state) {
  * successful(valid), to mirror the value stored in
  * state->aws_token_is_valid.
   */
-int gatherAWSContext(struct CurrentState *state) {
+int gather_aws_context(struct CurrentState *state) {
   const char *home_dir = getenv("HOME");
   if (!home_dir) return ERROR; // error
 
@@ -465,8 +465,8 @@ int gatherAWSContext(struct CurrentState *state) {
  * Generate a path relative to the root of the Git repository, using
  * '+' to represent the root
  */
-const char *getCWDFromGitRepo(struct CurrentState *state) {
-  if (state->head_ref == NULL) return getCWDFromHome(state);
+const char *get_cwd_from_gitrepo(struct CurrentState *state) {
+  if (state->head_ref == NULL) return get_cwd_from_home(state);
 
   static char wd[PATH_MAX];
   size_t common_length = strspn(state->repo_path, state->cwd_full);
@@ -484,7 +484,7 @@ const char *getCWDFromGitRepo(struct CurrentState *state) {
  * Retrieve the current working directory path, replacing the home
  * directory part with '~' if applicable
  */
-const char *getCWDFromHome(struct CurrentState *state) {
+const char *get_cwd_from_home(struct CurrentState *state) {
   static char wd[PATH_MAX];
   char *home_path = getenv("HOME");
 
@@ -509,7 +509,7 @@ const char *getCWDFromHome(struct CurrentState *state) {
 /**
  * Memory management
  */
-void cleanupResources(struct CurrentState *state) {
+void cleanup_resources(struct CurrentState *state) {
   if (state->repo_obj) {
     git_repository_free(state->repo_obj);
     state->repo_obj = NULL;
@@ -535,19 +535,19 @@ void cleanupResources(struct CurrentState *state) {
  * Shortens a filesystem path to a specified maximum width by
  * truncating the beginning of the string
  */
-void pathTruncateSimple(char *originalPath, int maxWidth) {
+void path_truncate_simple(char *original_path, int max_width) {
 
   // Sanity checks
-  int originalPathLen = strlen(originalPath);
-  if (originalPathLen <= maxWidth) return;
-  if (maxWidth < 3) {
-    for (int i = 0; i < maxWidth; i++) originalPath[i] = '.';
-    originalPath[3] = '\0';
+  int original_path_len = strlen(original_path);
+  if (original_path_len <= max_width) return;
+  if (max_width < 3) {
+    for (int i = 0; i < max_width; i++) original_path[i] = '.';
+    original_path[3] = '\0';
     return;
   }
 
   // How much to shrink?
-  int shrinkage = originalPathLen - maxWidth;
+  int shrinkage = original_path_len - max_width;
   if (shrinkage <= 3) {
     shrinkage = 3; // for the ellipsis
   }
@@ -556,14 +556,14 @@ void pathTruncateSimple(char *originalPath, int maxWidth) {
   }
 
   // Shrink it
-  char rebuildPath[originalPathLen + 1];
-  strcpy(rebuildPath, "...");
-  strncat(rebuildPath,
-          originalPath + shrinkage,     // forward shrinkage chars
-          originalPathLen - shrinkage); // copy this many chars
+  char rebuild_path[original_path_len + 1];
+  strcpy(rebuild_path, "...");
+  strncat(rebuild_path,
+          original_path + shrinkage,     // forward shrinkage chars
+          original_path_len - shrinkage); // copy this many chars
 
 
-  strcpy(originalPath, rebuildPath);
+  strcpy(original_path, rebuild_path);
 }
 
 /**
@@ -571,73 +571,73 @@ void pathTruncateSimple(char *originalPath, int maxWidth) {
  * abbreviating intermediate directories while keeping the last
  * directory in full.
  */
-void pathTruncateAccordion(char *originalPath, int maxWidth) {
+void path_truncate_accordion(char *original_path, int max_width) {
 
   // Sanity checks
-  int originalPathLen = strlen(originalPath);
-  if (originalPathLen <= maxWidth) return;
-  if (maxWidth < 3) {
-    for (int i = 0; i < maxWidth; i++) originalPath[i] = '.';
-    originalPath[3] = '\0';
+  int original_path_len = strlen(original_path);
+  if (original_path_len <= max_width) return;
+  if (max_width < 3) {
+    for (int i = 0; i < max_width; i++) original_path[i] = '.';
+    original_path[3] = '\0';
     return;
   }
 
 
   // tmp vars as my workbench, these will be messed with
-  char tmpPath[originalPathLen];
-  int  tmpPathLength = originalPathLen;
+  char tmp_path[original_path_len];
+  int  tmp_path_length = original_path_len;
 
   // As I step through the directories, I place dirs (short or long)
   // here after I decide what to do.
-  char rebuildPath[originalPathLen];
-  memset(rebuildPath, '\0', originalPathLen);
+  char rebuild_path[original_path_len];
+  memset(rebuild_path, '\0', original_path_len);
 
   // store the first char if it's a special char.
-  if (originalPath[0] == '~' || originalPath[0] == '+') {
-    rebuildPath[0] = originalPath[0];
-    strcpy(tmpPath, originalPath + 1);
+  if (original_path[0] == '~' || original_path[0] == '+') {
+    rebuild_path[0] = original_path[0];
+    strcpy(tmp_path, original_path + 1);
   } else {
-    strcpy(tmpPath, originalPath);
+    strcpy(tmp_path, original_path);
   }
 
   // use tokenizer to walk through the dir levels
-  char  lastToken[originalPathLen];  // for the dir the user is standing in, we want to preserve that
-  int   shortDirWasUsed;
-  char *token = strtok(tmpPath, "/");
+  char  last_token[original_path_len];  // for the dir the user is standing in, we want to preserve that
+  int   short_dir_was_used;
+  char *token = strtok(tmp_path, "/");
   while (token != NULL) {
-    int shortDirLength = 3; // +1 for slash, +1 for terminator
-    char shortDir[shortDirLength];
-    sprintf(shortDir, "/%c", token[0]);
+    int short_dir_length = 3; // +1 for slash, +1 for terminator
+    char short_dir[short_dir_length];
+    sprintf(short_dir, "/%c", token[0]);
 
-    int longDirLength = strlen(token) + 2; // +1 for slash, +1 for terminator ill be back
-    char longDir[longDirLength];
-    snprintf(longDir, (size_t) longDirLength, "/%s", token);
+    int long_dir_length = strlen(token) + 2; // +1 for slash, +1 for terminator ill be back
+    char long_dir[long_dir_length];
+    snprintf(long_dir, (size_t) long_dir_length, "/%s", token);
 
-    int shinkage = longDirLength - shortDirLength;
-    if (tmpPathLength >= maxWidth) {
-      tmpPathLength = tmpPathLength - shinkage;
-      strcat(rebuildPath, shortDir);
-      shortDirWasUsed = 1;
+    int shinkage = long_dir_length - short_dir_length;
+    if (tmp_path_length >= max_width) {
+      tmp_path_length = tmp_path_length - shinkage;
+      strcat(rebuild_path, short_dir);
+      short_dir_was_used = 1;
     }
     else {
-      strcat(rebuildPath, longDir);
-      shortDirWasUsed = 0;
+      strcat(rebuild_path, long_dir);
+      short_dir_was_used = 0;
     }
 
-    strcpy(lastToken, token);
+    strcpy(last_token, token);
     token = strtok(NULL, "/");
   }
 
   /*
-    If the last directory added to rebuildPath was a shortDir, replace
+    If the last directory added to rebuild_path was a short_dir, replace
     it with the full directory name, since I want that behaviour
   */
-  if (shortDirWasUsed) {
-    char *lastSlash = strrchr(rebuildPath, '/');
-    if (lastSlash != NULL) {
-      strcpy(lastSlash + 1, lastToken);
+  if (short_dir_was_used) {
+    char *last_slash = strrchr(rebuild_path, '/');
+    if (last_slash != NULL) {
+      strcpy(last_slash + 1, last_token);
     }
   }
 
-  strcpy(originalPath, rebuildPath);
+  strcpy(original_path, rebuild_path);
 }

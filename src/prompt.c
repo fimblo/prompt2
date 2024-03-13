@@ -36,9 +36,9 @@ const char *find_replacement(const char *command) {
   return i ? i->replacement : NULL;
 }
 
-void addDefaultInstructions(struct CurrentState *state) {
-  const char* cwd_from_gitrepo = getCWDFromGitRepo(state);
-  const char* cwd_from_home = getCWDFromHome(state);
+void add_default_instructions(struct CurrentState *state) {
+  const char* cwd_from_gitrepo = get_cwd_from_gitrepo(state);
+  const char* cwd_from_home = get_cwd_from_home(state);
 
   char buf[32];
 
@@ -85,55 +85,55 @@ void addDefaultInstructions(struct CurrentState *state) {
 
 /**
  * Helper function.
- * Concatenates a string to digestedPrompt if the resulting length is within bounds.
+ * Concatenates a string to digested_prompt if the resulting length is within bounds.
  * 
   */
-int my_strcat(char *digestedPrompt, const char *addition) {
-    if (strlen(digestedPrompt) + strlen(addition) >= PROMPT_MAX_LEN) {
+int my_strcat(char *digested_prompt, const char *addition) {
+    if (strlen(digested_prompt) + strlen(addition) >= PROMPT_MAX_LEN) {
         return FAILURE; // The resulting string would be too long
     }
-    strcat(digestedPrompt, addition); // Safe to concatenate
+    strcat(digested_prompt, addition); // Safe to concatenate
     return SUCCESS;
 }
 
-const char *parsePrompt(const char *undigestedPrompt) {
-  char digestedPrompt[PROMPT_MAX_LEN] = "";
-  const char *ptr = undigestedPrompt;
+const char *parse_prompt(const char *undigested_prompt) {
+  char digested_prompt[PROMPT_MAX_LEN] = "";
+  const char *ptr = undigested_prompt;
   char command[COMMAND_MAX_LEN];
-  int commandIndex = 0;
-  int inCommand = 0;
+  int command_index = 0;
+  int in_command = 0;
 
   while (*ptr) {
     if (*ptr == '@' && *(ptr + 1) == '{') {
-      inCommand = 1;
-      commandIndex = 0;
+      in_command = 1;
+      command_index = 0;
       ptr += 2; // Skip past the '@{'
-    } else if (*ptr == '}' && inCommand) {
-      inCommand = 0;
-      command[commandIndex] = '\0'; // Null-terminate the command string
+    } else if (*ptr == '}' && in_command) {
+      in_command = 0;
+      command[command_index] = '\0'; // Null-terminate the command string
   
-      // Look up the command and append its value to digestedPrompt
+      // Look up the command and append its value to digested_prompt
       const char *replacement = find_replacement(command);
       if (replacement) {
-        if(my_strcat(digestedPrompt, replacement) == FAILURE) { goto error; }
+        if(my_strcat(digested_prompt, replacement) == FAILURE) { goto error; }
       } else {
         // Command not found, append the original command
-        if(my_strcat(digestedPrompt, "@{") == FAILURE) { goto error; }
-        if(my_strcat(digestedPrompt, command) == FAILURE) { goto error; }
-        if(my_strcat(digestedPrompt, "}") == FAILURE) { goto error; }
+        if(my_strcat(digested_prompt, "@{") == FAILURE) { goto error; }
+        if(my_strcat(digested_prompt, command) == FAILURE) { goto error; }
+        if(my_strcat(digested_prompt, "}") == FAILURE) { goto error; }
       }
       ptr++; // Move past the '}'
-    } else if (inCommand) {
+    } else if (in_command) {
       // We are inside a command, accumulate characters
-      command[commandIndex++] = *ptr++;
+      command[command_index++] = *ptr++;
     } else {
-      // We are outside a command, copy character directly to digestedPrompt
+      // We are outside a command, copy character directly to digested_prompt
       char str[2] = {*ptr++, '\0'};
-      if(my_strcat(digestedPrompt, str) == FAILURE) { goto error; }
+      if(my_strcat(digested_prompt, str) == FAILURE) { goto error; }
     }
   }
 
-  return strdup(digestedPrompt);
+  return strdup(digested_prompt);
 
   error:
     return "PROMPT TOO LONG $ ";  
@@ -144,24 +144,24 @@ int main(void) {
   struct CurrentState state;
 
   git_libgit2_init();
-  initialiseState(&state);
+  initialise_state(&state);
 
-  if (gatherGitContext(&state) != 0) {
+  if (gather_git_context(&state) != 0) {
     const char *nonGitPrompt = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
     printf("%s", nonGitPrompt);
     return 0;
   }
 
-  gatherAWSContext(&state);
-  addDefaultInstructions(&state);
+  gather_aws_context(&state);
+  add_default_instructions(&state);
 
 
-  const char *undigestedPrompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ ";
-  const char *digestedPrompt = parsePrompt(undigestedPrompt);
-  printf("%s", digestedPrompt);
+  const char *undigested_prompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ ";
+  const char *digested_prompt = parse_prompt(undigested_prompt);
+  printf("%s", digested_prompt);
 
   
-  cleanupResources(&state);
+  cleanup_resources(&state);
   git_libgit2_shutdown();
   instruction_t *current_entry, *tmp;
     HASH_ITER(hh, instructions, current_entry, tmp) {
