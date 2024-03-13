@@ -40,46 +40,45 @@ void add_default_instructions(struct CurrentState *state) {
   const char* cwd_from_gitrepo = get_cwd_from_gitrepo(state);
   const char* cwd_from_home = get_cwd_from_home(state);
 
-  char buf[32];
+  char itoa_buf[32]; // to store numbers as strings
 
   add_instruction("CWD.full",                     state->cwd_full);
   add_instruction("CWD.basename",                 state->cwd_basename);
   add_instruction("CWD.git_path",                 cwd_from_gitrepo);
   add_instruction("CWD.home_path",                cwd_from_home);
 
-  
-  snprintf(buf, sizeof(buf), "%d",                state->is_git_repo);
-  add_instruction("Repo.is_git_repo", buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
+  add_instruction("Repo.is_git_repo", itoa_buf);
 
   add_instruction("Repo.name",                    state->repo_name);
   add_instruction("Repo.branch_name",             state->branch_name);
 
-  snprintf(buf, sizeof(buf), "%d",                state->is_rebase_in_progress);
-  add_instruction("Repo.rebase_active", buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
+  add_instruction("Repo.rebase_active", itoa_buf);
 
-  snprintf(buf, sizeof(buf), "%d",                state->conflict_num);
-  add_instruction("Repo.conflicts", buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->conflict_num);
+  add_instruction("Repo.conflicts", itoa_buf);
 
-  snprintf(buf, sizeof(buf), "%d",                state->has_upstream);
-  add_instruction("Repo.has_upstream", buf);
-  snprintf(buf, sizeof(buf), "%d",                state->ahead_num);
-  add_instruction("Repo.ahead", buf);
-  snprintf(buf, sizeof(buf), "%d",                state->behind_num);
-  add_instruction("Repo.behind", buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->has_upstream);
+  add_instruction("Repo.has_upstream", itoa_buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->ahead_num);
+  add_instruction("Repo.ahead", itoa_buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->behind_num);
+  add_instruction("Repo.behind", itoa_buf);
 
-  snprintf(buf, sizeof(buf), "%d",                state->staged_num);
-  add_instruction("Repo.staged", buf);
-  snprintf(buf, sizeof(buf), "%d",                state->modified_num);
-  add_instruction("Repo.modified", buf);
-  snprintf(buf, sizeof(buf), "%d",                state->untracked_num);
-  add_instruction("Repo.untracked", buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->staged_num);
+  add_instruction("Repo.staged", itoa_buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->modified_num);
+  add_instruction("Repo.modified", itoa_buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->untracked_num);
+  add_instruction("Repo.untracked", itoa_buf);
 
-  snprintf(buf, sizeof(buf), "%d",                state->aws_token_is_valid);
-  add_instruction("AWS.token_is_valid", buf);
-  snprintf(buf, sizeof(buf), "%d",                state->aws_token_remaining_hours);
-  add_instruction("AWS.token_remaining_hours", buf);
-  snprintf(buf, sizeof(buf), "%d",                state->aws_token_remaining_minutes);
-  add_instruction("AWS.token_remaining_minutes", buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->aws_token_is_valid);
+  add_instruction("AWS.token_is_valid", itoa_buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_hours);
+  add_instruction("AWS.token_remaining_hours", itoa_buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_minutes);
+  add_instruction("AWS.token_remaining_minutes", itoa_buf);
 }
 
 
