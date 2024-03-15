@@ -7,9 +7,10 @@
 
 
 /*
-  The prompt can be 4 * PATH_MAX.
+  The prompt can be 4 * PATH_MAX (4 * 4096)
 
-  This should be enough for multi-line prompts with many escape characters
+  This should be enough for many multi-line prompts with an absurd number of
+  many escape characters
 */
 #define PROMPT_MAX_LEN 16384
 
