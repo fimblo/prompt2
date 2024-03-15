@@ -37,15 +37,11 @@ const char *find_replacement(const char *command) {
 }
 
 void add_default_instructions(struct CurrentState *state) {
-  const char* cwd_from_gitrepo = get_cwd_from_gitrepo(state);
   const char* cwd_from_home = get_cwd_from_home(state);
 
   char itoa_buf[32]; // to store numbers as strings
 
-  add_instruction("CWD.full",                     state->cwd_full);
-  add_instruction("CWD.basename",                 state->cwd_basename);
-  add_instruction("CWD.git_path",                 cwd_from_gitrepo);
-  add_instruction("CWD.home_path",                cwd_from_home);
+  add_instruction("CWD",                          cwd_from_home);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
   add_instruction("Repo.is_git_repo", itoa_buf);
@@ -176,7 +172,7 @@ int main(void) {
   add_default_instructions(&state);
 
 
-  const char *undigested_prompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD.home_path}\n$ ";
+  const char *undigested_prompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD}\n$ ";
   const char *digested_prompt = parse_prompt(undigested_prompt);
   printf("%s", digested_prompt);
 

@@ -4,10 +4,7 @@ PROMPT_BIN=$(realpath $REPO_DIR/bin/prompt)
 unset REPO_DIR
 
 unset GP2_GIT_PROMPT
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}CWD.full            '@{CWD.full}'\n"
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}CWD.basename        '@{CWD.basename}'\n"
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}CWD.git_path        '@{CWD.git_path}'\n"
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}CWD.home_path       '@{CWD.home_path}'\n"
+GP2_GIT_PROMPT="${GP2_GIT_PROMPT}CWD.home_path       '@{CWD}'\n"
 
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.is_git_repo    '@{Repo.is_git_repo}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.name           '@{Repo.name}'\n"
