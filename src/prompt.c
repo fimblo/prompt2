@@ -203,8 +203,8 @@ int main(void) {
     int terminal_width = 80;
     
     if (visible_prompt_length > terminal_width) {
-      path_truncate_simple(cwd,
-                           cwd_length - (visible_prompt_length - terminal_width));
+      int max_width = cwd_length - (visible_prompt_length - terminal_width);
+      path_truncate_simple(cwd, max_width);
     }
     add_instruction("CWD",  cwd);
     git_prompt = parse_prompt(git_prompt);
