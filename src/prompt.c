@@ -81,14 +81,14 @@ void add_default_instructions(struct CurrentState *state) {
 
 /**
  * Helper function.
- * Concatenates a string to digested_prompt if the resulting length is within bounds.
+ * Concatenates a string to git_prompt if the resulting length is within bounds.
  *
   */
-int my_strcat(char *digested_prompt, const char *addition) {
-    if (strlen(digested_prompt) + strlen(addition) >= PROMPT_MAX_LEN) {
+int my_strcat(char *git_prompt, const char *addition) {
+    if (strlen(git_prompt) + strlen(addition) >= PROMPT_MAX_LEN) {
         return FAILURE; // The resulting string would be too long
     }
-    strcat(digested_prompt, addition); // Safe to concatenate
+    strcat(git_prompt, addition); // Safe to concatenate
     return SUCCESS;
 }
 
@@ -104,7 +104,7 @@ int my_strcat(char *digested_prompt, const char *addition) {
  * function ensures that the length of the digested prompt does not
  * exceed `PROMPT_MAX_LEN`.
  *
- * @param undigested_prompt The input prompt string containing
+ * @param unparsed_git_prompt The input prompt string containing
  *        embedded commands to be parsed.
  *
  * @return A dynamically allocated string containing the digested
@@ -113,9 +113,9 @@ int my_strcat(char *digested_prompt, const char *addition) {
  *         instead. The caller is responsible for freeing the returned
  *         string.
  */
-const char *parse_prompt(const char *undigested_prompt) {
-  char digested_prompt[PROMPT_MAX_LEN] = "";
-  const char *ptr = undigested_prompt;
+const char *parse_prompt(const char *unparsed_git_prompt) {
+  char git_prompt[PROMPT_MAX_LEN] = "";
+  const char *ptr = unparsed_git_prompt;
   char command[COMMAND_MAX_LEN];
   int command_index = 0;
   int in_command = 0;
@@ -129,28 +129,28 @@ const char *parse_prompt(const char *undigested_prompt) {
       in_command = 0;
       command[command_index] = '\0'; // Null-terminate the command string
 
-      // Look up the command and append its value to digested_prompt
+      // Look up the command and append its value to git_prompt
       const char *replacement = find_replacement(command);
       if (replacement) {
-        if(my_strcat(digested_prompt, replacement) == FAILURE) { goto error; }
+        if(my_strcat(git_prompt, replacement) == FAILURE) { goto error; }
       } else {
         // Command not found, append the original command
-        if(my_strcat(digested_prompt, "@{") == FAILURE) { goto error; }
-        if(my_strcat(digested_prompt, command) == FAILURE) { goto error; }
-        if(my_strcat(digested_prompt, "}") == FAILURE) { goto error; }
+        if(my_strcat(git_prompt, "@{") == FAILURE) { goto error; }
+        if(my_strcat(git_prompt, command) == FAILURE) { goto error; }
+        if(my_strcat(git_prompt, "}") == FAILURE) { goto error; }
       }
       ptr++; // Move past the '}'
     } else if (in_command) {
       // We are inside a command, accumulate characters
       command[command_index++] = *ptr++;
     } else {
-      // We are outside a command, copy character directly to digested_prompt
+      // We are outside a command, copy character directly to git_prompt
       char str[2] = {*ptr++, '\0'};
-      if(my_strcat(digested_prompt, str) == FAILURE) { goto error; }
+      if(my_strcat(git_prompt, str) == FAILURE) { goto error; }
     }
   }
 
-  return strdup(digested_prompt);
+  return strdup(git_prompt);
 
   error:
     return "PROMPT TOO LONG $ ";
@@ -160,14 +160,14 @@ const char *parse_prompt(const char *undigested_prompt) {
 int main(void) {
   struct CurrentState state;
 
-  const char *nonGitPrompt      = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
-  const char *undigested_prompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD} $ ";
+  const char *nonGitPrompt        = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
+  const char *unparsed_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
 
   if (are_escape_sequences_properly_formed(nonGitPrompt) != SUCCESS) {
     printf("MALFORMED GP2_GIT_PROMPT $ ");
     return ERROR;
   }
-  if (are_escape_sequences_properly_formed(undigested_prompt) != SUCCESS) {
+  if (are_escape_sequences_properly_formed(unparsed_git_prompt) != SUCCESS) {
     printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
     return ERROR;
   }
@@ -181,19 +181,25 @@ int main(void) {
     printf("%s", nonGitPrompt);
     return SUCCESS;
   }
-
   gather_aws_context(&state);
+
+
+  /*
+    parse_prompt will replace all instruction strings with their
+    values - except for the CWD instruction.
+  */
   add_default_instructions(&state);
-
-
-  // apply prompt instructions (except @{CWD})
-  const char *digested_prompt = parse_prompt(undigested_prompt);
+  const char *git_prompt = parse_prompt(unparsed_git_prompt);
   
-
-  if (strstr(digested_prompt, "@{CWD}")) {
+  /*
+    We'll deal with this here - after all the other instructions have
+    been applied, since we want to ensure that the current working
+    directory path will fit in the terminal width.
+  */
+  if (strstr(git_prompt, "@{CWD}")) {
     char* cwd = (char*) get_cwd_from_home(&state);
     int cwd_length = strlen(cwd);
-    int visible_prompt_length = cwd_length + count_visible_chars(digested_prompt) - 6; // len("@{CWD}") = 6
+    int visible_prompt_length = cwd_length + count_visible_chars(git_prompt) - 6; // len("@{CWD}") = 6
     int terminal_width = 80;
     
     if (visible_prompt_length > terminal_width) {
@@ -201,10 +207,12 @@ int main(void) {
                            cwd_length - (visible_prompt_length - terminal_width));
     }
     add_instruction("CWD",  cwd);
-    digested_prompt = parse_prompt(digested_prompt);
+    git_prompt = parse_prompt(git_prompt);
   }
 
-  printf("%s", digested_prompt);
+
+  // Finally, print the git prompt
+  printf("%s", git_prompt);
 
 
   cleanup_resources(&state);
