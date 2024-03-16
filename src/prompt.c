@@ -159,11 +159,24 @@ const char *parse_prompt(const char *undigested_prompt) {
 int main(void) {
   struct CurrentState state;
 
+  const char *nonGitPrompt      = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
+  const char *undigested_prompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD}\n$ ";
+
+  if (are_escape_sequences_properly_formed(nonGitPrompt) != SUCCESS) {
+    printf("MALFORMED GP2_GIT_PROMPT $ ");
+    return ERROR;
+  }
+  if (are_escape_sequences_properly_formed(undigested_prompt) != SUCCESS) {
+    printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
+    return ERROR;
+  }
+
+
+
   git_libgit2_init();
   initialise_state(&state);
 
   if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
-    const char *nonGitPrompt = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
     printf("%s", nonGitPrompt);
     return 0;
   }
@@ -172,7 +185,7 @@ int main(void) {
   add_default_instructions(&state);
 
 
-  const char *undigested_prompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD}\n$ ";
+
   const char *digested_prompt = parse_prompt(undigested_prompt);
   printf("%s", digested_prompt);
 

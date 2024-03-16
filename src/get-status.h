@@ -113,6 +113,19 @@ const char *get_cwd_from_home(struct CurrentState *state);
  */
 void cleanup_resources(struct CurrentState *state);
 
+
+/**
+ * Checks if the escape sequences within a string are properly formed.
+ * A properly formed escape sequence starts with '\033' and ends with 'm'.
+ * This function verifies that each escape sequence is correctly started and ended,
+ * without overlapping or improperly nested sequences.
+ * 
+ * @param mystring The string to be checked for properly formed escape sequences.
+ * @return SUCCESS if all escape sequences are properly formed, ERROR otherwise.
+ */
+int are_escape_sequences_properly_formed(const char *mystring);
+
+
 /**
  * Shortens a filesystem path to a specified maximum width by
  * truncating the beginning of the string

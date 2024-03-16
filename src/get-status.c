@@ -538,6 +538,32 @@ void cleanup_resources(struct CurrentState *state) {
   }
 }
 
+
+/**
+ * Checks if the escape sequences within a string are properly formed.
+ */
+int are_escape_sequences_properly_formed(const char *mystring) {
+    int in_escape_sequence = 0;
+
+    while (*mystring) {
+        if (*mystring == '\033') { // Start of an escape sequence
+            if (in_escape_sequence) {
+                // Improperly formed - found a new escape sequence before ending the previous one
+                return ERROR;
+            }
+            in_escape_sequence = 1;
+        } else if (*mystring == 'm' && in_escape_sequence) {
+            // Properly ending an escape sequence
+            in_escape_sequence = 0;
+        }
+        mystring++;
+    }
+
+    // If we're still in an escape sequence at the end, it's improperly formed
+    return in_escape_sequence == 0 ? SUCCESS : ERROR;
+}
+
+
 /**
  * Shortens a filesystem path to a specified maximum width by
  * truncating the beginning of the string
