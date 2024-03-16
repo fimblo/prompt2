@@ -140,4 +140,18 @@ void path_truncate_simple(char *original_path, int max_width);
 void path_truncate_accordion(char *original_path, int max_width);
 
 
+
+/**
+ * Counts the number of visible (non-escape sequence) characters
+ * in a string.
+ * This function iterates through the given string, ignoring characters that
+ * are part of terminal escape sequences (which start with '\033' and end with 'm').
+ * Only characters outside of these sequences are counted as "visible" characters.
+ * 
+ * @param mystring The string to be analyzed.
+ * @return The count of visible characters in the string.
+ */
+int count_visible_chars(const char *mystring);
+
+
 #endif //GETSTATUS_H

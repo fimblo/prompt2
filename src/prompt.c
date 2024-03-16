@@ -6,6 +6,10 @@
 
 #define COMMAND_MAX_LEN  256
 
+
+// todo: check file for camelCase
+  
+
 typedef struct {
   const char *command;      // key
   const char *replacement;  // value
@@ -37,11 +41,8 @@ const char *find_replacement(const char *command) {
 }
 
 void add_default_instructions(struct CurrentState *state) {
-  const char* cwd_from_home = get_cwd_from_home(state);
 
   char itoa_buf[32]; // to store numbers as strings
-
-  add_instruction("CWD",                          cwd_from_home);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
   add_instruction("Repo.is_git_repo", itoa_buf);
@@ -160,7 +161,7 @@ int main(void) {
   struct CurrentState state;
 
   const char *nonGitPrompt      = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
-  const char *undigested_prompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD}\n$ ";
+  const char *undigested_prompt = getenv("GP2_GIT_PROMPT") ?: "<@{Repo.name}> @{CWD} $ ";
 
   if (are_escape_sequences_properly_formed(nonGitPrompt) != SUCCESS) {
     printf("MALFORMED GP2_GIT_PROMPT $ ");
@@ -178,15 +179,31 @@ int main(void) {
 
   if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
     printf("%s", nonGitPrompt);
-    return 0;
+    return SUCCESS;
   }
 
   gather_aws_context(&state);
   add_default_instructions(&state);
 
 
-
+  // apply prompt instructions (except @{CWD})
   const char *digested_prompt = parse_prompt(undigested_prompt);
+  
+
+  if (strstr(digested_prompt, "@{CWD}")) {
+    char* cwd = (char*) get_cwd_from_home(&state);
+    int cwd_length = strlen(cwd);
+    int visible_prompt_length = cwd_length + count_visible_chars(digested_prompt) - 6; // len("@{CWD}") = 6
+    int terminal_width = 80;
+    
+    if (visible_prompt_length > terminal_width) {
+      path_truncate_simple(cwd,
+                           cwd_length - (visible_prompt_length - terminal_width));
+    }
+    add_instruction("CWD",  cwd);
+    digested_prompt = parse_prompt(digested_prompt);
+  }
+
   printf("%s", digested_prompt);
 
 

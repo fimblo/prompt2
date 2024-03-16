@@ -674,3 +674,27 @@ void path_truncate_accordion(char *original_path, int max_width) {
 
   strcpy(original_path, rebuild_path);
 }
+
+
+/**
+ * Counts the number of visible (non-escape sequence) characters in a string.
+ */
+int count_visible_chars(const char *mystring) {
+    int real_chars = 0;
+    int in_escape_sequence = 0;
+
+    while (*mystring) {
+        if (*mystring == '\033') { // Start of an escape sequence
+            in_escape_sequence = 1;
+        } else if (in_escape_sequence && *mystring == 'm') { // End of an escape sequence
+            in_escape_sequence = 0;
+        } else if (!in_escape_sequence) {
+            real_chars++;
+        }
+        mystring++;
+    }
+
+    return real_chars;
+}
+
+
