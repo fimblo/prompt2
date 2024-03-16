@@ -1,5 +1,7 @@
 #include <git2.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 #include <uthash.h>
 
 #include "get-status.h"
@@ -156,6 +158,20 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
     return "PROMPT TOO LONG $ ";
 }
 
+/**
+ * helper. Get terminal width.
+ *
+ * Note that I check stderr and not stdout, since stderr is less
+ * likely to be piped or redirected.
+*/
+int term_width() {
+  struct winsize w;
+  if (ioctl(STDERR_FILENO, TIOCGWINSZ, &w) == -1) {
+        perror("ioctl error");
+        return -1;
+    }
+  return (int) w.ws_col;
+}
 
 int main(void) {
   struct CurrentState state;
@@ -200,7 +216,7 @@ int main(void) {
     char* cwd = (char*) get_cwd_from_home(&state);
     int cwd_length = strlen(cwd);
     int visible_prompt_length = cwd_length + count_visible_chars(git_prompt) - 6; // len("@{CWD}") = 6
-    int terminal_width = 80;
+    int terminal_width = term_width() ?: 80;
     
     if (visible_prompt_length > terminal_width) {
       int max_width = cwd_length - (visible_prompt_length - terminal_width);
