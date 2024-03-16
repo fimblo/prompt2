@@ -94,6 +94,41 @@ int my_strcat(char *git_prompt, const char *addition) {
     return SUCCESS;
 }
 
+
+/**
+ * Replaces occurrences of the two-character sequence '\' followed by 'n'
+ * with the actual newline character '\n', in a given string.
+ *
+ * @param input The input string containing literal "\n" sequences.
+ * @return A new string with "\n" sequences replaced by actual newline characters.
+ *         The caller is responsible for freeing this string.
+ */
+char* replace_literal_newlines(const char* input) {
+    int inputLen = strlen(input);
+    // Allocate enough space for the new string (same size as input, to be safe).
+    char* result = malloc(inputLen + 1); // +1 for the null terminator
+    if (!result) {
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
+
+    const char* current = input;
+    char* output = result;
+    while (*current) {
+        if (*current == '\\' && *(current + 1) == 'n') {
+            *output++ = '\n'; // Replace "\n" with actual newline character
+            current += 2; // Skip past the processed sequence
+        } else {
+            *output++ = *current++; // Copy current character
+        }
+    }
+    *output = '\0'; // Null-terminate the result string
+
+    return result;
+}
+
+
+
 /**
  * Parses a given input prompt string, replacing any embedded
  * commands with their corresponding values.
@@ -176,25 +211,27 @@ int term_width() {
 int main(void) {
   struct CurrentState state;
 
-  const char *nonGitPrompt        = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
-  const char *unparsed_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
+  const char *plain_prompt   = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
+  const char *gp2_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
 
-  if (are_escape_sequences_properly_formed(nonGitPrompt) != SUCCESS) {
-    printf("MALFORMED GP2_GIT_PROMPT $ ");
-    return ERROR;
-  }
-  if (are_escape_sequences_properly_formed(unparsed_git_prompt) != SUCCESS) {
+  if (are_escape_sequences_properly_formed(plain_prompt) != SUCCESS) {
     printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
     return ERROR;
   }
+  if (are_escape_sequences_properly_formed(gp2_git_prompt) != SUCCESS) {
+    printf("MALFORMED GP2_GIT_PROMPT $ ");
+    return ERROR;
+  }
 
+  // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
+  const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
 
 
   git_libgit2_init();
   initialise_state(&state);
 
   if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
-    printf("%s", nonGitPrompt);
+    printf("%s", plain_prompt);
     return SUCCESS;
   }
   gather_aws_context(&state);
@@ -210,22 +247,43 @@ int main(void) {
   /*
     We'll deal with this here - after all the other instructions have
     been applied, since we want to ensure that the current working
-    directory path will fit in the terminal width.
-  */
-  if (strstr(git_prompt, "@{CWD}")) {
-    char* cwd = (char*) get_cwd_from_home(&state);
-    int cwd_length = strlen(cwd);
-    int visible_prompt_length = cwd_length + count_visible_chars(git_prompt) - 6; // len("@{CWD}") = 6
-    int terminal_width = term_width() ?: 80;
-    
-    if (visible_prompt_length > terminal_width) {
-      int max_width = cwd_length - (visible_prompt_length - terminal_width);
-      path_truncate_simple(cwd, max_width);
-    }
-    add_instruction("CWD",  cwd);
-    git_prompt = parse_prompt(git_prompt);
+    directory path will fit in the terminal width - for each line in the prompt.
+  */                      
+  int terminal_width = term_width() ?: 80;
+
+
+  char temp_prompt[PROMPT_MAX_LEN] = "";
+  char *tokenized_prompt = strdup(git_prompt);
+  char *line = strtok(tokenized_prompt, "\n");
+
+  while (line != NULL) {
+      if (strstr(line, "@{CWD}")) {
+            char* cwd = (char*) get_cwd_from_home(&state);
+            int cwd_length = strlen(cwd);
+            int visible_prompt_length = cwd_length + count_visible_chars(line) - 6; // len("@{CWD}") = 6
+
+          if (visible_prompt_length > terminal_width) {
+              int max_width = cwd_length - (visible_prompt_length - terminal_width);
+              path_truncate_simple(cwd, max_width);
+          }
+          add_instruction("CWD",  cwd);
+          line = (char *) parse_prompt(line); // Re-parse the current line
+      }
+
+      // Append the processed line to temp_prompt
+      if (strlen(temp_prompt) + strlen(line) < PROMPT_MAX_LEN - 1) {
+          strcat(temp_prompt, line);
+          strcat(temp_prompt, "\n"); // Re-add the newline character
+      } else {
+          printf("PROMPT TOO LONG $ ");
+          return ERROR;
+      }
+
+      line = strtok(NULL, "\n"); // Get the next line
   }
 
+  git_prompt = strdup(temp_prompt);
+  free(tokenized_prompt); // Free the duplicated string used for tokenization
 
   // Finally, print the git prompt
   printf("%s", git_prompt);
@@ -242,4 +300,3 @@ int main(void) {
 
   return 0;
 }
-
