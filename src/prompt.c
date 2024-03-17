@@ -105,7 +105,7 @@ int my_strcat(char *git_prompt, const char *addition) {
  */
 char* replace_literal_newlines(const char* input) {
     int inputLen = strlen(input);
-    // Allocate enough space for the new string (same size as input, to be safe).
+
     char* result = malloc(inputLen + 1); // +1 for the null terminator
     if (!result) {
         perror("Failed to allocate memory");
@@ -116,13 +116,13 @@ char* replace_literal_newlines(const char* input) {
     char* output = result;
     while (*current) {
         if (*current == '\\' && *(current + 1) == 'n') {
-            *output++ = '\n'; // Replace "\n" with actual newline character
-            current += 2; // Skip past the processed sequence
+            *output++ = '\n';
+            current += 2;
         } else {
-            *output++ = *current++; // Copy current character
+            *output++ = *current++;
         }
     }
-    *output = '\0'; // Null-terminate the result string
+    *output = '\0'; // Null-terminate
 
     return result;
 }
@@ -211,6 +211,7 @@ int term_width() {
 int main(void) {
   struct CurrentState state;
 
+  //  Get environment variables and check them for inconsistencies
   const char *plain_prompt   = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
   const char *gp2_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
 
@@ -222,9 +223,7 @@ int main(void) {
     printf("MALFORMED GP2_GIT_PROMPT $ ");
     return ERROR;
   }
-
-  // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
-  const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
+  // todo: add quality check for gp2 instructions
 
 
   git_libgit2_init();
@@ -242,6 +241,9 @@ int main(void) {
     values - except for the CWD instruction.
   */
   add_default_instructions(&state);
+
+  // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
+  const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
   const char *git_prompt = parse_prompt(unparsed_git_prompt);
   
   /*
