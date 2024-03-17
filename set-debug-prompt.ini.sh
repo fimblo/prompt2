@@ -4,7 +4,7 @@ PROMPT_BIN=$(realpath $REPO_DIR/bin/prompt)
 unset REPO_DIR
 
 unset GP2_GIT_PROMPT
-GP2_GIT_PROMPT="${GP2_GIT_PROMPT}CWD.home_path       '@{CWD}'\n"
+GP2_GIT_PROMPT="${GP2_GIT_PROMPT}CWD                 '@{CWD}'\n"
 
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.is_git_repo    '@{Repo.is_git_repo}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}Repo.name           '@{Repo.name}'\n"
@@ -24,8 +24,10 @@ GP2_GIT_PROMPT="${GP2_GIT_PROMPT}AWS.token_is_valid          '@{AWS.token_is_val
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}AWS.token_remaining_hours   '@{AWS.token_remaining_hours}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}AWS.token_remaining_minutes '@{AWS.token_remaining_minutes}'\n"
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}$ "
-
 export GP2_GIT_PROMPT
+
+export GP2_CWD_TYPE="home" # can be: 'home', 'git', 'basename', 'full'
+
 
 prompt_cmd() {
   PS1="$($PROMPT_BIN)"

@@ -208,12 +208,33 @@ int term_width() {
   return (int) w.ws_col;
 }
 
+
+char * get_cwd(struct CurrentState *state, const char *cwd_type) {
+  char *cwd_path;
+
+  if (strcmp(cwd_type, "full") == 0) {
+    cwd_path = (char *)state->cwd_full;
+  }
+  else if (strcmp(cwd_type, "basename") == 0) {
+    cwd_path = (char *)state->cwd_basename;
+  }
+  else if (strcmp(cwd_type, "git") == 0) {
+    cwd_path = (char *)get_cwd_from_gitrepo(state);
+  }
+  else {
+    cwd_path = (char *)get_cwd_from_home(state);
+  }
+  return cwd_path;
+}
+
+
 int main(void) {
   struct CurrentState state;
 
   //  Get environment variables and check them for inconsistencies
   const char *plain_prompt   = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
   const char *gp2_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
+  const char *cwd_type       = getenv("GP2_CWD_TYPE")       ?: "home";
 
   if (are_escape_sequences_properly_formed(plain_prompt) != SUCCESS) {
     printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
@@ -260,7 +281,7 @@ int main(void) {
 
   while (line != NULL) {
       if (strstr(line, "@{CWD}")) {
-            char* cwd = (char*) get_cwd_from_home(&state);
+            char* cwd = get_cwd(&state, cwd_type);
             int cwd_length = strlen(cwd);
             int visible_prompt_length = cwd_length + count_visible_chars(line) - 6; // len("@{CWD}") = 6
 
