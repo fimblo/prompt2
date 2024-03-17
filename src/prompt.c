@@ -86,11 +86,11 @@ void add_default_instructions(struct CurrentState *state) {
  * Concatenates a string to git_prompt if the resulting length is within bounds.
  *
   */
-int my_strcat(char *git_prompt, const char *addition) {
-    if (strlen(git_prompt) + strlen(addition) >= PROMPT_MAX_LEN) {
-        return FAILURE; // The resulting string would be too long
+int safe_strcat(char *target_string, const char *addition, int max_len) {
+    if (strlen(target_string) + strlen(addition) >= (size_t) max_len) {
+        return FAILURE;
     }
-    strcat(git_prompt, addition); // Safe to concatenate
+    strcat(target_string, addition);
     return SUCCESS;
 }
 
@@ -169,12 +169,12 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
       // Look up the command and append its value to git_prompt
       const char *replacement = find_replacement(command);
       if (replacement) {
-        if(my_strcat(git_prompt, replacement) == FAILURE) { goto error; }
+        if(safe_strcat(git_prompt, replacement, PROMPT_MAX_LEN) == FAILURE) { goto error; }
       } else {
         // Command not found, append the original command
-        if(my_strcat(git_prompt, "@{") == FAILURE) { goto error; }
-        if(my_strcat(git_prompt, command) == FAILURE) { goto error; }
-        if(my_strcat(git_prompt, "}") == FAILURE) { goto error; }
+        if(safe_strcat(git_prompt, "@{", PROMPT_MAX_LEN) == FAILURE) { goto error; }
+        if(safe_strcat(git_prompt, command, PROMPT_MAX_LEN) == FAILURE) { goto error; }
+        if(safe_strcat(git_prompt, "}", PROMPT_MAX_LEN) == FAILURE) { goto error; }
       }
       ptr++; // Move past the '}'
     } else if (in_command) {
@@ -183,7 +183,7 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
     } else {
       // We are outside a command, copy character directly to git_prompt
       char str[2] = {*ptr++, '\0'};
-      if(my_strcat(git_prompt, str) == FAILURE) { goto error; }
+      if(safe_strcat(git_prompt, str, PROMPT_MAX_LEN) == FAILURE) { goto error; }
     }
   }
 
