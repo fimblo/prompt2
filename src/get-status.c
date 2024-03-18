@@ -705,14 +705,19 @@ int are_escape_sequences_properly_formed(const char *mystring) {
  */
 int count_visible_chars(const char *mystring) {
     int real_chars = 0;
-    int in_escape_sequence = 0;
+    int in_bracket_sequence = 0;
 
     while (*mystring) {
-        if (*mystring == '\033') { // Start of an escape sequence
-            in_escape_sequence = 1;
-        } else if (in_escape_sequence && *mystring == 'm') { // End of an escape sequence
-            in_escape_sequence = 0;
-        } else if (!in_escape_sequence) {
+        if (*mystring == '\\' && *(mystring + 1) == '[') {
+            // Found the start of a bracketed sequence
+            in_bracket_sequence = 1;
+            mystring++; // Skip the '[' character
+        } else if (in_bracket_sequence && *mystring == '\\' && *(mystring + 1) == ']') {
+            // Found the end of a bracketed sequence
+            in_bracket_sequence = 0;
+            mystring++; // Skip the ']' character
+        } else if (!in_bracket_sequence) {
+            // Count the character if it's not within a bracketed sequence
             real_chars++;
         }
         mystring++;
