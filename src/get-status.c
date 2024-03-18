@@ -544,25 +544,48 @@ void cleanup_resources(struct CurrentState *state) {
  */
 int are_escape_sequences_properly_formed(const char *mystring) {
     int in_escape_sequence = 0;
+    int in_bracket_sequence = 0;
 
     while (*mystring) {
-        if (*mystring == '\033') { // Start of an escape sequence
-            if (in_escape_sequence) {
-                // Improperly formed - found a new escape sequence before ending the previous one
+        if (*mystring == '\\' && *(mystring + 1) == '[') {
+            // Found \[
+            if (in_bracket_sequence) {
+                fprintf(stderr, "Improperly formed - found a new opening bracket before closing the previous one\n");
+                return ERROR;
+            }
+            in_bracket_sequence = 1;
+            mystring++; // Skip the next character as it is part of the escape sequence
+        } else if (*mystring == '\\' && *(mystring + 1) == ']') {
+            // Found \]
+            if (!in_bracket_sequence) {
+                fprintf(stderr, "Improperly formed - found a closing bracket without a matching opening bracket\n");
+                return ERROR;
+            }
+            in_bracket_sequence = 0;
+            mystring++; // Skip the next character as it is part of the escape sequence
+        } else if (*mystring == '\\' && *(mystring + 1) == '0' &&
+                   *(mystring + 2) == '3' && *(mystring + 3) == '3') {
+            // Found \033, which should be within brackets
+            if (!in_bracket_sequence) {
+                fprintf(stderr, "Improperly formed - found an escape sequence outside of brackets\n");
                 return ERROR;
             }
             in_escape_sequence = 1;
+            mystring += 3; // Skip the next three characters as they are part of the escape sequence
         } else if (*mystring == 'm' && in_escape_sequence) {
-            // Properly ending an escape sequence
+            // Found m - which should close an escape sequence
+            if (!in_bracket_sequence) {
+                fprintf(stderr, "Improperly formed - found closing of escape sequence outside of brackets\n");
+                return ERROR;
+            }
             in_escape_sequence = 0;
         }
         mystring++;
     }
 
-    // If we're still in an escape sequence at the end, it's improperly formed
-    return in_escape_sequence == 0 ? SUCCESS : ERROR;
+    // If we're still in an escape sequence or in a bracket sequence at the end, it's improperly formed
+    return in_escape_sequence == 0 && in_bracket_sequence == 0 ? SUCCESS : ERROR;
 }
-
 
 /**
  * Shortens a filesystem path to a specified maximum width by
