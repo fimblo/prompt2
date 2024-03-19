@@ -543,7 +543,7 @@ void cleanup_resources(struct CurrentState *state) {
  * Shortens a filesystem path to a specified maximum width by
  * truncating the beginning of the string
  */
-void path_truncate_simple(char *original_path, int max_width) {
+void shorten_path(char *original_path, int max_width) {
 
   // Sanity checks
   int original_path_len = strlen(original_path);
@@ -570,82 +570,6 @@ void path_truncate_simple(char *original_path, int max_width) {
           original_path + shrinkage,     // forward shrinkage chars
           original_path_len - shrinkage); // copy this many chars
 
-
-  strcpy(original_path, rebuild_path);
-}
-
-/**
- * Shortens a filesystem path to a specified maximum width by
- * abbreviating intermediate directories while keeping the last
- * directory in full.
- */
-void path_truncate_accordion(char *original_path, int max_width) {
-
-  // Sanity checks
-  int original_path_len = strlen(original_path);
-  if (original_path_len <= max_width) return;
-  if (max_width < 3) {
-    for (int i = 0; i < max_width; i++) original_path[i] = '.';
-    original_path[3] = '\0';
-    return;
-  }
-
-
-  // tmp vars as my workbench, these will be messed with
-  char tmp_path[original_path_len];
-  int  tmp_path_length = original_path_len;
-
-  // As I step through the directories, I place dirs (short or long)
-  // here after I decide what to do.
-  char rebuild_path[original_path_len];
-  memset(rebuild_path, '\0', original_path_len);
-
-  // store the first char if it's a special char.
-  if (original_path[0] == '~' || original_path[0] == '+') {
-    rebuild_path[0] = original_path[0];
-    strcpy(tmp_path, original_path + 1);
-  } else {
-    strcpy(tmp_path, original_path);
-  }
-
-  // use tokenizer to walk through the dir levels
-  char  last_token[original_path_len];  // for the dir the user is standing in, we want to preserve that
-  int   short_dir_was_used;
-  char *token = strtok(tmp_path, "/");
-  while (token != NULL) {
-    int short_dir_length = 3; // +1 for slash, +1 for terminator
-    char short_dir[short_dir_length];
-    sprintf(short_dir, "/%c", token[0]);
-
-    int long_dir_length = strlen(token) + 2; // +1 for slash, +1 for terminator ill be back
-    char long_dir[long_dir_length];
-    snprintf(long_dir, (size_t) long_dir_length, "/%s", token);
-
-    int shinkage = long_dir_length - short_dir_length;
-    if (tmp_path_length >= max_width) {
-      tmp_path_length = tmp_path_length - shinkage;
-      strcat(rebuild_path, short_dir);
-      short_dir_was_used = 1;
-    }
-    else {
-      strcat(rebuild_path, long_dir);
-      short_dir_was_used = 0;
-    }
-
-    strcpy(last_token, token);
-    token = strtok(NULL, "/");
-  }
-
-  /*
-    If the last directory added to rebuild_path was a short_dir, replace
-    it with the full directory name, since I want that behaviour
-  */
-  if (short_dir_was_used) {
-    char *last_slash = strrchr(rebuild_path, '/');
-    if (last_slash != NULL) {
-      strcpy(last_slash + 1, last_token);
-    }
-  }
 
   strcpy(original_path, rebuild_path);
 }

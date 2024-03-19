@@ -119,14 +119,7 @@ void cleanup_resources(struct CurrentState *state);
  * Shortens a filesystem path to a specified maximum width by
  * truncating the beginning of the string
  */
-void path_truncate_simple(char *original_path, int max_width);
-
-/**
- * Shortens a filesystem path to a specified maximum width by
- * abbreviating intermediate directories while keeping the last
- * directory in full.
- */
-void path_truncate_accordion(char *original_path, int max_width);
+void shorten_path(char *original_path, int max_width);
 
 
 /**

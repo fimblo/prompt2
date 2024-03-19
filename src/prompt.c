@@ -287,7 +287,7 @@ int main(void) {
 
           if (visible_prompt_length > terminal_width) {
               int max_width = cwd_length - (visible_prompt_length - terminal_width);
-              path_truncate_simple(cwd, max_width);
+              shorten_path(cwd, max_width);
           }
           add_instruction("CWD",  cwd);
           line = (char *) parse_prompt(line); // Re-parse the current line
