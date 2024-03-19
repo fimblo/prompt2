@@ -2,15 +2,14 @@
 [[https://github.com/fimblo/prompt2/actions/workflows/ubuntu.yml/badge.svg]]
 [[https://github.com/fimblo/prompt2/actions/workflows/macos.yml/badge.svg]]
 
-another prompt generator for the terminal
+prompt2 - a fast binary which generates a configurable and dynamic bash prompt
 
-- Right now, just working on =git-status.{c,h}=, and using =test-function.c= to test the lib.
-- Later, when the lib basics are in place, write a prompt generator for the terminal.
+This is still work in progress. 
 
-Sample output from `test-functions`
+Sample output from `prompt2-state-dump`
 
 #+begin_example
-$ bin/test-functions
+$ bin/prompt2-state-dump
 CWD.full                     # full path to .
 CWD.basename                 # basename of .
 CWD.git_path                 # I'm at the root of the git repo
@@ -30,14 +29,15 @@ AWS.token_remaining_hours    # AWS SSO token: how many hours are remaining
 AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining
 #+end_example
 
-
+These are the aspects of the environment which can be included in the prompt.
 
 ** Prerequisites
 *** Debian
 - =apt-get install build-essential libgit2 bats libjson-c-dev uthash-dev=
 *** Mac
 - =xcode-select --install ; brew install libgit2 bats json-c uthash=
-- ... and if you're bash is the default provided by the OS, you'll need to =brew install bash=
+- ... and if you're bash is the default provided by the OS, you'll need to =brew install bash= to get a more modern version.
 ** Building and testing
-- =make= will build and run all tests.
-- =make help= will print all targets
+- =make= will build the binary and run all tests.
+- =make install-local= will install to ~/bin
+- =make help= for the rest of the targets
