@@ -8,8 +8,8 @@ SRC_DIR = src
 BUILD_DIR = build
 BIN_DIR = bin
 
-TEST_TARGET = $(BIN_DIR)/test-functions
-TEST_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/test-functions.c
+TEST_TARGET = $(BIN_DIR)/prompt2-state-dump
+TEST_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/prompt2-state-dump.c
 TEST_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SOURCES))
 
 PROMPT2_TARGET = $(BIN_DIR)/prompt2

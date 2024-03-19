@@ -7,7 +7,7 @@ bats_require_minimum_version 1.5.0
 
 
 # Binary to test
-TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-functions"
+TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/prompt2-state-dump"
 
 load test_helper_functions
 
