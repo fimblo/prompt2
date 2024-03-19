@@ -131,7 +131,7 @@ void path_truncate_accordion(char *original_path, int max_width);
 
 /**
  * Checks if the escape sequences within a string are properly formed.
- * A properly formed escape sequence starts with '\033' and ends with 'm'.
+ * A properly formed escape sequence starts with '\033' or '\e' and ends with 'm'.
  * This function verifies that each escape sequence is correctly started and ended,
  * without overlapping or improperly nested sequences.
  * 

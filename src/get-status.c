@@ -659,6 +659,9 @@ int are_escape_sequences_properly_formed(const char *mystring) {
     int in_bracket_sequence = 0;
 
     while (*mystring) {
+        
+        // first two conditionals to deal with opening and closing brackets
+
         if (*mystring == '\\' && *(mystring + 1) == '[') {
             // Found \[
             if (in_bracket_sequence) {
@@ -675,15 +678,20 @@ int are_escape_sequences_properly_formed(const char *mystring) {
             }
             in_bracket_sequence = 0;
             mystring++; // Skip the next character as it is part of the escape sequence
-        } else if (*mystring == '\\' && *(mystring + 1) == '0' &&
-                   *(mystring + 2) == '3' && *(mystring + 3) == '3') {
-            // Found \033, which should be within brackets
+        }
+
+        // Remaining conditionals to deal with escape sequences
+
+        else if (*mystring == '\\' &&
+                ((*(mystring + 1) == '0' && *(mystring + 2) == '3' && *(mystring + 3) == '3') ||
+                 *(mystring + 1) == 'e')) {
+            // Found \033 or \e, which should be within brackets
             if (!in_bracket_sequence) {
                 fprintf(stderr, "Improperly formed - found an escape sequence outside of brackets\n");
                 return ERROR;
             }
             in_escape_sequence = 1;
-            mystring += 3; // Skip the next three characters as they are part of the escape sequence
+            mystring += (*mystring + 1 == 'e') ? 1 : 3; // Skip the next characters as they are part of the escape sequence
         } else if (*mystring == 'm' && in_escape_sequence) {
             // Found m - which should close an escape sequence
             if (!in_bracket_sequence) {
