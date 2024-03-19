@@ -1,7 +1,7 @@
 # Source me!
-REPO_DIR=$(dirname ${BASH_SOURCE[0]})
-PROMPT_BIN=$(realpath $REPO_DIR/bin/prompt)
-unset REPO_DIR
+CONFIG_DIR=$(dirname ${BASH_SOURCE[0]})
+PROMPT_BIN=$(realpath $CONFIG_DIR/../bin/prompt)
+unset CONFIG_DIR
 
 unset GP2_GIT_PROMPT
 GP2_GIT_PROMPT="${GP2_GIT_PROMPT}CWD                 '@{CWD}'\n"
