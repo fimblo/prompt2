@@ -39,11 +39,11 @@ run: build test
 	@echo "-------------------------"
 	@$(TEST_TARGET)
 
-install: $(TEST_TARGET)
-	install -m 755 $(TEST_TARGET) /usr/local/bin
+install: $(PROMPT2_TARGET) $(TEST_TARGET)
+	install -m 755 $(PROMPT2_TARGET) $(TEST_TARGET) /usr/local/bin
 
-install-local: $(TEST_TARGET)
-	install -m 755 $(TEST_TARGET) $(HOME)/bin
+install-local: $(PROMPT2_TARGET) $(TEST_TARGET)
+	install -m 755 $(PROMPT2_TARGET) $(TEST_TARGET) $(HOME)/bin
 
 clean:
 	rm -f $(BUILD_DIR)/*.o $(TEST_TARGET)
@@ -53,11 +53,11 @@ test:
 
 help:
 	@echo "Available targets:"
-	@echo "  all           - Builds the program and runs tests"
-	@echo "  build         - Compiles the sources and creates the executable"
+	@echo "  all           - Builds the executables and runs tests"
+	@echo "  build         - Compiles the sources and creates the executables"
 	@echo "  run           - Builds, tests, and runs the program"
-	@echo "  install       - Installs the executable to /usr/local/bin"
-	@echo "  install-local - Installs the executable to ~/bin"
-	@echo "  clean         - Removes object files and the executable"
+	@echo "  install       - Installs the executables to /usr/local/bin"
+	@echo "  install-local - Installs the executables to ~/bin"
+	@echo "  clean         - Removes object files and the executables"
 	@echo "  test          - Runs tests using bats"
 	@echo "  help          - Displays this help information"
