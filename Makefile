@@ -12,15 +12,15 @@ TEST_TARGET = $(BIN_DIR)/test-functions
 TEST_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/test-functions.c
 TEST_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SOURCES))
 
-PROMPT_TARGET = $(BIN_DIR)/prompt
-PROMPT_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/prompt.c
-PROMPT_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(PROMPT_SOURCES))
+PROMPT2_TARGET = $(BIN_DIR)/prompt2
+PROMPT2_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/prompt2.c
+PROMPT2_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(PROMPT2_SOURCES))
 
 .PHONY: all build run install install-local clean test help
 
 all: build test
 
-build: $(TEST_TARGET) $(PROMPT_TARGET)
+build: $(TEST_TARGET) $(PROMPT2_TARGET)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(BUILD_DIR)
@@ -30,7 +30,7 @@ $(TEST_TARGET): $(TEST_OBJECTS)
 	@mkdir -p $(BIN_DIR)
 	$(CC) -L$(LIB_DIR) $^ -o $@ $(LIBS)
 
-$(PROMPT_TARGET): $(PROMPT_OBJECTS)
+$(PROMPT2_TARGET): $(PROMPT2_OBJECTS)
 	@mkdir -p $(BIN_DIR)
 	$(CC) -L$(LIB_DIR) $^ -o $@ $(LIBS)
 
