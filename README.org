@@ -4,9 +4,12 @@
 
 prompt2 - a fast binary which generates a configurable and dynamic bash prompt
 
-This is still work in progress. 
+This is still work in progress. See [[https://github.com/fimblo/prompt2/issues][Issues]] for feature ideas. Oh and bugs of course.
 
-Sample output from `prompt2-state-dump`
+** Aspects which can be shown in the prompt
+
+The =prompt2= binary gathers info from the environment and can use these to
+generate a dynamic prompt.
 
 #+begin_example
 $ bin/prompt2-state-dump
@@ -29,7 +32,19 @@ AWS.token_remaining_hours    # AWS SSO token: how many hours are remaining
 AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining
 #+end_example
 
-These are the aspects of the environment which can be included in the prompt.
+(The =prompt2-state-dump= binary is used in the tests for the =get-status.c=
+library, which is used to to get environment status.)
+
+** Configuring the prompt
+
+See [[https://github.com/fimblo/prompt2/blob/main/config/set-prompt.ini.sh][config/set-prompt.ini.sh]] for a simple example.
+
+To run:
+#+begin_src bash
+  source config/set-prompt.ini.sh
+#+end_src
+
+If you like what you see, you can add it to your =.bashrc= (after updating the path).
 
 ** Prerequisites
 *** Debian
