@@ -9,9 +9,6 @@
 #define COMMAND_MAX_LEN  256
 
 
-// todo: check file for camelCase
-  
-
 typedef struct {
   const char *command;      // key
   const char *replacement;  // value
@@ -20,7 +17,7 @@ typedef struct {
 instruction_t *instructions = NULL;
 
 // Function to add entries to the hash table
-void add_instruction(const char *command, const char *replacement) {
+void hash_insert(const char *command, const char *replacement) {
   instruction_t *i = malloc(sizeof(instruction_t));
   if (i == NULL) {
     // handle malloc failure
@@ -36,48 +33,48 @@ void add_instruction(const char *command, const char *replacement) {
 }
 
 // Function to find an entry in the hash table
-const char *find_replacement(const char *command) {
+const char *hash_lookup(const char *command) {
   instruction_t *i;
   HASH_FIND_STR(instructions, command, i);
   return i ? i->replacement : NULL;
 }
 
-void add_default_instructions(struct CurrentState *state) {
+void assign_instructions(struct CurrentState *state) {
 
   char itoa_buf[32]; // to store numbers as strings
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
-  add_instruction("Repo.is_git_repo", itoa_buf);
+  hash_insert("Repo.is_git_repo", itoa_buf);
 
-  add_instruction("Repo.name",                    state->repo_name);
-  add_instruction("Repo.branch_name",             state->branch_name);
+  hash_insert("Repo.name",                        state->repo_name);
+  hash_insert("Repo.branch_name",                 state->branch_name);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
-  add_instruction("Repo.rebase_active", itoa_buf);
+  hash_insert("Repo.rebase_active", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->conflict_num);
-  add_instruction("Repo.conflicts", itoa_buf);
+  hash_insert("Repo.conflicts", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->has_upstream);
-  add_instruction("Repo.has_upstream", itoa_buf);
+  hash_insert("Repo.has_upstream", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->ahead_num);
-  add_instruction("Repo.ahead", itoa_buf);
+  hash_insert("Repo.ahead", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->behind_num);
-  add_instruction("Repo.behind", itoa_buf);
+  hash_insert("Repo.behind", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->staged_num);
-  add_instruction("Repo.staged", itoa_buf);
+  hash_insert("Repo.staged", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->modified_num);
-  add_instruction("Repo.modified", itoa_buf);
+  hash_insert("Repo.modified", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->untracked_num);
-  add_instruction("Repo.untracked", itoa_buf);
+  hash_insert("Repo.untracked", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->aws_token_is_valid);
-  add_instruction("AWS.token_is_valid", itoa_buf);
+  hash_insert("AWS.token_is_valid", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_hours);
-  add_instruction("AWS.token_remaining_hours", itoa_buf);
+  hash_insert("AWS.token_remaining_hours", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_minutes);
-  add_instruction("AWS.token_remaining_minutes", itoa_buf);
+  hash_insert("AWS.token_remaining_minutes", itoa_buf);
 }
 
 
@@ -167,7 +164,7 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
       command[command_index] = '\0'; // Null-terminate the command string
 
       // Look up the command and append its value to git_prompt
-      const char *replacement = find_replacement(command);
+      const char *replacement = hash_lookup(command);
       if (replacement) {
         if(safe_strcat(git_prompt, replacement, PROMPT_MAX_LEN) == FAILURE) { goto error; }
       } else {
@@ -261,7 +258,7 @@ int main(void) {
     parse_prompt will replace all instruction strings with their
     values - except for the CWD instruction.
   */
-  add_default_instructions(&state);
+  assign_instructions(&state);
 
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
@@ -289,7 +286,7 @@ int main(void) {
               int max_width = cwd_length - (visible_prompt_length - terminal_width);
               shorten_path(cwd, max_width);
           }
-          add_instruction("CWD",  cwd);
+          hash_insert("CWD",  cwd);
           line = (char *) parse_prompt(line); // Re-parse the current line
       }
 
