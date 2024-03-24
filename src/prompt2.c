@@ -225,6 +225,11 @@ char * get_cwd(struct CurrentState *state, const char *cwd_type) {
   return cwd_path;
 }
 
+void truncate_with_ellipsis(char *str, size_t max_width) {
+    if (str && strlen(str) > max_width) {
+        strcpy(&str[max_width - 3], "...");
+    }
+}
 
 int main(void) {
   struct CurrentState state;
@@ -233,6 +238,7 @@ int main(void) {
   const char *plain_prompt   = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
   const char *gp2_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
   const char *cwd_type       = getenv("GP2_CWD_TYPE")       ?: "home";
+  size_t branch_max_width    = (size_t) atoi(getenv("GP2_BRANCH_MAX_WIDTH") ?: "25");
 
   if (are_escape_sequences_properly_formed(plain_prompt) != SUCCESS) {
     printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
@@ -254,6 +260,10 @@ int main(void) {
   }
   gather_aws_context(&state);
 
+
+  // Limit branch name string length
+  truncate_with_ellipsis((char *) state.branch_name, branch_max_width);
+  
 
   /*
     parse_prompt will replace all instruction strings with their
