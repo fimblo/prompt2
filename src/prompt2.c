@@ -20,14 +20,15 @@ instruction_t *instructions = NULL;
 void hash_insert(const char *command, const char *replacement) {
   instruction_t *i = malloc(sizeof(instruction_t));
   if (i == NULL) {
-    // handle malloc failure
-    exit(-1);
+    printf("HASH INSERT FAIL (malloc) $ ");
+    exit(EXIT_FAILURE);
   }
   i->command = command;
   i->replacement = strdup(replacement);
   if (i->replacement == NULL) {
     free(i);
-    exit(-1);
+    printf("HASH INSERT FAIL (null value) $ ");
+    exit(EXIT_FAILURE);
   }
   HASH_ADD_KEYPTR(hh, instructions, i->command, strlen(i->command), i);
 }
