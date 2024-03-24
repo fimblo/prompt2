@@ -106,7 +106,7 @@ char* replace_literal_newlines(const char* input) {
 
     char* result = malloc(inputLen + 1); // +1 for the null terminator
     if (!result) {
-        perror("Failed to allocate memory");
+        perror("REPLACE LITERAL NEWLINES FAILURE $ ");
         exit(EXIT_FAILURE);
     }
 
