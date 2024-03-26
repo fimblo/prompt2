@@ -87,13 +87,13 @@ void assign_instructions(struct CurrentState *state) {
  * Helper function.
  * Concatenates a string to git_prompt if the resulting length is within bounds.
  *
-  */
+ */
 int safe_strcat(char *target_string, const char *addition, int max_len) {
-    if (strlen(target_string) + strlen(addition) >= (size_t) max_len) {
-        return FAILURE;
-    }
-    strcat(target_string, addition);
-    return SUCCESS;
+  if (strlen(target_string) + strlen(addition) >= (size_t) max_len) {
+    return FAILURE;
+  }
+  strcat(target_string, addition);
+  return SUCCESS;
 }
 
 
@@ -106,27 +106,27 @@ int safe_strcat(char *target_string, const char *addition, int max_len) {
  *         The caller is responsible for freeing this string.
  */
 char* replace_literal_newlines(const char* input) {
-    int inputLen = strlen(input);
+  int inputLen = strlen(input);
 
-    char* result = malloc(inputLen + 1); // +1 for the null terminator
-    if (!result) {
-        perror("REPLACE LITERAL NEWLINES FAILURE $ ");
-        exit(EXIT_FAILURE);
+  char* result = malloc(inputLen + 1); // +1 for the null terminator
+  if (!result) {
+    perror("REPLACE LITERAL NEWLINES FAILURE $ ");
+    exit(EXIT_FAILURE);
+  }
+
+  const char* current = input;
+  char* output = result;
+  while (*current) {
+    if (*current == '\\' && *(current + 1) == 'n') {
+      *output++ = '\n';
+      current += 2;
+    } else {
+      *output++ = *current++;
     }
+  }
+  *output = '\0'; // Null-terminate
 
-    const char* current = input;
-    char* output = result;
-    while (*current) {
-        if (*current == '\\' && *(current + 1) == 'n') {
-            *output++ = '\n';
-            current += 2;
-        } else {
-            *output++ = *current++;
-        }
-    }
-    *output = '\0'; // Null-terminate
-
-    return result;
+  return result;
 }
 
 
@@ -191,8 +191,8 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
 
   return strdup(git_prompt);
 
-  error:
-    return "PROMPT TOO LONG $ ";
+ error:
+  return "PROMPT TOO LONG $ ";
 }
 
 /**
@@ -200,13 +200,13 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
  *
  * Note that I check stderr and not stdout, since stderr is less
  * likely to be piped or redirected.
-*/
+ */
 int term_width() {
   struct winsize w;
   if (ioctl(STDERR_FILENO, TIOCGWINSZ, &w) == -1) {
-        perror("ioctl error");
-        return -1;
-    }
+    perror("ioctl error");
+    return -1;
+  }
   return (int) w.ws_col;
 }
 
@@ -230,9 +230,9 @@ char * get_cwd(struct CurrentState *state, const char *cwd_type) {
 }
 
 void truncate_with_ellipsis(char *str, size_t max_width) {
-    if (str && strlen(str) > max_width) {
-        strcpy(&str[max_width - 3], "...");
-    }
+  if (str && strlen(str) > max_width) {
+    strcpy(&str[max_width - 3], "...");
+  }
 }
 
 struct Config {
@@ -241,13 +241,13 @@ struct Config {
 };
 
 void initialise_config(struct Config *config) {
-    config->cwd_type = "home";
-    config->branch_max_width = (size_t) 40;
+  config->cwd_type = "home";
+  config->branch_max_width = (size_t) 40;
 }
 
 /**
  * read from config file, save to and return config struct
-*/
+ */
 int read_config(struct Config *config) {
   // Set default values
   initialise_config(config);
@@ -269,24 +269,24 @@ int read_config(struct Config *config) {
     return ERROR;
   }
 
-    // Load INI file
-    dictionary *ini = iniparser_load(config_file_path);
-    if (ini == NULL) {
-      // do nothing. We will use the default config
-      return ERROR;
-    }
+  // Load INI file
+  dictionary *ini = iniparser_load(config_file_path);
+  if (ini == NULL) {
+    // do nothing. We will use the default config
+    return ERROR;
+  }
 
-    // Set config struct from ini file
-    char b[128];
-    sprintf(b, "%d", (int) config->branch_max_width);
-    config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", b));
-    config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
+  // Set config struct from ini file
+  char b[128];
+  sprintf(b, "%d", (int) config->branch_max_width);
+  config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", b));
+  config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
 
 
-    // Free the dictionary
-    iniparser_freedict(ini);
+  // Free the dictionary
+  iniparser_freedict(ini);
 
-    return SUCCESS;
+  return SUCCESS;
 }
 
 
@@ -322,7 +322,7 @@ int main(void) {
 
   // Limit branch name string length
   truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
-  
+
 
   /*
     parse_prompt will replace all instruction strings with their
@@ -333,12 +333,12 @@ int main(void) {
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
   const char *git_prompt = parse_prompt(unparsed_git_prompt);
-  
+
   /*
     We'll deal with this here - after all the other instructions have
     been applied, since we want to ensure that the current working
     directory path will fit in the terminal width - for each line in the prompt.
-  */                      
+  */
   int terminal_width = term_width() ?: 80;
 
 
@@ -347,29 +347,29 @@ int main(void) {
   char *line = strtok(tokenized_prompt, "\n");
 
   while (line != NULL) {
-      if (strstr(line, "@{CWD}")) {
-            char* cwd = get_cwd(&state, config.cwd_type);
-            int cwd_length = strlen(cwd);
-            int visible_prompt_length = cwd_length + count_visible_chars(line) - 6; // len("@{CWD}") = 6
+    if (strstr(line, "@{CWD}")) {
+      char* cwd = get_cwd(&state, config.cwd_type);
+      int cwd_length = strlen(cwd);
+      int visible_prompt_length = cwd_length + count_visible_chars(line) - 6; // len("@{CWD}") = 6
 
-          if (visible_prompt_length > terminal_width) {
-              int max_width = cwd_length - (visible_prompt_length - terminal_width);
-              shorten_path(cwd, max_width);
-          }
-          hash_insert("CWD",  cwd);
-          line = (char *) parse_prompt(line); // Re-parse the current line
+      if (visible_prompt_length > terminal_width) {
+        int max_width = cwd_length - (visible_prompt_length - terminal_width);
+        shorten_path(cwd, max_width);
       }
+      hash_insert("CWD",  cwd);
+      line = (char *) parse_prompt(line); // Re-parse the current line
+    }
 
-      // Append the processed line to temp_prompt
-      if (strlen(temp_prompt) + strlen(line) < PROMPT_MAX_LEN - 1) {
-          strcat(temp_prompt, line);
-          strcat(temp_prompt, "\n"); // Re-add the newline character
-      } else {
-          printf("PROMPT TOO LONG $ ");
-          return ERROR;
-      }
+    // Append the processed line to temp_prompt
+    if (strlen(temp_prompt) + strlen(line) < PROMPT_MAX_LEN - 1) {
+      strcat(temp_prompt, line);
+      strcat(temp_prompt, "\n"); // Re-add the newline character
+    } else {
+      printf("PROMPT TOO LONG $ ");
+      return ERROR;
+    }
 
-      line = strtok(NULL, "\n"); // Get the next line
+    line = strtok(NULL, "\n"); // Get the next line
   }
 
   git_prompt = strdup(temp_prompt);
@@ -382,7 +382,7 @@ int main(void) {
   cleanup_resources(&state);
   git_libgit2_shutdown();
   instruction_t *current_entry, *tmp;
-    HASH_ITER(hh, instructions, current_entry, tmp) {
+  HASH_ITER(hh, instructions, current_entry, tmp) {
     HASH_DEL(instructions, current_entry);
     free((char*)current_entry->replacement);
     free(current_entry);

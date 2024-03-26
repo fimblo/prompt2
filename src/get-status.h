@@ -30,7 +30,7 @@ enum git_related_return_values {
   SUCCESS_IS_GIT_REPO        = 0,
   FAILURE_IS_NOT_GIT_REPO    = 1,
   FAILURE_NO_GIT_UPSTREAM    = 2,
-  
+
   ERROR_GIT_REVWALK_CREATION = -2,
   ERROR_GIT_REVWALK_FORWARD  = -3,
   ERROR_GIT_REVWALK_BACKWARD = -4,
@@ -71,7 +71,7 @@ struct CurrentState {
 };
 
 /**
- * 
+ *
  * Sets up CurrentState with default values
  */
 void initialise_state(struct CurrentState *state);
@@ -87,13 +87,13 @@ int gather_git_context(struct CurrentState *state);
 /**
  * Check the validity of the AWS SSO login token and calculates the
  * remaining time until the token expires.
- * 
+ *
  * Note that this function breaks convention by returning 1 if
  * successful(valid), to mirror the value stored in
  * `state->aws_token_is_valid`.
  *
  * @return -1 for errors, 0 if token is invalid, 1 if it's valid.
-   */
+ */
 int gather_aws_context(struct CurrentState *state);
 
 /**
@@ -127,7 +127,7 @@ void shorten_path(char *original_path, int max_width);
  * A properly formed escape sequence starts with '\033' or '\e' and ends with 'm'.
  * This function verifies that each escape sequence is correctly started and ended,
  * without overlapping or improperly nested sequences.
- * 
+ *
  * @param mystring The string to be checked for properly formed escape sequences.
  * @return SUCCESS if all escape sequences are properly formed, ERROR otherwise.
  */
@@ -140,7 +140,7 @@ int are_escape_sequences_properly_formed(const char *mystring);
  * This function iterates through the given string, ignoring characters that
  * are part of terminal escape sequences (which start with '\033' and end with 'm').
  * Only characters outside of these sequences are counted as "visible" characters.
- * 
+ *
  * @param mystring The string to be analyzed.
  * @return The count of visible characters in the string.
  */
