@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra
 INCLUDE_DIR = /opt/homebrew/include
 LIB_DIR = /opt/homebrew/lib
-LIBS = -lgit2 -ljson-c
+LIBS = -lgit2 -ljson-c -liniparser
 
 SRC_DIR = src
 BUILD_DIR = build

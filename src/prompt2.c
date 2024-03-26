@@ -1,4 +1,7 @@
+#include <errno.h>
 #include <git2.h>
+#include <iniparser/iniparser.h>
+//#include <limits.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -7,6 +10,7 @@
 #include "get-status.h"
 
 #define COMMAND_MAX_LEN  256
+#define PATH_MAX 4096
 
 
 typedef struct {
@@ -231,14 +235,68 @@ void truncate_with_ellipsis(char *str, size_t max_width) {
     }
 }
 
+struct Config {
+  const char * cwd_type;
+  size_t branch_max_width;
+};
+
+void initialise_config(struct Config *config) {
+    config->cwd_type = "home";
+    config->branch_max_width = (size_t) 40;
+}
+
+/**
+ * read from config file, save to and return config struct
+*/
+int read_config(struct Config *config) {
+  // Set default values
+  initialise_config(config);
+
+  // Find INI file
+  char *config_file_name = ".prompt2_config.ini";
+  char config_file_path[PATH_MAX];
+  const char *config_dirs[] = {".", getenv("HOME")};
+  int found = 0;
+  for (long unsigned int i = 0; i < sizeof(config_dirs)/sizeof(config_dirs[0]); i++) {
+    sprintf(config_file_path, "%s/%s", config_dirs[i], config_file_name);
+    if (access(config_file_path, R_OK) == 0) {
+      found = 1;
+      break;
+    }
+  }
+  if (!found) {
+    // use default values since no config found
+    return ERROR;
+  }
+
+    // Load INI file
+    dictionary *ini = iniparser_load(config_file_path);
+    if (ini == NULL) {
+      // do nothing. We will use the default config
+      return ERROR;
+    }
+
+    // Set config struct from ini file
+    char b[128];
+    sprintf(b, "%d", (int) config->branch_max_width);
+    config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", b));
+    config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
+
+
+    // Free the dictionary
+    iniparser_freedict(ini);
+
+    return SUCCESS;
+}
+
+
 int main(void) {
   struct CurrentState state;
+  struct Config config;
 
   //  Get environment variables and check them for inconsistencies
   const char *plain_prompt   = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
   const char *gp2_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
-  const char *cwd_type       = getenv("GP2_CWD_TYPE")       ?: "home";
-  size_t branch_max_width    = (size_t) atoi(getenv("GP2_BRANCH_MAX_WIDTH") ?: "25");
 
   if (are_escape_sequences_properly_formed(plain_prompt) != SUCCESS) {
     printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
@@ -253,6 +311,7 @@ int main(void) {
 
   git_libgit2_init();
   initialise_state(&state);
+  read_config(&config);
 
   if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
     printf("%s", plain_prompt);
@@ -262,7 +321,7 @@ int main(void) {
 
 
   // Limit branch name string length
-  truncate_with_ellipsis((char *) state.branch_name, branch_max_width);
+  truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
   
 
   /*
@@ -289,7 +348,7 @@ int main(void) {
 
   while (line != NULL) {
       if (strstr(line, "@{CWD}")) {
-            char* cwd = get_cwd(&state, cwd_type);
+            char* cwd = get_cwd(&state, config.cwd_type);
             int cwd_length = strlen(cwd);
             int visible_prompt_length = cwd_length + count_visible_chars(line) - 6; // len("@{CWD}") = 6
 
