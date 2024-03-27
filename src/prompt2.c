@@ -13,16 +13,16 @@
 #define PATH_MAX 4096
 
 
-typedef struct {
+struct CommandMap {
   const char *command;      // key
   const char *replacement;  // value
   UT_hash_handle hh;        // makes this structure hashable
-} instruction_t;
-instruction_t *instructions = NULL;
+} ;
+struct CommandMap *instructions = NULL;
 
 // Function to add entries to the hash table
-void hash_insert(const char *command, const char *replacement) {
-  instruction_t *i = malloc(sizeof(instruction_t));
+void add_command(const char *command, const char *replacement) {
+  struct CommandMap *i = malloc(sizeof(struct CommandMap));
   if (i == NULL) {
     printf("HASH INSERT FAIL (malloc) $ ");
     exit(EXIT_FAILURE);
@@ -38,8 +38,8 @@ void hash_insert(const char *command, const char *replacement) {
 }
 
 // Function to find an entry in the hash table
-const char *hash_lookup(const char *command) {
-  instruction_t *i;
+const char *lookup_command(const char *command) {
+  struct CommandMap *i;
   HASH_FIND_STR(instructions, command, i);
   return i ? i->replacement : NULL;
 }
@@ -49,37 +49,37 @@ void assign_instructions(struct CurrentState *state) {
   char itoa_buf[32]; // to store numbers as strings
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
-  hash_insert("Repo.is_git_repo", itoa_buf);
+  add_command("Repo.is_git_repo", itoa_buf);
 
-  hash_insert("Repo.name",                        state->repo_name);
-  hash_insert("Repo.branch_name",                 state->branch_name);
+  add_command("Repo.name",                        state->repo_name);
+  add_command("Repo.branch_name",                 state->branch_name);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
-  hash_insert("Repo.rebase_active", itoa_buf);
+  add_command("Repo.rebase_active", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->conflict_num);
-  hash_insert("Repo.conflicts", itoa_buf);
+  add_command("Repo.conflicts", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->has_upstream);
-  hash_insert("Repo.has_upstream", itoa_buf);
+  add_command("Repo.has_upstream", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->ahead_num);
-  hash_insert("Repo.ahead", itoa_buf);
+  add_command("Repo.ahead", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->behind_num);
-  hash_insert("Repo.behind", itoa_buf);
+  add_command("Repo.behind", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->staged_num);
-  hash_insert("Repo.staged", itoa_buf);
+  add_command("Repo.staged", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->modified_num);
-  hash_insert("Repo.modified", itoa_buf);
+  add_command("Repo.modified", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->untracked_num);
-  hash_insert("Repo.untracked", itoa_buf);
+  add_command("Repo.untracked", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->aws_token_is_valid);
-  hash_insert("AWS.token_is_valid", itoa_buf);
+  add_command("AWS.token_is_valid", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_hours);
-  hash_insert("AWS.token_remaining_hours", itoa_buf);
+  add_command("AWS.token_remaining_hours", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_minutes);
-  hash_insert("AWS.token_remaining_minutes", itoa_buf);
+  add_command("AWS.token_remaining_minutes", itoa_buf);
 }
 
 
@@ -169,7 +169,7 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
       command[command_index] = '\0'; // Null-terminate the command string
 
       // Look up the command and append its value to git_prompt
-      const char *replacement = hash_lookup(command);
+      const char *replacement = lookup_command(command);
       if (replacement) {
         if(safe_strcat(git_prompt, replacement, PROMPT_MAX_LEN) == FAILURE) { goto error; }
       } else {
@@ -356,7 +356,7 @@ int main(void) {
         int max_width = cwd_length - (visible_prompt_length - terminal_width);
         shorten_path(cwd, max_width);
       }
-      hash_insert("CWD",  cwd);
+      add_command("CWD",  cwd);
       line = (char *) parse_prompt(line); // Re-parse the current line
     }
 
@@ -381,7 +381,7 @@ int main(void) {
 
   cleanup_resources(&state);
   git_libgit2_shutdown();
-  instruction_t *current_entry, *tmp;
+  struct CommandMap *current_entry, *tmp;
   HASH_ITER(hh, instructions, current_entry, tmp) {
     HASH_DEL(instructions, current_entry);
     free((char*)current_entry->replacement);
