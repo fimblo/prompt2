@@ -1,7 +1,7 @@
 #ifdef __linux__
-  #define _XOPEN_SOURCE
-  #define _POSIX_C_SOURCE 200809L
-  #define _GNU_SOURCE
+#define _XOPEN_SOURCE
+#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
 #endif
 
 #include <dirent.h>
@@ -27,14 +27,14 @@
  * @return 0 if true, 1 if false
  */
 int __is_git_repo(const char *path) {
-	int is_repo = FAILURE_IS_NOT_GIT_REPO;
-	git_repository *repo = NULL;
-	int error = git_repository_open_ext(&repo, path, 0, NULL);
-	if (error == 0) {
-		is_repo = SUCCESS_IS_GIT_REPO;
-		git_repository_free(repo);
-	}
-	return is_repo;
+  int is_repo = FAILURE_IS_NOT_GIT_REPO;
+  git_repository *repo = NULL;
+  int error = git_repository_open_ext(&repo, path, 0, NULL);
+  if (error == 0) {
+    is_repo = SUCCESS_IS_GIT_REPO;
+    git_repository_free(repo);
+  }
+  return is_repo;
 }
 
 /**
@@ -61,10 +61,10 @@ const char *__find_git_repository_path(const char *path) {
  * Helper: Figure out divergence between local and upstream branches.
  */
 int __calculate_divergence(git_repository *repo,
-                          const git_oid *local_oid,
-                          const git_oid *upstream_oid,
-                          int *ahead,
-                          int *behind) {
+                           const git_oid *local_oid,
+                           const git_oid *upstream_oid,
+                           int *ahead,
+                           int *behind) {
   int ahead_count = 0;
   int behind_count = 0;
   git_oid id;
@@ -177,14 +177,14 @@ int __populate_repo_context(struct CurrentState *state, const char *path) {
 
   return SUCCESS;
 
-cleanup:
+ cleanup:
   if (repo != NULL) {
     git_repository_free(repo);
   }
   if (git_repository_path != NULL && state->repo_path == NULL) {
     free((void *)git_repository_path);
   }
-  
+
   return result;
 }
 
@@ -295,10 +295,10 @@ int __get_repo_divergence(struct CurrentState *state) {
   state->has_upstream = 1;
 
   __calculate_divergence(state->repo_obj,
-                        state->head_oid,
-                        upstream_oid,
-                        &state->ahead_num,
-                        &state->behind_num);
+                         state->head_oid,
+                         upstream_oid,
+                         &state->ahead_num,
+                         &state->behind_num);
 
   git_reference_free(upstream_ref);
   return SUCCESS;
@@ -386,7 +386,7 @@ int gather_git_context(struct CurrentState *state) {
  * Note that this function breaks convention by returning 1 if
  * successful(valid), to mirror the value stored in
  * state->aws_token_is_valid.
-  */
+ */
 int gather_aws_context(struct CurrentState *state) {
   const char *home_dir = getenv("HOME");
   if (!home_dir) return ERROR; // error
@@ -579,56 +579,56 @@ void shorten_path(char *original_path, int max_width) {
  * Checks if the escape sequences within a string are properly formed.
  */
 int are_escape_sequences_properly_formed(const char *mystring) {
-    int in_escape_sequence = 0;
-    int in_bracket_sequence = 0;
+  int in_escape_sequence = 0;
+  int in_bracket_sequence = 0;
 
-    while (*mystring) {
-        
-        // first two conditionals to deal with opening and closing brackets
+  while (*mystring) {
 
-        if (*mystring == '\\' && *(mystring + 1) == '[') {
-            // Found \[
-            if (in_bracket_sequence) {
-                fprintf(stderr, "Improperly formed - found a new opening bracket before closing the previous one\n");
-                return ERROR;
-            }
-            in_bracket_sequence = 1;
-            mystring++; // Skip the next character as it is part of the escape sequence
-        } else if (*mystring == '\\' && *(mystring + 1) == ']') {
-            // Found \]
-            if (!in_bracket_sequence) {
-                fprintf(stderr, "Improperly formed - found a closing bracket without a matching opening bracket\n");
-                return ERROR;
-            }
-            in_bracket_sequence = 0;
-            mystring++; // Skip the next character as it is part of the escape sequence
-        }
+    // first two conditionals to deal with opening and closing brackets
 
-        // Remaining conditionals to deal with escape sequences
-
-        else if (*mystring == '\\' &&
-                ((*(mystring + 1) == '0' && *(mystring + 2) == '3' && *(mystring + 3) == '3') ||
-                 *(mystring + 1) == 'e')) {
-            // Found \033 or \e, which should be within brackets
-            if (!in_bracket_sequence) {
-                fprintf(stderr, "Improperly formed - found an escape sequence outside of brackets\n");
-                return ERROR;
-            }
-            in_escape_sequence = 1;
-            mystring += (*mystring + 1 == 'e') ? 1 : 3; // Skip the next characters as they are part of the escape sequence
-        } else if (*mystring == 'm' && in_escape_sequence) {
-            // Found m - which should close an escape sequence
-            if (!in_bracket_sequence) {
-                fprintf(stderr, "Improperly formed - found closing of escape sequence outside of brackets\n");
-                return ERROR;
-            }
-            in_escape_sequence = 0;
-        }
-        mystring++;
+    if (*mystring == '\\' && *(mystring + 1) == '[') {
+      // Found \[
+      if (in_bracket_sequence) {
+        fprintf(stderr, "Improperly formed - found a new opening bracket before closing the previous one\n");
+        return ERROR;
+      }
+      in_bracket_sequence = 1;
+      mystring++; // Skip the next character as it is part of the escape sequence
+    } else if (*mystring == '\\' && *(mystring + 1) == ']') {
+      // Found \]
+      if (!in_bracket_sequence) {
+        fprintf(stderr, "Improperly formed - found a closing bracket without a matching opening bracket\n");
+        return ERROR;
+      }
+      in_bracket_sequence = 0;
+      mystring++; // Skip the next character as it is part of the escape sequence
     }
 
-    // If we're still in an escape sequence or in a bracket sequence at the end, it's improperly formed
-    return in_escape_sequence == 0 && in_bracket_sequence == 0 ? SUCCESS : ERROR;
+    // Remaining conditionals to deal with escape sequences
+
+    else if (*mystring == '\\' &&
+             ((*(mystring + 1) == '0' && *(mystring + 2) == '3' && *(mystring + 3) == '3') ||
+              *(mystring + 1) == 'e')) {
+      // Found \033 or \e, which should be within brackets
+      if (!in_bracket_sequence) {
+        fprintf(stderr, "Improperly formed - found an escape sequence outside of brackets\n");
+        return ERROR;
+      }
+      in_escape_sequence = 1;
+      mystring += (*mystring + 1 == 'e') ? 1 : 3; // Skip the next characters as they are part of the escape sequence
+    } else if (*mystring == 'm' && in_escape_sequence) {
+      // Found m - which should close an escape sequence
+      if (!in_bracket_sequence) {
+        fprintf(stderr, "Improperly formed - found closing of escape sequence outside of brackets\n");
+        return ERROR;
+      }
+      in_escape_sequence = 0;
+    }
+    mystring++;
+  }
+
+  // If we're still in an escape sequence or in a bracket sequence at the end, it's improperly formed
+  return in_escape_sequence == 0 && in_bracket_sequence == 0 ? SUCCESS : ERROR;
 }
 
 
@@ -636,26 +636,24 @@ int are_escape_sequences_properly_formed(const char *mystring) {
  * Counts the number of visible (non-escape sequence) characters in a string.
  */
 int count_visible_chars(const char *mystring) {
-    int real_chars = 0;
-    int in_bracket_sequence = 0;
+  int real_chars = 0;
+  int in_bracket_sequence = 0;
 
-    while (*mystring) {
-        if (*mystring == '\\' && *(mystring + 1) == '[') {
-            // Found the start of a bracketed sequence
-            in_bracket_sequence = 1;
-            mystring++; // Skip the '[' character
-        } else if (in_bracket_sequence && *mystring == '\\' && *(mystring + 1) == ']') {
-            // Found the end of a bracketed sequence
-            in_bracket_sequence = 0;
-            mystring++; // Skip the ']' character
-        } else if (!in_bracket_sequence) {
-            // Count the character if it's not within a bracketed sequence
-            real_chars++;
-        }
-        mystring++;
+  while (*mystring) {
+    if (*mystring == '\\' && *(mystring + 1) == '[') {
+      // Found the start of a bracketed sequence
+      in_bracket_sequence = 1;
+      mystring++; // Skip the '[' character
+    } else if (in_bracket_sequence && *mystring == '\\' && *(mystring + 1) == ']') {
+      // Found the end of a bracketed sequence
+      in_bracket_sequence = 0;
+      mystring++; // Skip the ']' character
+    } else if (!in_bracket_sequence) {
+      // Count the character if it's not within a bracketed sequence
+      real_chars++;
     }
+    mystring++;
+  }
 
-    return real_chars;
+  return real_chars;
 }
-
-

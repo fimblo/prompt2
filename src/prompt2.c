@@ -1,4 +1,7 @@
+#include <errno.h>
 #include <git2.h>
+#include <iniparser/iniparser.h>
+//#include <limits.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -7,18 +10,19 @@
 #include "get-status.h"
 
 #define COMMAND_MAX_LEN  256
+#define PATH_MAX 4096
 
 
-typedef struct {
+struct CommandMap {
   const char *command;      // key
   const char *replacement;  // value
   UT_hash_handle hh;        // makes this structure hashable
-} instruction_t;
-instruction_t *instructions = NULL;
+} ;
+struct CommandMap *instructions = NULL;
 
 // Function to add entries to the hash table
-void hash_insert(const char *command, const char *replacement) {
-  instruction_t *i = malloc(sizeof(instruction_t));
+void add_command(const char *command, const char *replacement) {
+  struct CommandMap *i = malloc(sizeof(struct CommandMap));
   if (i == NULL) {
     printf("HASH INSERT FAIL (malloc) $ ");
     exit(EXIT_FAILURE);
@@ -34,8 +38,8 @@ void hash_insert(const char *command, const char *replacement) {
 }
 
 // Function to find an entry in the hash table
-const char *hash_lookup(const char *command) {
-  instruction_t *i;
+const char *lookup_command(const char *command) {
+  struct CommandMap *i;
   HASH_FIND_STR(instructions, command, i);
   return i ? i->replacement : NULL;
 }
@@ -45,37 +49,37 @@ void assign_instructions(struct CurrentState *state) {
   char itoa_buf[32]; // to store numbers as strings
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
-  hash_insert("Repo.is_git_repo", itoa_buf);
+  add_command("Repo.is_git_repo", itoa_buf);
 
-  hash_insert("Repo.name",                        state->repo_name);
-  hash_insert("Repo.branch_name",                 state->branch_name);
+  add_command("Repo.name",                        state->repo_name);
+  add_command("Repo.branch_name",                 state->branch_name);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
-  hash_insert("Repo.rebase_active", itoa_buf);
+  add_command("Repo.rebase_active", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->conflict_num);
-  hash_insert("Repo.conflicts", itoa_buf);
+  add_command("Repo.conflicts", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->has_upstream);
-  hash_insert("Repo.has_upstream", itoa_buf);
+  add_command("Repo.has_upstream", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->ahead_num);
-  hash_insert("Repo.ahead", itoa_buf);
+  add_command("Repo.ahead", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->behind_num);
-  hash_insert("Repo.behind", itoa_buf);
+  add_command("Repo.behind", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->staged_num);
-  hash_insert("Repo.staged", itoa_buf);
+  add_command("Repo.staged", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->modified_num);
-  hash_insert("Repo.modified", itoa_buf);
+  add_command("Repo.modified", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->untracked_num);
-  hash_insert("Repo.untracked", itoa_buf);
+  add_command("Repo.untracked", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->aws_token_is_valid);
-  hash_insert("AWS.token_is_valid", itoa_buf);
+  add_command("AWS.token_is_valid", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_hours);
-  hash_insert("AWS.token_remaining_hours", itoa_buf);
+  add_command("AWS.token_remaining_hours", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_minutes);
-  hash_insert("AWS.token_remaining_minutes", itoa_buf);
+  add_command("AWS.token_remaining_minutes", itoa_buf);
 }
 
 
@@ -83,13 +87,13 @@ void assign_instructions(struct CurrentState *state) {
  * Helper function.
  * Concatenates a string to git_prompt if the resulting length is within bounds.
  *
-  */
+ */
 int safe_strcat(char *target_string, const char *addition, int max_len) {
-    if (strlen(target_string) + strlen(addition) >= (size_t) max_len) {
-        return FAILURE;
-    }
-    strcat(target_string, addition);
-    return SUCCESS;
+  if (strlen(target_string) + strlen(addition) >= (size_t) max_len) {
+    return FAILURE;
+  }
+  strcat(target_string, addition);
+  return SUCCESS;
 }
 
 
@@ -102,27 +106,27 @@ int safe_strcat(char *target_string, const char *addition, int max_len) {
  *         The caller is responsible for freeing this string.
  */
 char* replace_literal_newlines(const char* input) {
-    int inputLen = strlen(input);
+  int inputLen = strlen(input);
 
-    char* result = malloc(inputLen + 1); // +1 for the null terminator
-    if (!result) {
-        perror("REPLACE LITERAL NEWLINES FAILURE $ ");
-        exit(EXIT_FAILURE);
+  char* result = malloc(inputLen + 1); // +1 for the null terminator
+  if (!result) {
+    perror("REPLACE LITERAL NEWLINES FAILURE $ ");
+    exit(EXIT_FAILURE);
+  }
+
+  const char* current = input;
+  char* output = result;
+  while (*current) {
+    if (*current == '\\' && *(current + 1) == 'n') {
+      *output++ = '\n';
+      current += 2;
+    } else {
+      *output++ = *current++;
     }
+  }
+  *output = '\0'; // Null-terminate
 
-    const char* current = input;
-    char* output = result;
-    while (*current) {
-        if (*current == '\\' && *(current + 1) == 'n') {
-            *output++ = '\n';
-            current += 2;
-        } else {
-            *output++ = *current++;
-        }
-    }
-    *output = '\0'; // Null-terminate
-
-    return result;
+  return result;
 }
 
 
@@ -165,7 +169,7 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
       command[command_index] = '\0'; // Null-terminate the command string
 
       // Look up the command and append its value to git_prompt
-      const char *replacement = hash_lookup(command);
+      const char *replacement = lookup_command(command);
       if (replacement) {
         if(safe_strcat(git_prompt, replacement, PROMPT_MAX_LEN) == FAILURE) { goto error; }
       } else {
@@ -187,8 +191,8 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
 
   return strdup(git_prompt);
 
-  error:
-    return "PROMPT TOO LONG $ ";
+ error:
+  return "PROMPT TOO LONG $ ";
 }
 
 /**
@@ -196,13 +200,13 @@ const char *parse_prompt(const char *unparsed_git_prompt) {
  *
  * Note that I check stderr and not stdout, since stderr is less
  * likely to be piped or redirected.
-*/
+ */
 int term_width() {
   struct winsize w;
   if (ioctl(STDERR_FILENO, TIOCGWINSZ, &w) == -1) {
-        perror("ioctl error");
-        return -1;
-    }
+    perror("ioctl error");
+    return -1;
+  }
   return (int) w.ws_col;
 }
 
@@ -226,19 +230,73 @@ char * get_cwd(struct CurrentState *state, const char *cwd_type) {
 }
 
 void truncate_with_ellipsis(char *str, size_t max_width) {
-    if (str && strlen(str) > max_width) {
-        strcpy(&str[max_width - 3], "...");
-    }
+  if (str && strlen(str) > max_width) {
+    strcpy(&str[max_width - 3], "...");
+  }
 }
+
+struct Config {
+  const char * cwd_type;
+  size_t branch_max_width;
+};
+
+void initialise_config(struct Config *config) {
+  config->cwd_type = "home";
+  config->branch_max_width = (size_t) 40;
+}
+
+/**
+ * read from config file, save to and return config struct
+ */
+int read_config(struct Config *config) {
+  // Set default values
+  initialise_config(config);
+
+  // Find INI file
+  char *config_file_name = ".prompt2_config.ini";
+  char config_file_path[PATH_MAX];
+  const char *config_dirs[] = {".", getenv("HOME")};
+  int found = 0;
+  for (long unsigned int i = 0; i < sizeof(config_dirs)/sizeof(config_dirs[0]); i++) {
+    sprintf(config_file_path, "%s/%s", config_dirs[i], config_file_name);
+    if (access(config_file_path, R_OK) == 0) {
+      found = 1;
+      break;
+    }
+  }
+  if (!found) {
+    // use default values since no config found
+    return ERROR;
+  }
+
+  // Load INI file
+  dictionary *ini = iniparser_load(config_file_path);
+  if (ini == NULL) {
+    // do nothing. We will use the default config
+    return ERROR;
+  }
+
+  // Set config struct from ini file
+  char b[128];
+  sprintf(b, "%d", (int) config->branch_max_width);
+  config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", b));
+  config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
+
+
+  // Free the dictionary
+  iniparser_freedict(ini);
+
+  return SUCCESS;
+}
+
 
 int main(void) {
   struct CurrentState state;
+  struct Config config;
 
   //  Get environment variables and check them for inconsistencies
   const char *plain_prompt   = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
   const char *gp2_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
-  const char *cwd_type       = getenv("GP2_CWD_TYPE")       ?: "home";
-  size_t branch_max_width    = (size_t) atoi(getenv("GP2_BRANCH_MAX_WIDTH") ?: "25");
 
   if (are_escape_sequences_properly_formed(plain_prompt) != SUCCESS) {
     printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
@@ -253,6 +311,7 @@ int main(void) {
 
   git_libgit2_init();
   initialise_state(&state);
+  read_config(&config);
 
   if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
     printf("%s", plain_prompt);
@@ -262,8 +321,8 @@ int main(void) {
 
 
   // Limit branch name string length
-  truncate_with_ellipsis((char *) state.branch_name, branch_max_width);
-  
+  truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
+
 
   /*
     parse_prompt will replace all instruction strings with their
@@ -274,12 +333,12 @@ int main(void) {
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
   const char *git_prompt = parse_prompt(unparsed_git_prompt);
-  
+
   /*
     We'll deal with this here - after all the other instructions have
     been applied, since we want to ensure that the current working
     directory path will fit in the terminal width - for each line in the prompt.
-  */                      
+  */
   int terminal_width = term_width() ?: 80;
 
 
@@ -288,29 +347,29 @@ int main(void) {
   char *line = strtok(tokenized_prompt, "\n");
 
   while (line != NULL) {
-      if (strstr(line, "@{CWD}")) {
-            char* cwd = get_cwd(&state, cwd_type);
-            int cwd_length = strlen(cwd);
-            int visible_prompt_length = cwd_length + count_visible_chars(line) - 6; // len("@{CWD}") = 6
+    if (strstr(line, "@{CWD}")) {
+      char* cwd = get_cwd(&state, config.cwd_type);
+      int cwd_length = strlen(cwd);
+      int visible_prompt_length = cwd_length + count_visible_chars(line) - 6; // len("@{CWD}") = 6
 
-          if (visible_prompt_length > terminal_width) {
-              int max_width = cwd_length - (visible_prompt_length - terminal_width);
-              shorten_path(cwd, max_width);
-          }
-          hash_insert("CWD",  cwd);
-          line = (char *) parse_prompt(line); // Re-parse the current line
+      if (visible_prompt_length > terminal_width) {
+        int max_width = cwd_length - (visible_prompt_length - terminal_width);
+        shorten_path(cwd, max_width);
       }
+      add_command("CWD",  cwd);
+      line = (char *) parse_prompt(line); // Re-parse the current line
+    }
 
-      // Append the processed line to temp_prompt
-      if (strlen(temp_prompt) + strlen(line) < PROMPT_MAX_LEN - 1) {
-          strcat(temp_prompt, line);
-          strcat(temp_prompt, "\n"); // Re-add the newline character
-      } else {
-          printf("PROMPT TOO LONG $ ");
-          return ERROR;
-      }
+    // Append the processed line to temp_prompt
+    if (strlen(temp_prompt) + strlen(line) < PROMPT_MAX_LEN - 1) {
+      strcat(temp_prompt, line);
+      strcat(temp_prompt, "\n"); // Re-add the newline character
+    } else {
+      printf("PROMPT TOO LONG $ ");
+      return ERROR;
+    }
 
-      line = strtok(NULL, "\n"); // Get the next line
+    line = strtok(NULL, "\n"); // Get the next line
   }
 
   git_prompt = strdup(temp_prompt);
@@ -322,8 +381,8 @@ int main(void) {
 
   cleanup_resources(&state);
   git_libgit2_shutdown();
-  instruction_t *current_entry, *tmp;
-    HASH_ITER(hh, instructions, current_entry, tmp) {
+  struct CommandMap *current_entry, *tmp;
+  HASH_ITER(hh, instructions, current_entry, tmp) {
     HASH_DEL(instructions, current_entry);
     free((char*)current_entry->replacement);
     free(current_entry);

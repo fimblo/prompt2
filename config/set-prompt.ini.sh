@@ -15,7 +15,8 @@ export GP2_NON_GIT_PROMPT="\[\033[01;32m\]\u@\h\[\033[00m\] \[\033[01;34m\]\W\[\
 export GP2_GIT_PROMPT="<@{Repo.name}><@{Repo.branch_name}> b/a(@{Repo.behind},@{Repo.ahead}) s(@{Repo.staged}) m(@{Repo.modified}) u(@{Repo.untracked}) @{CWD}\n$ ";
 
 # Set how I want my CWD to look
-export GP2_CWD_TYPE="basename" # can be: 'home', 'git', 'basename', 'full'
+unset GP2_CWD_TYPE
+#export GP2_CWD_TYPE="basename" # can be: 'home', 'git', 'basename', 'full'
 
 
 # Simplest shell function to set PS1 to the output of prompt2

@@ -16,7 +16,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install libgit2 json-c uthash
+        brew install libgit2 json-c uthash iniparser
         brew install bash bats-core
 
     - name: Build binary
