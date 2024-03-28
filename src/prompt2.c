@@ -7,12 +7,19 @@
 
 #include <errno.h>
 #include <git2.h>
-#include <iniparser/iniparser.h>
 //#include <limits.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <uthash.h>
+#ifdef __unix__
+#include <iniparser/iniparser.h>
+#elif __APPLE__
+#include <iniparser.h>
+#else
+#error "Unknown or unsupported OS"
+#endif
+
 
 #include "get-status.h"
 
