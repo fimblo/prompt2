@@ -1,10 +1,8 @@
 name: "[ubuntu] Build and test"
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
 
 jobs:
   build-and-test:
