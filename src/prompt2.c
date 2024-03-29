@@ -3,6 +3,7 @@
   - replace magic numbers (256, 32)
   - move all has functions to another lib
   - as a matter of fact, move all non-prompt functions to another lib
+  - document what a command is, what a widget is
 */
 
 #include <errno.h>
@@ -347,15 +348,14 @@ const char *format_widget(const char *name, const char *value, int is_active, st
 
   // Wrap resulting string in colours (if needed)
   const char *colour_string = is_active ? wc->colour_on : wc->colour_off;
-  snprintf(widget, sizeof(widget), "%s%s%s", colour_string, value, "\\[\\033[0m\\]");
-  /* if (strstr(widget, "\\[\\033]") != NULL || strstr(widget, "\\[\\e]") != NULL) {
-    int len = strlen(widget);
-    int space_left = sizeof(widget) - len;
-    if (space_left > 0) {
-      snprintf(widget + len, space_left, "\\[\\033[0m\\]");
-    }
+  const char *reset_term_colours = "";
+
+  if (strstr(colour_string, "\\[\\033[") != NULL || strstr(colour_string, "\\[\\e[") != NULL) {
+    reset_term_colours = "\\[\\033[0m\\]";
   }
- */
+  snprintf(widget, sizeof(widget), "%s%s%s", colour_string, value, reset_term_colours);
+
+ 
   return strdup(widget);
 }
 
