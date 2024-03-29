@@ -3,8 +3,10 @@
   - move all has functions to another lib
   - as a matter of fact, move all non-prompt functions to another lib
   - document what a command is, what a widget is
+  - document "on lowercase commands"
 */
 
+#include <ctype.h>
 #include <errno.h>
 #include <git2.h>
 //#include <limits.h>
@@ -30,10 +32,22 @@
 #define DEFAULT_TERMINAL_WIDTH 80
 #define BRANCH_MAX_WIDTH       128
 #define PATH_MAX               4096
+#define INI_SECTION_DEFAULT    "default"
+#define INI_SECTION_GENERIC    "generic"
 
 // for debugging
 //int marker = 0;
 //printf("MARK: %d", marker++);
+
+
+void to_lower (char *str) {
+  if (str) {
+    while (*str) {
+      *str = tolower((unsigned char) *str);
+      str++;
+    }
+  }
+}
 
 
 struct CommandMap {
@@ -63,7 +77,9 @@ void add_command(const char *command, const char *replacement) {
 // Function to find an entry in the hash table
 const char *lookup_command(const char *command) {
   struct CommandMap *i;
-  HASH_FIND_STR(instructions, command, i);
+  char *command_lowercase = strdup(command);
+  to_lower(command_lowercase);
+  HASH_FIND_STR(instructions, command_lowercase, i);
   return i ? i->replacement : NULL;
 }
 
@@ -72,37 +88,37 @@ void assign_instructions(struct CurrentState *state) {
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
-  add_command("Repo.is_git_repo", itoa_buf);
+  add_command("repo.is_git_repo", itoa_buf);
 
-  add_command("Repo.name",                        state->repo_name);
-  add_command("Repo.branch_name",                 state->branch_name);
+  add_command("repo.name",                        state->repo_name);
+  add_command("repo.branch_name",                 state->branch_name);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
-  add_command("Repo.rebase_active", itoa_buf);
+  add_command("repo.rebase_active", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->conflict_num);
-  add_command("Repo.conflicts", itoa_buf);
+  add_command("repo.conflicts", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->has_upstream);
-  add_command("Repo.has_upstream", itoa_buf);
+  add_command("repo.has_upstream", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->ahead_num);
-  add_command("Repo.ahead", itoa_buf);
+  add_command("repo.ahead", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->behind_num);
-  add_command("Repo.behind", itoa_buf);
+  add_command("repo.behind", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->staged_num);
-  add_command("Repo.staged", itoa_buf);
+  add_command("repo.staged", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->modified_num);
-  add_command("Repo.modified", itoa_buf);
+  add_command("repo.modified", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->untracked_num);
-  add_command("Repo.untracked", itoa_buf);
+  add_command("repo.untracked", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->aws_token_is_valid);
-  add_command("AWS.token_is_valid", itoa_buf);
+  add_command("aws.token_is_valid", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_hours);
-  add_command("AWS.token_remaining_hours", itoa_buf);
+  add_command("aws.token_remaining_hours", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_minutes);
-  add_command("AWS.token_remaining_minutes", itoa_buf);
+  add_command("aws.token_remaining_minutes", itoa_buf);
 }
 
 
@@ -130,6 +146,14 @@ struct WidgetConfigMap {
 };
 struct WidgetConfigMap *configurations = NULL;
 
+void print_widget_config(struct WidgetConfig wc) {
+  char * reset = "\\[\\033[0m\\]";
+  printf("string_active: '%s'\n", wc.string_active);
+  printf("string_inactive: '%s'\n", wc.string_inactive);
+  printf("colour_on: '%s'%s\n", wc.colour_on, reset);
+  printf("colour_off: '%s'%s\n", wc.colour_off, reset);
+  
+}
 
 // Function to add or update a widget configuration
 void upsert_widget_config(const char *name, struct WidgetConfig widget_config) {
@@ -226,9 +250,10 @@ char* replace_literal_newlines(const char* input) {
   return result;
 }
 
-
 // return 0 if false, 1 if true
 int is_widget_active(const char * name, const char *value) {
+  char * name_lowercase = strdup(name);
+  to_lower(name_lowercase);
   /*
     Widgets can be active or inactive.
 
@@ -248,24 +273,24 @@ int is_widget_active(const char * name, const char *value) {
     
     | WIDGET                         | inactive     | active      |
     | ------------------------------ | ------------ | ----------- |
-    | `CWD.full`                     | empty string | string      |
-    | `CWD.basename`                 | empty string | string      |
-    | `CWD.git_path`                 | empty string | string      |
-    | `CWD.home_path`                | empty string | string      |
-    | `Repo.name`                    | empty string | string      |
-    | `Repo.branch_name`             | empty string | string      |
-    | `Repo.is_git_repo`             | "0"          | otherwise   |
-    | `Repo.rebase_active`           | "0"          | otherwise   |
-    | `Repo.conflicts`               | "0"          | otherwise   |
-    | `Repo.has_upstream`            | "0"          | otherwise   |
-    | `Repo.ahead`                   | "0"          | otherwise   |
-    | `Repo.behind`                  | "0"          | otherwise   |
-    | `Repo.staged`                  | "0"          | otherwise   |
-    | `Repo.modified`                | "0"          | otherwise   |
-    | `Repo.untracked`               | "0"          | otherwise   |
-    | `AWS.token_is_valid`           | "0"          | otherwise   |
-    | `AWS.token_remaining_hours`    | >0           | <=0         |
-    | `AWS.token_remaining_minutes`  | >10          | <=10        |
+    | `cwd.full`                     | empty string | string      |
+    | `cwd.basename`                 | empty string | string      |
+    | `cwd.git_path`                 | empty string | string      |
+    | `cwd.home_path`                | empty string | string      |
+    | `repo.name`                    | empty string | string      |
+    | `repo.branch_name`             | empty string | string      |
+    | `repo.is_git_repo`             | "0"          | otherwise   |
+    | `repo.rebase_active`           | "0"          | otherwise   |
+    | `repo.conflicts`               | "0"          | otherwise   |
+    | `repo.has_upstream`            | "0"          | otherwise   |
+    | `repo.ahead`                   | "0"          | otherwise   |
+    | `repo.behind`                  | "0"          | otherwise   |
+    | `repo.staged`                  | "0"          | otherwise   |
+    | `repo.modified`                | "0"          | otherwise   |
+    | `repo.untracked`               | "0"          | otherwise   |
+    | `aws.token_is_valid`           | "0"          | otherwise   |
+    | `aws.token_remaining_hours`    | >0           | <=0         |
+    | `aws.token_remaining_minutes`  | >10          | <=10        |
 
     The code below checks if the widget should be set to active or
     inactive.
@@ -285,25 +310,25 @@ int is_widget_active(const char * name, const char *value) {
 
   // Define the widget type entries
   const struct WidgetTypeTable widget_type_table[] = {
-    { "CWD",                TYPE_STRING },
-    { "Repo.name",          TYPE_STRING },
-    { "Repo.branch_name",   TYPE_STRING },
+    { "cwd",                TYPE_STRING },
+    { "repo.name",          TYPE_STRING },
+    { "repo.branch_name",   TYPE_STRING },
 
-    { "Repo.is_git_repo",   TYPE_TOGGLE },
-    { "Repo.rebase_active", TYPE_TOGGLE },
-    { "Repo.conflicts",     TYPE_TOGGLE },
-    { "Repo.has_upstream",  TYPE_TOGGLE },
-    { "Repo.ahead",         TYPE_TOGGLE },
-    { "Repo.behind",        TYPE_TOGGLE },
-    { "Repo.staged",        TYPE_TOGGLE },
-    { "Repo.modified",      TYPE_TOGGLE },
-    { "Repo.untracked",     TYPE_TOGGLE },
-    { "AWS.token_is_valid", TYPE_TOGGLE }
+    { "repo.is_git_repo",   TYPE_TOGGLE },
+    { "repo.rebase_active", TYPE_TOGGLE },
+    { "repo.conflicts",     TYPE_TOGGLE },
+    { "repo.has_upstream",  TYPE_TOGGLE },
+    { "repo.ahead",         TYPE_TOGGLE },
+    { "repo.behind",        TYPE_TOGGLE },
+    { "repo.staged",        TYPE_TOGGLE },
+    { "repo.modified",      TYPE_TOGGLE },
+    { "repo.untracked",     TYPE_TOGGLE },
+    { "aws.token_is_valid", TYPE_TOGGLE }
   };
 
   int type = TYPE_UNKNOWN;
   for (size_t i = 0; i < sizeof(widget_type_table) / sizeof(widget_type_table[0]); i++) {
-    if (strcmp(name, widget_type_table[i].name) == 0) {
+    if (strcmp(name_lowercase, widget_type_table[i].name) == 0) {
       type = widget_type_table[i].type;
       break;
     }
@@ -315,10 +340,10 @@ int is_widget_active(const char * name, const char *value) {
   int is_active = 0;
   if (type == TYPE_STRING && value[0] != '\0') is_active = 1;
   else if (type == TYPE_TOGGLE && strcmp(value, "0") != 0) is_active = 1;
-  else if (strcmp(name, "AWS.token_remaining_hours") == 0) {
+  else if (strcmp(name_lowercase, "aws.token_remaining_hours") == 0) {
     if (atoi(value) <= 0) is_active = 1;
   }
-  else if (strcmp(name, "AWS.token_remaining_minutes") == 0) {
+  else if (strcmp(name_lowercase, "aws.token_remaining_minutes") == 0) {
     if (atoi(value) <= 10) is_active = 1;
   }
   return is_active;
@@ -326,7 +351,10 @@ int is_widget_active(const char * name, const char *value) {
 
 
 const char *format_widget(const char *name, const char *value, int is_active, struct WidgetConfig *defaults) {
-  struct WidgetConfig *wc = find_widget_config(name);
+  char *name_lowercase = strdup(name);
+  to_lower(name_lowercase);
+
+  struct WidgetConfig *wc = find_widget_config(name_lowercase);
   if (!wc) {
     wc = defaults;
   }
@@ -497,7 +525,19 @@ int read_config(struct ConfigRoot *config) {
   config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", bmw_tmp));
 
   // Set widget defaults
-  read_widget_config(ini, "DEFAULT", &config->defaults, NULL);
+  read_widget_config(ini, INI_SECTION_DEFAULT, &config->defaults, NULL);
+
+  // Read each ini section  
+  for (int i = 0; i < iniparser_getnsec(ini); i++) {
+    const char * section = iniparser_getsecname(ini, i);
+    if (strcmp(section, INI_SECTION_DEFAULT) == 0) continue;
+    if (strcmp(section, INI_SECTION_GENERIC) == 0) continue;
+
+    struct WidgetConfig wc = { NULL, NULL, NULL, NULL };
+    read_widget_config(ini, section, &wc, &config->defaults);
+    upsert_widget_config(section, wc);
+  }
+
 
   // Free the dictionary
   iniparser_freedict(ini);
@@ -507,7 +547,7 @@ int read_config(struct ConfigRoot *config) {
 
 
 int main(void) {
-struct CurrentState state;
+  struct CurrentState state;
   struct ConfigRoot config;
 
   //  Get environment variables and check them for inconsistencies
@@ -545,7 +585,7 @@ struct CurrentState state;
 
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
-const char *git_prompt = parse_prompt(unparsed_git_prompt, &config.defaults);
+  const char *git_prompt = parse_prompt(unparsed_git_prompt, &config.defaults);
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
 
   char temp_prompt[PROMPT_MAX_LEN] = "";
@@ -562,7 +602,7 @@ const char *git_prompt = parse_prompt(unparsed_git_prompt, &config.defaults);
         int max_width = cwd_length - (visible_prompt_length - terminal_width);
         shorten_path(cwd, max_width);
       }
-      add_command("CWD",  cwd);
+      add_command("cwd",  cwd); // lowercase
       line = (char *) parse_prompt(line, &config.defaults); // Re-parse the current line
     }
 
