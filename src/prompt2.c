@@ -107,8 +107,6 @@ void assign_instructions(struct CurrentState *state) {
 }
 
 
-
-
 // struct to contain configuration for a widget
 struct WidgetConfig {
   char *string_active;
@@ -149,6 +147,7 @@ void upsert_widget_config(const char *name, struct WidgetConfig widget_config) {
   s->config = widget_config;
 }
 
+
 // Function to find a widget configuration
 struct WidgetConfig *find_widget_config(const char *name) {
   struct WidgetConfigMap *s;
@@ -181,8 +180,6 @@ void read_widget_config(dictionary *ini,
   snprintf(key, sizeof(key), "%s:colour_off", section);
   widget_config->colour_off = strdup(iniparser_getstring(ini, key, default_colour_off));
 }
-
-
 
 
 /**
@@ -230,6 +227,7 @@ char* replace_literal_newlines(const char* input) {
 
   return result;
 }
+
 
 // return 0 if false, 1 if true
 int is_widget_active(const char * name, const char *value) {
@@ -286,6 +284,7 @@ int is_widget_active(const char * name, const char *value) {
     WidgetType type;
   };
 
+
   // Define the widget type entries
   const struct WidgetTypeTable widget_type_table[] = {
     { "CWD.full",           TYPE_STRING },
@@ -306,7 +305,6 @@ int is_widget_active(const char * name, const char *value) {
     { "Repo.untracked",     TYPE_TOGGLE },
     { "AWS.token_is_valid", TYPE_TOGGLE }
   };
-
 
   int type = TYPE_UNKNOWN;
   for (size_t i = 0; i < sizeof(widget_type_table) / sizeof(widget_type_table[0]); i++) {
@@ -332,8 +330,6 @@ int is_widget_active(const char * name, const char *value) {
 }
 
 
-
-
 const char *format_widget(const char *name, const char *value, int is_active, struct WidgetConfig *defaults) {
   struct WidgetConfig *wc = find_widget_config(name);
   if (!wc) {
@@ -345,7 +341,6 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   const char *format_string = is_active ? wc->string_active : wc->string_inactive;
   snprintf(widget, sizeof(widget), format_string, value);
 
-
   // Wrap resulting string in colours (if needed)
   const char *colour_string = is_active ? wc->colour_on : wc->colour_off;
   const char *reset_term_colours = "";
@@ -354,7 +349,6 @@ const char *format_widget(const char *name, const char *value, int is_active, st
     reset_term_colours = "\\[\\033[0m\\]";
   }
   snprintf(widget, sizeof(widget), "%s%s%s", colour_string, value, reset_term_colours);
-
  
   return strdup(widget);
 }
@@ -426,6 +420,7 @@ const char *parse_prompt(const char *unparsed_git_prompt, struct WidgetConfig *d
   return "PROMPT TOO LONG $ ";
 }
 
+
 /**
  * helper. Get terminal width.
  *
@@ -460,6 +455,7 @@ char * get_cwd(struct CurrentState *state, const char *cwd_type) {
   return cwd_path;
 }
 
+
 void truncate_with_ellipsis(char *str, size_t max_width) {
   if (str && strlen(str) > max_width) {
     strcpy(&str[max_width - 3], "...");
@@ -474,7 +470,6 @@ int read_config(struct ConfigRoot *config) {
   // Set hard-coded default values
   config->cwd_type = "home";
   config->branch_max_width = (size_t) 40;
-
 
   // Find INI file either in . or home
   char *config_file_name = ".prompt2_config.ini";
@@ -500,7 +495,6 @@ int read_config(struct ConfigRoot *config) {
     return ERROR;
   }
 
-
   // Set config struct from ini file
   config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
   char bmw_tmp[BRANCH_MAX_WIDTH];
@@ -509,7 +503,6 @@ int read_config(struct ConfigRoot *config) {
 
   // Set widget defaults
   read_widget_config(ini, "DEFAULT", &config->defaults, NULL);
-
 
   // Free the dictionary
   iniparser_freedict(ini);
@@ -546,10 +539,8 @@ struct CurrentState state;
   }
   gather_aws_context(&state);
 
-
   // Limit branch name string length
   truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
-
 
   /*
     parse_prompt will replace all instruction strings with their
@@ -567,7 +558,6 @@ const char *git_prompt = parse_prompt(unparsed_git_prompt, &config.defaults);
     directory path will fit in the terminal width - for each line in the prompt.
   */
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
-
 
   char temp_prompt[PROMPT_MAX_LEN] = "";
   char *tokenized_prompt = strdup(git_prompt);
