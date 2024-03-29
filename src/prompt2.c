@@ -285,10 +285,7 @@ int is_widget_active(const char * name, const char *value) {
 
   // Define the widget type entries
   const struct WidgetTypeTable widget_type_table[] = {
-    { "CWD.full",           TYPE_STRING },
-    { "CWD.basename",       TYPE_STRING },
-    { "CWD.git_path",       TYPE_STRING },
-    { "CWD.home_path",      TYPE_STRING },
+    { "CWD",                TYPE_STRING },
     { "Repo.name",          TYPE_STRING },
     { "Repo.branch_name",   TYPE_STRING },
 
