@@ -1,6 +1,5 @@
 /*
   To do
-  - replace magic numbers (256, 32)
   - move all has functions to another lib
   - as a matter of fact, move all non-prompt functions to another lib
   - document what a command is, what a widget is
@@ -123,8 +122,7 @@ struct ConfigRoot {
   struct WidgetConfig defaults;
 };
 
-
-
+// struct to store all widget configes (except default)
 struct WidgetConfigMap {
   char *name;
   struct WidgetConfig config;
@@ -551,12 +549,6 @@ struct CurrentState state;
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
 const char *git_prompt = parse_prompt(unparsed_git_prompt, &config.defaults);
-
-  /*
-    We'll deal with this here - after all the other instructions have
-    been applied, since we want to ensure that the current working
-    directory path will fit in the terminal width - for each line in the prompt.
-  */
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
 
   char temp_prompt[PROMPT_MAX_LEN] = "";
@@ -595,7 +587,7 @@ const char *git_prompt = parse_prompt(unparsed_git_prompt, &config.defaults);
   // Finally, print the git prompt
   printf("%s", git_prompt);
 
-
+  // clean/free memory
   cleanup_resources(&state);
   git_libgit2_shutdown();
   struct CommandMap *current1, *tmp1;
