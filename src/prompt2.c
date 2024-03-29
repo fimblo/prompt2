@@ -1,6 +1,6 @@
 /*
   To do
-  - replace magic numbers (256)
+  - replace magic numbers (256, 32)
   - move all has functions to another lib
   - as a matter of fact, move all non-prompt functions to another lib
 */
@@ -23,8 +23,13 @@
 
 #include "get-status.h"
 
-#define COMMAND_MAX_LEN  256
-#define PATH_MAX 4096
+#define COMMAND_MAX_LEN        256
+#define WIDGET_MAX_LEN         256
+#define INI_SECTION_MAX_SIZE   64
+#define ITOA_BUFFER_SIZE       8
+#define DEFAULT_TERMINAL_WIDTH 80
+#define BRANCH_MAX_WIDTH       128
+#define PATH_MAX               4096
 
 // for debugging
 //int marker = 0;
@@ -64,7 +69,7 @@ const char *lookup_command(const char *command) {
 
 void assign_instructions(struct CurrentState *state) {
 
-  char itoa_buf[32]; // to store numbers as strings
+  char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
   add_command("Repo.is_git_repo", itoa_buf);
@@ -160,7 +165,7 @@ void read_widget_config(dictionary *ini,
                         const char *section,
                         struct WidgetConfig *widget_config,
                         const struct WidgetConfig *defaults) {
-  char key[256];
+  char key[INI_SECTION_MAX_SIZE];
   const char *default_string_active   = defaults ? defaults->string_active : "";
   const char *default_string_inactive = defaults ? defaults->string_inactive : "";
   const char *default_colour_on       = defaults ? defaults->colour_on : "";
@@ -335,7 +340,7 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   }
 
   // Format the value
-  char widget[256];
+  char widget[WIDGET_MAX_LEN];
   const char *format_string = is_active ? wc->string_active : wc->string_inactive;
   snprintf(widget, sizeof(widget), format_string, value);
 
@@ -498,7 +503,7 @@ int read_config(struct ConfigRoot *config) {
 
   // Set config struct from ini file
   config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
-  char bmw_tmp[128];
+  char bmw_tmp[BRANCH_MAX_WIDTH];
   sprintf(bmw_tmp, "%d", (int) config->branch_max_width);
   config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", bmw_tmp));
 
@@ -561,7 +566,7 @@ const char *git_prompt = parse_prompt(unparsed_git_prompt, &config.defaults);
     been applied, since we want to ensure that the current working
     directory path will fit in the terminal width - for each line in the prompt.
   */
-  int terminal_width = term_width() ?: 80;
+  int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
 
 
   char temp_prompt[PROMPT_MAX_LEN] = "";
