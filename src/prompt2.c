@@ -35,10 +35,6 @@
 #define INI_SECTION_DEFAULT    "default"
 #define INI_SECTION_GENERIC    "generic"
 
-// for debugging
-//int marker = 0;
-//printf("MARK: %d", marker++);
-
 
 void to_lower (char *str) {
   if (str) {
@@ -354,11 +350,18 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   char *name_lowercase = strdup(name);
   to_lower(name_lowercase);
 
+
+
+/* this is where the troubleshooting ended. too tired.
+
+when switching to main, i get a segfault somewhnere in this code
+
+I have a wip commit which I need to remove later.
+ */
   struct WidgetConfig *wc = find_widget_config(name_lowercase);
   if (!wc) {
     wc = defaults;
   }
-
   // Format the value
   char widget[WIDGET_MAX_LEN];
   const char *format_string = is_active ? wc->string_active : wc->string_inactive;
@@ -508,14 +511,14 @@ int read_config(struct ConfigRoot *config) {
   }
   if (!found) {
     // use default values since no config found
-    return ERROR;
+    goto default_config;
   }
 
   // Load INI file
   dictionary *ini = iniparser_load(config_file_path);
   if (ini == NULL) {
     // do nothing. We will use the default config
-    return ERROR;
+    goto default_config;
   }
 
   // Set config struct from ini file
@@ -538,11 +541,18 @@ int read_config(struct ConfigRoot *config) {
     upsert_widget_config(section, wc);
   }
 
-
   // Free the dictionary
   iniparser_freedict(ini);
 
   return SUCCESS;
+
+  
+  default_config:
+    config->defaults.string_active   = "%s";
+    config->defaults.string_inactive = "%s";
+    config->defaults.colour_on       = "";
+    config->defaults.colour_off      = "";
+    return ERROR;
 }
 
 
