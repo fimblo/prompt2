@@ -1,11 +1,3 @@
-/*
-  To do
-  - move all has functions to another lib
-  - as a matter of fact, move all non-prompt functions to another lib
-  - document what a command is, what a widget is
-  - document "on lowercase commands"
-*/
-
 #include <errno.h>
 #include <git2.h>
 //#include <limits.h>
@@ -34,6 +26,155 @@
 #define INI_SECTION_GENERIC    "generic"
 
 
+// struct to contain configuration for a widget
+struct WidgetConfig {
+  char *string_active;
+  char *string_inactive;
+  char *colour_on;
+  char *colour_off;
+};
+
+// Struct to contain non-widget configuration
+//
+struct ConfigRoot {
+  char * cwd_type;
+  size_t branch_max_width;
+  struct WidgetConfig defaults;
+};
+
+// struct to store all widget configes (except default)
+struct WidgetConfigMap {
+  char *name;
+  struct WidgetConfig config;
+  UT_hash_handle hh; // makes this structure hashable
+};
+struct WidgetConfigMap *configurations = NULL;
+
+void print_widget_config(struct WidgetConfig wc) {
+  char * reset = "\\[\\033[0m\\]";
+  printf("string_active: '%s'\n", wc.string_active);
+  printf("string_inactive: '%s'\n", wc.string_inactive);
+  printf("colour_on: '%s'%s\n", wc.colour_on, reset);
+  printf("colour_off: '%s'%s\n", wc.colour_off, reset);
+  
+}
+
+
+// Function to find a widget configuration
+struct WidgetConfig *find_widget_config(const char *name) {
+  struct WidgetConfigMap *s;
+
+  HASH_FIND_STR(configurations, name, s); // try to find configuration for name
+  if (s) {
+    return &s->config;
+  }
+  return NULL; // not found
+}
+
+
+// Function to add or update a widget configuration
+void upsert_widget_config(const char *name, struct WidgetConfig widget_config) {
+  struct WidgetConfigMap *s;
+
+  HASH_FIND_STR(configurations, name, s); // try to find configuration for name
+  if (s == NULL) {
+    s = (struct WidgetConfigMap *)malloc(sizeof(struct WidgetConfigMap));
+    s->name = strdup(name);
+    HASH_ADD_KEYPTR(hh, configurations, s->name, strlen(s->name), s);
+  }
+  // Update the configuration
+  s->config = widget_config;
+}
+
+
+// transfer INI file section into a WidgetConfig struct
+// if this fails, use the default values.
+void read_widget_config(dictionary *ini,
+                        const char *section,
+                        struct WidgetConfig *widget_config,
+                        const struct WidgetConfig *defaults) {
+  char key[INI_SECTION_MAX_SIZE];
+  const char *default_string_active   = defaults ? defaults->string_active : "";
+  const char *default_string_inactive = defaults ? defaults->string_inactive : "";
+  const char *default_colour_on       = defaults ? defaults->colour_on : "";
+  const char *default_colour_off      = defaults ? defaults->colour_off : "";
+
+  snprintf(key, sizeof(key), "%s:string_active", section);
+  widget_config->string_active = strdup(iniparser_getstring(ini, key, default_string_active));
+  snprintf(key, sizeof(key), "%s:string_inactive", section);
+  widget_config->string_inactive = strdup(iniparser_getstring(ini, key, default_string_inactive));
+  snprintf(key, sizeof(key), "%s:colour_on", section);
+  widget_config->colour_on = strdup(iniparser_getstring(ini, key, default_colour_on));
+  snprintf(key, sizeof(key), "%s:colour_off", section);
+  widget_config->colour_off = strdup(iniparser_getstring(ini, key, default_colour_off));
+}
+
+
+/**
+ * read from config file, save to and return config struct
+ */
+int read_config(struct ConfigRoot *config) {
+  // Set hard-coded default values
+  config->cwd_type = "home";
+  config->branch_max_width = (size_t) 40;
+
+  // Find INI file either in . or home
+  char *config_file_name = ".prompt2_config.ini";
+  char config_file_path[PATH_MAX];
+  const char *config_dirs[] = {".", getenv("HOME")};
+  int found = 0;
+  for (long unsigned int i = 0; i < sizeof(config_dirs)/sizeof(config_dirs[0]); i++) {
+    sprintf(config_file_path, "%s/%s", config_dirs[i], config_file_name);
+    if (access(config_file_path, R_OK) == 0) {
+      found = 1;
+      break;
+    }
+  }
+  if (!found) {
+    // use default values since no config found
+    goto default_config;
+  }
+
+  // Load INI file
+  dictionary *ini = iniparser_load(config_file_path);
+  if (ini == NULL) {
+    // do nothing. We will use the default config
+    goto default_config;
+  }
+
+  // Set config struct from ini file
+  config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
+  char bmw_tmp[BRANCH_MAX_WIDTH];
+  sprintf(bmw_tmp, "%d", (int) config->branch_max_width);
+  config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", bmw_tmp));
+
+  // Set widget defaults
+  read_widget_config(ini, INI_SECTION_DEFAULT, &config->defaults, NULL);
+
+  // Read each ini section  
+  for (int i = 0; i < iniparser_getnsec(ini); i++) {
+    const char * section = iniparser_getsecname(ini, i);
+    if (strcmp(section, INI_SECTION_DEFAULT) == 0) continue;
+    if (strcmp(section, INI_SECTION_GENERIC) == 0) continue;
+
+    struct WidgetConfig wc = { NULL, NULL, NULL, NULL };
+    read_widget_config(ini, section, &wc, &config->defaults);
+    upsert_widget_config(section, wc);
+  }
+
+  // Free the dictionary
+  iniparser_freedict(ini);
+
+  return SUCCESS;
+
+  
+  default_config:
+    config->defaults.string_active   = "%s";
+    config->defaults.string_inactive = "%s";
+    config->defaults.colour_on       = "";
+    config->defaults.colour_off      = "";
+    return ERROR;
+}
 
 
 void assign_instructions(struct CurrentState *state, struct CommandMap **instructions) {
@@ -72,88 +213,6 @@ void assign_instructions(struct CurrentState *state, struct CommandMap **instruc
   add_command(instructions, "aws.token_remaining_hours", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_minutes);
   add_command(instructions, "aws.token_remaining_minutes", itoa_buf);
-}
-
-
-// struct to contain configuration for a widget
-struct WidgetConfig {
-  char *string_active;
-  char *string_inactive;
-  char *colour_on;
-  char *colour_off;
-};
-
-// Struct to contain non-widget configuration
-//
-struct ConfigRoot {
-  char * cwd_type;
-  size_t branch_max_width;
-  struct WidgetConfig defaults;
-};
-
-// struct to store all widget configes (except default)
-struct WidgetConfigMap {
-  char *name;
-  struct WidgetConfig config;
-  UT_hash_handle hh; // makes this structure hashable
-};
-struct WidgetConfigMap *configurations = NULL;
-
-void print_widget_config(struct WidgetConfig wc) {
-  char * reset = "\\[\\033[0m\\]";
-  printf("string_active: '%s'\n", wc.string_active);
-  printf("string_inactive: '%s'\n", wc.string_inactive);
-  printf("colour_on: '%s'%s\n", wc.colour_on, reset);
-  printf("colour_off: '%s'%s\n", wc.colour_off, reset);
-  
-}
-
-// Function to add or update a widget configuration
-void upsert_widget_config(const char *name, struct WidgetConfig widget_config) {
-  struct WidgetConfigMap *s;
-
-  HASH_FIND_STR(configurations, name, s); // try to find configuration for name
-  if (s == NULL) {
-    s = (struct WidgetConfigMap *)malloc(sizeof(struct WidgetConfigMap));
-    s->name = strdup(name);
-    HASH_ADD_KEYPTR(hh, configurations, s->name, strlen(s->name), s);
-  }
-  // Update the configuration
-  s->config = widget_config;
-}
-
-
-// Function to find a widget configuration
-struct WidgetConfig *find_widget_config(const char *name) {
-  struct WidgetConfigMap *s;
-
-  HASH_FIND_STR(configurations, name, s); // try to find configuration for name
-  if (s) {
-    return &s->config;
-  }
-  return NULL; // not found
-}
-
-// transfer INI file section into a WidgetConfig struct
-// if this fails, use the default values.
-void read_widget_config(dictionary *ini,
-                        const char *section,
-                        struct WidgetConfig *widget_config,
-                        const struct WidgetConfig *defaults) {
-  char key[INI_SECTION_MAX_SIZE];
-  const char *default_string_active   = defaults ? defaults->string_active : "";
-  const char *default_string_inactive = defaults ? defaults->string_inactive : "";
-  const char *default_colour_on       = defaults ? defaults->colour_on : "";
-  const char *default_colour_off      = defaults ? defaults->colour_off : "";
-
-  snprintf(key, sizeof(key), "%s:string_active", section);
-  widget_config->string_active = strdup(iniparser_getstring(ini, key, default_string_active));
-  snprintf(key, sizeof(key), "%s:string_inactive", section);
-  widget_config->string_inactive = strdup(iniparser_getstring(ini, key, default_string_inactive));
-  snprintf(key, sizeof(key), "%s:colour_on", section);
-  widget_config->colour_on = strdup(iniparser_getstring(ini, key, default_colour_on));
-  snprintf(key, sizeof(key), "%s:colour_off", section);
-  widget_config->colour_off = strdup(iniparser_getstring(ini, key, default_colour_off));
 }
 
 
@@ -349,73 +408,6 @@ const char *parse_prompt(const char *unparsed_git_prompt,
 
  error:
   return "PROMPT TOO LONG $ ";
-}
-
-
-/**
- * read from config file, save to and return config struct
- */
-int read_config(struct ConfigRoot *config) {
-  // Set hard-coded default values
-  config->cwd_type = "home";
-  config->branch_max_width = (size_t) 40;
-
-  // Find INI file either in . or home
-  char *config_file_name = ".prompt2_config.ini";
-  char config_file_path[PATH_MAX];
-  const char *config_dirs[] = {".", getenv("HOME")};
-  int found = 0;
-  for (long unsigned int i = 0; i < sizeof(config_dirs)/sizeof(config_dirs[0]); i++) {
-    sprintf(config_file_path, "%s/%s", config_dirs[i], config_file_name);
-    if (access(config_file_path, R_OK) == 0) {
-      found = 1;
-      break;
-    }
-  }
-  if (!found) {
-    // use default values since no config found
-    goto default_config;
-  }
-
-  // Load INI file
-  dictionary *ini = iniparser_load(config_file_path);
-  if (ini == NULL) {
-    // do nothing. We will use the default config
-    goto default_config;
-  }
-
-  // Set config struct from ini file
-  config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
-  char bmw_tmp[BRANCH_MAX_WIDTH];
-  sprintf(bmw_tmp, "%d", (int) config->branch_max_width);
-  config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", bmw_tmp));
-
-  // Set widget defaults
-  read_widget_config(ini, INI_SECTION_DEFAULT, &config->defaults, NULL);
-
-  // Read each ini section  
-  for (int i = 0; i < iniparser_getnsec(ini); i++) {
-    const char * section = iniparser_getsecname(ini, i);
-    if (strcmp(section, INI_SECTION_DEFAULT) == 0) continue;
-    if (strcmp(section, INI_SECTION_GENERIC) == 0) continue;
-
-    struct WidgetConfig wc = { NULL, NULL, NULL, NULL };
-    read_widget_config(ini, section, &wc, &config->defaults);
-    upsert_widget_config(section, wc);
-  }
-
-  // Free the dictionary
-  iniparser_freedict(ini);
-
-  return SUCCESS;
-
-  
-  default_config:
-    config->defaults.string_active   = "%s";
-    config->defaults.string_inactive = "%s";
-    config->defaults.colour_on       = "";
-    config->defaults.colour_off      = "";
-    return ERROR;
 }
 
 
