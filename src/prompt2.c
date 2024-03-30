@@ -37,18 +37,19 @@ struct WidgetConfig {
 // Struct to contain non-widget configuration
 //
 struct ConfigRoot {
-  char * cwd_type;
-  size_t branch_max_width;
+  char *              cwd_type;
+  size_t              branch_max_width;
   struct WidgetConfig defaults;
 };
 
 // struct to store all widget configes (except default)
 struct WidgetConfigMap {
-  char *name;
-  struct WidgetConfig config;
-  UT_hash_handle hh; // makes this structure hashable
+  char                *name;
+  struct WidgetConfig  config;
+  UT_hash_handle       hh; // makes this structure hashable
 };
 struct WidgetConfigMap *configurations = NULL;
+
 
 void print_debug_widget_config(struct WidgetConfig wc) {
   char * reset = "\\[\\033[0m\\]";
@@ -56,7 +57,6 @@ void print_debug_widget_config(struct WidgetConfig wc) {
   printf("string_inactive: '%s'\n", wc.string_inactive);
   printf("colour_on: '%s'%s\n", wc.colour_on, reset);
   printf("colour_off: '%s'%s\n", wc.colour_off, reset);
-  
 }
 
 
@@ -64,11 +64,11 @@ void print_debug_widget_config(struct WidgetConfig wc) {
 struct WidgetConfig *get_widget_config(const char *name) {
   struct WidgetConfigMap *s;
 
-  HASH_FIND_STR(configurations, name, s); // try to find configuration for name
+  HASH_FIND_STR(configurations, name, s);
   if (s) {
     return &s->config;
   }
-  return NULL; // not found
+  return NULL;
 }
 
 
@@ -76,7 +76,7 @@ struct WidgetConfig *get_widget_config(const char *name) {
 void upsert_widget_config(const char *name, struct WidgetConfig widget_config) {
   struct WidgetConfigMap *s;
 
-  HASH_FIND_STR(configurations, name, s); // try to find configuration for name
+  HASH_FIND_STR(configurations, name, s);
   if (s == NULL) {
     s = (struct WidgetConfigMap *)malloc(sizeof(struct WidgetConfigMap));
     s->name = strdup(name);
@@ -130,17 +130,11 @@ int read_ini_config(struct ConfigRoot *config) {
       break;
     }
   }
-  if (!found) {
-    // use default values since no config found
-    goto default_config;
-  }
+  if (!found) goto default_config;
 
   // Load INI file
   dictionary *ini = iniparser_load(config_file_path);
-  if (ini == NULL) {
-    // do nothing. We will use the default config
-    goto default_config;
-  }
+  if (ini == NULL) goto default_config;
 
   // Set config struct from ini file
   config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
@@ -164,10 +158,9 @@ int read_ini_config(struct ConfigRoot *config) {
 
   // Free the dictionary
   iniparser_freedict(ini);
-
   return SUCCESS;
 
-  
+  // If there is no config file, just go with these plain defaults
   default_config:
     config->defaults.string_active   = "%s";
     config->defaults.string_inactive = "%s";
@@ -182,36 +175,36 @@ void setup_instruction_map(struct CurrentState *state, struct CommandMap **instr
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
-  add_command(instructions, "repo.is_git_repo", itoa_buf);
+  add_command(instructions, "repo.is_git_repo",   itoa_buf);
 
-  add_command(instructions, "repo.name",                        state->repo_name);
-  add_command(instructions, "repo.branch_name",                 state->branch_name);
+  add_command(instructions, "repo.name",          state->repo_name);
+  add_command(instructions, "repo.branch_name",   state->branch_name);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
   add_command(instructions, "repo.rebase_active", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->conflict_num);
-  add_command(instructions, "repo.conflicts", itoa_buf);
+  add_command(instructions, "repo.conflicts",     itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->has_upstream);
-  add_command(instructions, "repo.has_upstream", itoa_buf);
+  add_command(instructions, "repo.has_upstream",  itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->ahead_num);
-  add_command(instructions, "repo.ahead", itoa_buf);
+  add_command(instructions, "repo.ahead",         itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->behind_num);
-  add_command(instructions, "repo.behind", itoa_buf);
+  add_command(instructions, "repo.behind",        itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->staged_num);
-  add_command(instructions, "repo.staged", itoa_buf);
+  add_command(instructions, "repo.staged",        itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->modified_num);
-  add_command(instructions, "repo.modified", itoa_buf);
+  add_command(instructions, "repo.modified",      itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->untracked_num);
-  add_command(instructions, "repo.untracked", itoa_buf);
+  add_command(instructions, "repo.untracked",     itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->aws_token_is_valid);
   add_command(instructions, "aws.token_is_valid", itoa_buf);
-  snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_hours);
-  add_command(instructions, "aws.token_remaining_hours", itoa_buf);
-  snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_minutes);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",               state->aws_token_remaining_hours);
+  add_command(instructions, "aws.token_remaining_hours",   itoa_buf);
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",               state->aws_token_remaining_minutes);
   add_command(instructions, "aws.token_remaining_minutes", itoa_buf);
 }
 
