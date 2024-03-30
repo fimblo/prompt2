@@ -11,6 +11,12 @@
 #include "prompt2-utils.h"
 
 
+enum generic_return_values {
+  SUCCESS =  0,
+  FAILURE =  1,
+  ERROR   = -1,
+};
+
 /* ========================================================
     Resources for manipulating the command hash table
    ======================================================== */
@@ -65,3 +71,18 @@ void to_lower (char *str) {
     }
   }
 }
+
+
+/**
+ * Helper function.
+ * Concatenates a string to git_prompt if the resulting length is within bounds.
+ *
+ */
+int safe_strcat(char *target_string, const char *addition, int max_len) {
+  if (strlen(target_string) + strlen(addition) >= (size_t) max_len) {
+    return FAILURE;
+  }
+  strcat(target_string, addition);
+  return SUCCESS;
+}
+

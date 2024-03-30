@@ -160,20 +160,6 @@ void read_widget_config(dictionary *ini,
 
 
 /**
- * Helper function.
- * Concatenates a string to git_prompt if the resulting length is within bounds.
- *
- */
-int safe_strcat(char *target_string, const char *addition, int max_len) {
-  if (strlen(target_string) + strlen(addition) >= (size_t) max_len) {
-    return FAILURE;
-  }
-  strcat(target_string, addition);
-  return SUCCESS;
-}
-
-
-/**
  * Replaces occurrences of the two-character sequence '\' followed by 'n'
  * with the actual newline character '\n', in a given string.
  *

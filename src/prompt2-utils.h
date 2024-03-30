@@ -26,4 +26,11 @@ void free_instructions(struct CommandMap **instructions);
 void to_lower (char *str);
 
 
+/**
+ * Helper function.
+ * Concatenates a string to git_prompt if the resulting length is within bounds.
+ *
+ */
+int safe_strcat(char *target_string, const char *addition, int max_len);
+
 #endif //PROMPT2_UTILS_H
