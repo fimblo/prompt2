@@ -62,6 +62,11 @@ void free_instructions(struct CommandMap **instructions) {
   }
 }
 
+/* ========================================================
+    Resources for manipulating strings
+   ======================================================== */
+
+
 /**
  * make str lowercase
 */
@@ -86,22 +91,6 @@ int safe_strcat(char *target_string, const char *addition, int max_len) {
   }
   strcat(target_string, addition);
   return SUCCESS;
-}
-
-
-/**
- * helper. Get terminal width.
- *
- * Note that I check stderr and not stdout, since stderr is less
- * likely to be piped or redirected.
- */
-int term_width() {
-  struct winsize w;
-  if (ioctl(STDERR_FILENO, TIOCGWINSZ, &w) == -1) {
-    perror("ioctl error");
-    return -1;
-  }
-  return (int) w.ws_col;
 }
 
 
@@ -146,4 +135,24 @@ char* replace_literal_newlines(const char* input) {
   *output = '\0'; // Null-terminate
 
   return result;
+}
+
+/* ========================================================
+    Other resources
+   ======================================================== */
+
+
+/**
+ * helper. Get terminal width.
+ *
+ * Note that I check stderr and not stdout, since stderr is less
+ * likely to be piped or redirected.
+ */
+int term_width() {
+  struct winsize w;
+  if (ioctl(STDERR_FILENO, TIOCGWINSZ, &w) == -1) {
+    perror("ioctl error");
+    return -1;
+  }
+  return (int) w.ws_col;
 }

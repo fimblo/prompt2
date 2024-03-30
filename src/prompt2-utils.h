@@ -20,8 +20,13 @@ const char *lookup_command(struct CommandMap **instructions,
                            const char *command);
 void free_instructions(struct CommandMap **instructions);
 
+
+/* ========================================================
+    Resources for manipulating the command hash table
+   ======================================================== */
+
 /**
- * make str lowercase
+ * Make the string `str` lowercase
 */
 void to_lower (char *str);
 
@@ -33,10 +38,6 @@ void to_lower (char *str);
  */
 int safe_strcat(char *target_string, const char *addition, int max_len);
 
-/**
- * helper. Get terminal width.
- */
-int term_width();
 
 /**
  * Cut off a string at length `max_width`, and replace the last
@@ -54,5 +55,16 @@ void truncate_with_ellipsis(char *str, size_t max_width);
  *         The caller is responsible for freeing this string.
  */
 char* replace_literal_newlines(const char* input);
+
+
+/* ========================================================
+    Resources for manipulating strings
+   ======================================================== */
+
+/**
+ * helper. Get terminal width.
+ */
+int term_width();
+
 
 #endif //PROMPT2_UTILS_H

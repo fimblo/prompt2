@@ -261,14 +261,6 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   char *name_lowercase = strdup(name);
   to_lower(name_lowercase);
 
-
-
-/* this is where the troubleshooting ended. too tired.
-
-when switching to main, i get a segfault somewhnere in this code
-
-I have a wip commit which I need to remove later.
- */
   struct WidgetConfig *wc = find_widget_config(name_lowercase);
   if (!wc) {
     wc = defaults;
