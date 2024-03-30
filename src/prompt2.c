@@ -50,7 +50,7 @@ struct WidgetConfigMap {
 };
 struct WidgetConfigMap *configurations = NULL;
 
-void print_widget_config(struct WidgetConfig wc) {
+void print_debug_widget_config(struct WidgetConfig wc) {
   char * reset = "\\[\\033[0m\\]";
   printf("string_active: '%s'\n", wc.string_active);
   printf("string_inactive: '%s'\n", wc.string_inactive);
@@ -61,7 +61,7 @@ void print_widget_config(struct WidgetConfig wc) {
 
 
 // Function to find a widget configuration
-struct WidgetConfig *find_widget_config(const char *name) {
+struct WidgetConfig *get_widget_config(const char *name) {
   struct WidgetConfigMap *s;
 
   HASH_FIND_STR(configurations, name, s); // try to find configuration for name
@@ -89,10 +89,10 @@ void upsert_widget_config(const char *name, struct WidgetConfig widget_config) {
 
 // transfer INI file section into a WidgetConfig struct
 // if this fails, use the default values.
-void read_widget_config(dictionary *ini,
-                        const char *section,
-                        struct WidgetConfig *widget_config,
-                        const struct WidgetConfig *defaults) {
+void populate_widget_from_config(dictionary *ini,
+                                 const char *section,
+                                 struct WidgetConfig *widget_config,
+                                 const struct WidgetConfig *defaults) {
   char key[INI_SECTION_MAX_SIZE];
   const char *default_string_active   = defaults ? defaults->string_active : "";
   const char *default_string_inactive = defaults ? defaults->string_inactive : "";
@@ -113,7 +113,7 @@ void read_widget_config(dictionary *ini,
 /**
  * read from config file, save to and return config struct
  */
-int read_config(struct ConfigRoot *config) {
+int read_ini_config(struct ConfigRoot *config) {
   // Set hard-coded default values
   config->cwd_type = "home";
   config->branch_max_width = (size_t) 40;
@@ -149,7 +149,7 @@ int read_config(struct ConfigRoot *config) {
   config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", bmw_tmp));
 
   // Set widget defaults
-  read_widget_config(ini, INI_SECTION_DEFAULT, &config->defaults, NULL);
+  populate_widget_from_config(ini, INI_SECTION_DEFAULT, &config->defaults, NULL);
 
   // Read each ini section  
   for (int i = 0; i < iniparser_getnsec(ini); i++) {
@@ -158,7 +158,7 @@ int read_config(struct ConfigRoot *config) {
     if (strcmp(section, INI_SECTION_GENERIC) == 0) continue;
 
     struct WidgetConfig wc = { NULL, NULL, NULL, NULL };
-    read_widget_config(ini, section, &wc, &config->defaults);
+    populate_widget_from_config(ini, section, &wc, &config->defaults);
     upsert_widget_config(section, wc);
   }
 
@@ -177,7 +177,7 @@ int read_config(struct ConfigRoot *config) {
 }
 
 
-void assign_instructions(struct CurrentState *state, struct CommandMap **instructions) {
+void setup_instruction_map(struct CurrentState *state, struct CommandMap **instructions) {
 
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
 
@@ -320,7 +320,7 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   char *name_lowercase = strdup(name);
   to_lower(name_lowercase);
 
-  struct WidgetConfig *wc = find_widget_config(name_lowercase);
+  struct WidgetConfig *wc = get_widget_config(name_lowercase);
   if (!wc) {
     wc = defaults;
   }
@@ -432,7 +432,7 @@ int main(void) {
 
   git_libgit2_init();
   initialise_state(&state);
-  read_config(&config);
+  read_ini_config(&config);
 
   if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
     printf("%s", plain_prompt);
@@ -449,7 +449,7 @@ int main(void) {
     parse_prompt will replace all instruction strings with their
     values - except for the CWD instruction.
   */
-  assign_instructions(&state, &instructions);
+  setup_instruction_map(&state, &instructions);
   
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
