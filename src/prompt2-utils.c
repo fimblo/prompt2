@@ -6,6 +6,8 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 #include <uthash.h>
 
 #include "prompt2-utils.h"
@@ -86,3 +88,18 @@ int safe_strcat(char *target_string, const char *addition, int max_len) {
   return SUCCESS;
 }
 
+
+/**
+ * helper. Get terminal width.
+ *
+ * Note that I check stderr and not stdout, since stderr is less
+ * likely to be piped or redirected.
+ */
+int term_width() {
+  struct winsize w;
+  if (ioctl(STDERR_FILENO, TIOCGWINSZ, &w) == -1) {
+    perror("ioctl error");
+    return -1;
+  }
+  return (int) w.ws_col;
+}

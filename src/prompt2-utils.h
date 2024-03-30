@@ -33,4 +33,10 @@ void to_lower (char *str);
  */
 int safe_strcat(char *target_string, const char *addition, int max_len);
 
+/**
+ * helper. Get terminal width.
+ */
+int term_width();
+
+
 #endif //PROMPT2_UTILS_H

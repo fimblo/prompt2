@@ -10,8 +10,6 @@
 #include <git2.h>
 //#include <limits.h>
 #include <stdio.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
 #include <uthash.h>
 #ifdef __unix__
 #include <iniparser/iniparser.h>
@@ -393,21 +391,6 @@ const char *parse_prompt(const char *unparsed_git_prompt,
   return "PROMPT TOO LONG $ ";
 }
 
-
-/**
- * helper. Get terminal width.
- *
- * Note that I check stderr and not stdout, since stderr is less
- * likely to be piped or redirected.
- */
-int term_width() {
-  struct winsize w;
-  if (ioctl(STDERR_FILENO, TIOCGWINSZ, &w) == -1) {
-    perror("ioctl error");
-    return -1;
-  }
-  return (int) w.ws_col;
-}
 
 
 char * get_cwd(struct CurrentState *state, const char *cwd_type) {
