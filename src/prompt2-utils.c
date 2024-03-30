@@ -114,3 +114,36 @@ void truncate_with_ellipsis(char *str, size_t max_width) {
     strcpy(&str[max_width - 3], "...");
   }
 }
+
+
+/**
+ * Replaces occurrences of the two-character sequence '\' followed by 'n'
+ * with the actual newline character '\n', in a given string.
+ *
+ * @param input The input string containing literal "\n" sequences.
+ * @return A new string with "\n" sequences replaced by actual newline characters.
+ *         The caller is responsible for freeing this string.
+ */
+char* replace_literal_newlines(const char* input) {
+  int inputLen = strlen(input);
+
+  char* result = malloc(inputLen + 1); // +1 for the null terminator
+  if (!result) {
+    perror("REPLACE LITERAL NEWLINES FAILURE $ ");
+    exit(EXIT_FAILURE);
+  }
+
+  const char* current = input;
+  char* output = result;
+  while (*current) {
+    if (*current == '\\' && *(current + 1) == 'n') {
+      *output++ = '\n';
+      current += 2;
+    } else {
+      *output++ = *current++;
+    }
+  }
+  *output = '\0'; // Null-terminate
+
+  return result;
+}

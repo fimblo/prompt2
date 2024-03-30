@@ -45,4 +45,14 @@ int term_width();
 void truncate_with_ellipsis(char *str, size_t max_width);
 
 
+/**
+ * Replaces occurrences of the two-character sequence '\' followed by 'n'
+ * with the actual newline character '\n', in a given string.
+ *
+ * @param input The input string containing literal "\n" sequences.
+ * @return A new string with "\n" sequences replaced by actual newline characters.
+ *         The caller is responsible for freeing this string.
+ */
+char* replace_literal_newlines(const char* input);
+
 #endif //PROMPT2_UTILS_H
