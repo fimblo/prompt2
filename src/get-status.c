@@ -513,6 +513,29 @@ const char *get_cwd_from_home(struct CurrentState *state) {
   return wd;
 }
 
+
+/**
+ * CWD selector
+*/
+char * get_cwd(struct CurrentState *state, const char *cwd_type) {
+  char *cwd_path;
+
+  if (strcmp(cwd_type, "full") == 0) {
+    cwd_path = (char *)state->cwd_full;
+  }
+  else if (strcmp(cwd_type, "basename") == 0) {
+    cwd_path = (char *)state->cwd_basename;
+  }
+  else if (strcmp(cwd_type, "git") == 0) {
+    cwd_path = (char *)get_cwd_from_gitrepo(state);
+  }
+  else {
+    cwd_path = (char *)get_cwd_from_home(state);
+  }
+  return cwd_path;
+}
+
+
 /**
  * Memory management
  */
