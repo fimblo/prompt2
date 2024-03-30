@@ -12,9 +12,12 @@ TEST_TARGET = $(BIN_DIR)/prompt2-state-dump
 TEST_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/prompt2-state-dump.c
 TEST_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SOURCES))
 
+UTILS_SOURCE = $(SRC_DIR)/prompt2-utils.c
+UTILS_OBJECT = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(UTILS_SOURCE))
+
 PROMPT2_TARGET = $(BIN_DIR)/prompt2
 PROMPT2_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/prompt2.c
-PROMPT2_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(PROMPT2_SOURCES))
+PROMPT2_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(PROMPT2_SOURCES)) $(UTILS_OBJECT)
 
 .PHONY: all build run install install-local clean test help
 
@@ -46,7 +49,7 @@ install-local: $(PROMPT2_TARGET) $(TEST_TARGET)
 	install -m 755 $(PROMPT2_TARGET) $(TEST_TARGET) $(HOME)/bin
 
 clean:
-	rm -f $(BUILD_DIR)/*.o $(TEST_TARGET)
+	rm -f $(BUILD_DIR)/*.o $(TEST_TARGET) $(PROMPT2_TARGET)
 
 test:
 	bats test

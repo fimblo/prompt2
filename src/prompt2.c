@@ -6,7 +6,6 @@
   - document "on lowercase commands"
 */
 
-#include <ctype.h>
 #include <errno.h>
 #include <git2.h>
 //#include <limits.h>
@@ -24,6 +23,7 @@
 
 
 #include "get-status.h"
+#include "prompt2-utils.h"
 
 #define COMMAND_MAX_LEN        256
 #define WIDGET_MAX_LEN         256
@@ -35,15 +35,6 @@
 #define INI_SECTION_DEFAULT    "default"
 #define INI_SECTION_GENERIC    "generic"
 
-
-void to_lower (char *str) {
-  if (str) {
-    while (*str) {
-      *str = tolower((unsigned char) *str);
-      str++;
-    }
-  }
-}
 
 
 struct CommandMap {
