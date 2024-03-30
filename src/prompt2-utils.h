@@ -38,5 +38,11 @@ int safe_strcat(char *target_string, const char *addition, int max_len);
  */
 int term_width();
 
+/**
+ * Cut off a string at length `max_width`, and replace the last
+ * three characters with '...'
+*/
+void truncate_with_ellipsis(char *str, size_t max_width);
+
 
 #endif //PROMPT2_UTILS_H

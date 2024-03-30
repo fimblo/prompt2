@@ -103,3 +103,14 @@ int term_width() {
   }
   return (int) w.ws_col;
 }
+
+
+/**
+ * Cut off a string at length `max_width`, and replace the last
+ * three characters with '...'
+*/
+void truncate_with_ellipsis(char *str, size_t max_width) {
+  if (str && strlen(str) > max_width) {
+    strcpy(&str[max_width - 3], "...");
+  }
+}

@@ -392,13 +392,6 @@ const char *parse_prompt(const char *unparsed_git_prompt,
 }
 
 
-void truncate_with_ellipsis(char *str, size_t max_width) {
-  if (str && strlen(str) > max_width) {
-    strcpy(&str[max_width - 3], "...");
-  }
-}
-
-
 /**
  * read from config file, save to and return config struct
  */
