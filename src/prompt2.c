@@ -37,75 +37,43 @@
 
 
 
-struct CommandMap {
-  const char *command;      // key
-  const char *replacement;  // value
-  UT_hash_handle hh;        // makes this structure hashable
-} ;
-struct CommandMap *instructions = NULL;
 
-// Function to add entries to the hash table
-void add_command(const char *command, const char *replacement) {
-  struct CommandMap *i = malloc(sizeof(struct CommandMap));
-  if (i == NULL) {
-    printf("HASH INSERT FAIL (malloc) $ ");
-    exit(EXIT_FAILURE);
-  }
-  i->command = command;
-  i->replacement = strdup(replacement);
-  if (i->replacement == NULL) {
-    free(i);
-    printf("HASH INSERT FAIL (null value) $ ");
-    exit(EXIT_FAILURE);
-  }
-  HASH_ADD_KEYPTR(hh, instructions, i->command, strlen(i->command), i);
-}
-
-// Function to find an entry in the hash table
-const char *lookup_command(const char *command) {
-  struct CommandMap *i;
-  char *command_lowercase = strdup(command);
-  to_lower(command_lowercase);
-  HASH_FIND_STR(instructions, command_lowercase, i);
-  return i ? i->replacement : NULL;
-}
-
-void assign_instructions(struct CurrentState *state) {
+void assign_instructions(struct CurrentState *state, struct CommandMap **instructions) {
 
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
-  add_command("repo.is_git_repo", itoa_buf);
+  add_command(instructions, "repo.is_git_repo", itoa_buf);
 
-  add_command("repo.name",                        state->repo_name);
-  add_command("repo.branch_name",                 state->branch_name);
+  add_command(instructions, "repo.name",                        state->repo_name);
+  add_command(instructions, "repo.branch_name",                 state->branch_name);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
-  add_command("repo.rebase_active", itoa_buf);
+  add_command(instructions, "repo.rebase_active", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->conflict_num);
-  add_command("repo.conflicts", itoa_buf);
+  add_command(instructions, "repo.conflicts", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->has_upstream);
-  add_command("repo.has_upstream", itoa_buf);
+  add_command(instructions, "repo.has_upstream", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->ahead_num);
-  add_command("repo.ahead", itoa_buf);
+  add_command(instructions, "repo.ahead", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->behind_num);
-  add_command("repo.behind", itoa_buf);
+  add_command(instructions, "repo.behind", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->staged_num);
-  add_command("repo.staged", itoa_buf);
+  add_command(instructions, "repo.staged", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->modified_num);
-  add_command("repo.modified", itoa_buf);
+  add_command(instructions, "repo.modified", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->untracked_num);
-  add_command("repo.untracked", itoa_buf);
+  add_command(instructions, "repo.untracked", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->aws_token_is_valid);
-  add_command("aws.token_is_valid", itoa_buf);
+  add_command(instructions, "aws.token_is_valid", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_hours);
-  add_command("aws.token_remaining_hours", itoa_buf);
+  add_command(instructions, "aws.token_remaining_hours", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",                state->aws_token_remaining_minutes);
-  add_command("aws.token_remaining_minutes", itoa_buf);
+  add_command(instructions, "aws.token_remaining_minutes", itoa_buf);
 }
 
 
@@ -392,7 +360,9 @@ I have a wip commit which I need to remove later.
  *         instead. The caller is responsible for freeing the returned
  *         string.
  */
-const char *parse_prompt(const char *unparsed_git_prompt, struct WidgetConfig *defaults) {
+const char *parse_prompt(const char *unparsed_git_prompt,
+                         struct CommandMap *instructions,
+                         struct WidgetConfig *defaults) {
   char git_prompt[PROMPT_MAX_LEN] = "";
   const char *ptr = unparsed_git_prompt;
   char command[COMMAND_MAX_LEN];
@@ -409,7 +379,7 @@ const char *parse_prompt(const char *unparsed_git_prompt, struct WidgetConfig *d
       command[command_index] = '\0'; // Null-terminate the command string
 
       // Look up the command and append its value to git_prompt
-      const char *replacement = lookup_command(command);
+      const char *replacement = lookup_command(&instructions, command);
       if (replacement) {
         int is_active = is_widget_active(command, replacement);
         const char *formatted_replacement = format_widget(command, replacement, is_active, defaults);
@@ -550,7 +520,8 @@ int read_config(struct ConfigRoot *config) {
 int main(void) {
   struct CurrentState state;
   struct ConfigRoot config;
-
+  struct CommandMap *instructions = NULL;
+  
   //  Get environment variables and check them for inconsistencies
   const char *plain_prompt   = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
   const char *gp2_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
@@ -578,21 +549,23 @@ int main(void) {
   // Limit branch name string length
   truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
 
+  add_command(&instructions, "key", "value");
+
   /*
     parse_prompt will replace all instruction strings with their
     values - except for the CWD instruction.
   */
-  assign_instructions(&state);
-
+  assign_instructions(&state, &instructions);
+  
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
-  const char *git_prompt = parse_prompt(unparsed_git_prompt, &config.defaults);
+  const char *git_prompt = parse_prompt(unparsed_git_prompt, instructions, &config.defaults);
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
-
+  
   char temp_prompt[PROMPT_MAX_LEN] = "";
   char *tokenized_prompt = strdup(git_prompt);
   char *line = strtok(tokenized_prompt, "\n");
-
+  
   while (line != NULL) {
     if (strstr(line, "@{CWD}")) {
       char* cwd = get_cwd(&state, config.cwd_type);
@@ -603,8 +576,8 @@ int main(void) {
         int max_width = cwd_length - (visible_prompt_length - terminal_width);
         shorten_path(cwd, max_width);
       }
-      add_command("cwd",  cwd); // lowercase
-      line = (char *) parse_prompt(line, &config.defaults); // Re-parse the current line
+      add_command(&instructions, "cwd",  cwd); // lowercase
+      line = (char *) parse_prompt(line, instructions, &config.defaults); // Re-parse the current line
     }
 
     // Append the processed line to temp_prompt
@@ -628,12 +601,7 @@ int main(void) {
   // clean/free memory
   cleanup_resources(&state);
   git_libgit2_shutdown();
-  struct CommandMap *current1, *tmp1;
-  HASH_ITER(hh, instructions, current1, tmp1) {
-    HASH_DEL(instructions, current1);
-    free((char*)current1->replacement);
-    free(current1);
-  }
+
   struct WidgetConfigMap *current2, *tmp2;
   HASH_ITER(hh, configurations, current2, tmp2) {
     HASH_DEL(configurations, current2);
