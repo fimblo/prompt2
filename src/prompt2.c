@@ -37,6 +37,8 @@ struct WidgetConfig {
 // Struct to contain non-widget configuration
 //
 struct ConfigRoot {
+  char *              git_prompt;
+  char *              non_git_prompt;
   char *              cwd_type;
   size_t              branch_max_width;
   struct WidgetConfig defaults;
@@ -117,7 +119,9 @@ int read_ini_config(struct ConfigRoot *config) {
   // Set hard-coded default values
   config->cwd_type = "home";
   config->branch_max_width = (size_t) 40;
-
+  config->git_prompt = "G: \\W $ ";
+  config->non_git_prompt = "\\W $ ";
+  
   // Find INI file either in . or home
   char *config_file_name = ".prompt2_config.ini";
   char config_file_path[PATH_MAX];
@@ -137,7 +141,9 @@ int read_ini_config(struct ConfigRoot *config) {
   if (ini == NULL) goto default_config;
 
   // Set config struct from ini file
-  config->cwd_type = strdup(iniparser_getstring(ini, "GENERIC:cwd_type", config->cwd_type));
+  config->git_prompt     = strdup(iniparser_getstring(ini, "GENERIC:git_prompt",     config->git_prompt));
+  config->non_git_prompt = strdup(iniparser_getstring(ini, "GENERIC:non_git_prompt", config->non_git_prompt));
+  config->cwd_type       = strdup(iniparser_getstring(ini, "GENERIC:cwd_type",       config->cwd_type));
   char bmw_tmp[BRANCH_MAX_WIDTH];
   sprintf(bmw_tmp, "%d", (int) config->branch_max_width);
   config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", bmw_tmp));
@@ -408,27 +414,22 @@ int main(void) {
   struct CurrentState state;
   struct ConfigRoot config;
   struct CommandMap *instructions = NULL;
-  
-  //  Get environment variables and check them for inconsistencies
-  const char *plain_prompt   = getenv("GP2_NON_GIT_PROMPT") ?: "\\W$ ";
-  const char *gp2_git_prompt = getenv("GP2_GIT_PROMPT")     ?: "<@{Repo.name}> @{CWD} $ ";
-
-  if (are_escape_sequences_properly_formed(plain_prompt) != SUCCESS) {
-    printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
-    return ERROR;
-  }
-  if (are_escape_sequences_properly_formed(gp2_git_prompt) != SUCCESS) {
-    printf("MALFORMED GP2_GIT_PROMPT $ ");
-    return ERROR;
-  }
-  // todo: add quality check for gp2 instructions
 
   git_libgit2_init();
   initialise_state(&state);
   read_ini_config(&config);
 
+  if (are_escape_sequences_properly_formed(config.non_git_prompt) != SUCCESS) {
+    printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
+    return ERROR;
+  }
+  if (are_escape_sequences_properly_formed(config.git_prompt) != SUCCESS) {
+    printf("MALFORMED GP2_GIT_PROMPT $ ");
+    return ERROR;
+  }
+  
   if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
-    printf("%s", plain_prompt);
+    printf("%s", config.non_git_prompt);
     return SUCCESS;
   }
   gather_aws_context(&state);
@@ -444,7 +445,7 @@ int main(void) {
   setup_instruction_map(&state, &instructions);
   
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
-  const char * unparsed_git_prompt = replace_literal_newlines(gp2_git_prompt);
+  const char * unparsed_git_prompt = replace_literal_newlines(config.git_prompt);
   const char *git_prompt = parse_prompt(unparsed_git_prompt, instructions, &config.defaults);
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
   
