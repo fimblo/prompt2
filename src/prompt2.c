@@ -436,7 +436,6 @@ int main(void) {
   // Limit branch name string length
   truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
 
-  add_command(&instructions, "key", "value");
 
   /*
     parse_prompt will replace all instruction strings with their
