@@ -1,0 +1,75 @@
+# The two prompts get their values from the environment, in line with
+# how PS1..4 is set up. All other configuration is done in this file.
+#   GP2_NON_GIT_PROMPT
+#   GP2_GIT_PROMPT
+
+
+[GENERIC]
+git_prompt="\
+\[\e[33;2m\]<@{Repo.name}\[\e[33;2m\]><@{Repo.branch_name}\[\e[33;2m\]> \
+\[\e[0m\]b/a(@{Repo.behind},@{Repo.ahead}) \
+s/m/u(@{Repo.staged},@{Repo.modified},@{Repo.untracked}) \
+@{CWD}\n $ "
+non_git_prompt="\[\033[01;32m\]\u@\h\[\033[00m\] \[\033[01;34m\]\W\[\033[00m\] $ "
+
+# cwd_type
+#   How to print the current working directory
+#     basename: just the directory name
+#     full: The full path from root
+#     home: The path from HOME
+#     git: The path from the git repo root
+cwd_type="home"
+
+# branch_max_width
+#   How much space the git branch may occupy in the prompt
+branch_max_width="30"
+
+[DEFAULT]
+string_active="%s"
+string_inactive="%s"
+colour_on=""
+colour_off="\[\e[1;30m\]"
+
+[CWD]
+#colour_on="\[\e[34m\]"
+colour_on="\[\e[38;2;171;130;255m\]"
+
+[Repo.name]
+string_inactive="-"
+colour_on="\[\e[36;22m\]"
+#colour_on="\[\e[38;2;255;130;171m\]"
+colour_off="\[\e[36;2m\]"
+
+[Repo.branch_name]
+string_inactive="-"
+colour_on="\[\e[36;22m\]"
+colour_off="\[\e[36;2m\]"
+
+[Repo.staged]
+colour_on="\[\e[35m\]"
+
+
+[Repo.modified]
+colour_on="\[\e[35m\]"
+
+[Repo.untracked]
+colour_on="\[\e[35m\]"
+
+[Repo.ahead]
+colour_on="\[\e[35m\]"
+
+[Repo.behind]
+colour_on="\[\e[35m\]"
+
+[Repo.rebase_active]
+string_active="<interactive rebase>"
+colour_on="\[\e[35m\]"
+colour_off=""
+
+[Repo.conflicts]
+string_active="<conflicts: %s>"
+colour_on="\[\e[35m\]"
+colour_off=""
+
+
+
