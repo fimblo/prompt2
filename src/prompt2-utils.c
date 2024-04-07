@@ -13,52 +13,46 @@
 #include "prompt2-utils.h"
 
 
-enum generic_return_values {
-  SUCCESS =  0,
-  FAILURE =  1,
-  ERROR   = -1,
-};
-
 /* ========================================================
-    Resources for manipulating the command hash table
+    Resources for manipulating hash tables
    ======================================================== */
 
 
 // Function to add entries to the hash table
-void add_command(struct CommandMap **instructions,
-                 const char *command,
-                 const char *replacement) {
-  struct CommandMap *i = malloc(sizeof(struct CommandMap));
+void text_hash_add(struct TextHashMap **hash_map,
+                 const char *key,
+                 const char *value) {
+  struct TextHashMap *i = malloc(sizeof(struct TextHashMap));
   if (i == NULL) {
     printf("HASH INSERT FAIL (malloc) $ ");
     exit(EXIT_FAILURE);
   }
-  i->command = command;
-  i->replacement = strdup(replacement);
-  if (i->replacement == NULL) {
+  i->key = key;
+  i->value = strdup(value);
+  if (i->value == NULL) {
     free(i);
     printf("HASH INSERT FAIL (null value) $ ");
     exit(EXIT_FAILURE);
   }
-  HASH_ADD_KEYPTR(hh, *instructions, i->command, strlen(i->command), i);
+  HASH_ADD_KEYPTR(hh, *hash_map, i->key, strlen(i->key), i);
 }
 
 // Function to find an entry in the hash table
-const char *lookup_command(struct CommandMap **instructions,
-                           const char *command) {
-  struct CommandMap *i;
-  char *command_lowercase = strdup(command);
-  to_lower(command_lowercase);
-  HASH_FIND_STR(*instructions, command_lowercase, i);
-  return i ? i->replacement : NULL;
+const char *text_hash_lookup(struct TextHashMap **hash_map,
+                        const char *key) {
+  struct TextHashMap *i;
+  char *key_lowercase = strdup(key);
+  to_lower(key_lowercase);
+  HASH_FIND_STR(*hash_map, key_lowercase, i);
+  return i ? i->value : NULL;
 }
 
-void free_instructions(struct CommandMap **instructions) {
-  struct CommandMap *current1, *tmp1;
-  HASH_ITER(hh, *instructions, current1, tmp1) {
-    HASH_DEL(*instructions, current1);
-    free((char*)current1->replacement);
-    free(current1);
+void free_instructions(struct TextHashMap **hash_map) {
+  struct TextHashMap *current, *tmp1;
+  HASH_ITER(hh, *hash_map, current, tmp1) {
+    HASH_DEL(*hash_map, current);
+    free((char*)current->value);
+    free(current);
   }
 }
 

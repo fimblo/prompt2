@@ -176,42 +176,42 @@ int read_ini_config(struct ConfigRoot *config) {
 }
 
 
-void setup_instruction_map(struct CurrentState *state, struct CommandMap **instructions) {
+void setup_instruction_map(struct CurrentState *state, struct TextHashMap **instructions) {
 
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
-  add_command(instructions, "repo.is_git_repo",   itoa_buf);
+  text_hash_add(instructions, "repo.is_git_repo",   itoa_buf);
 
-  add_command(instructions, "repo.name",          state->repo_name);
-  add_command(instructions, "repo.branch_name",   state->branch_name);
+  text_hash_add(instructions, "repo.name",          state->repo_name);
+  text_hash_add(instructions, "repo.branch_name",   state->branch_name);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
-  add_command(instructions, "repo.rebase_active", itoa_buf);
+  text_hash_add(instructions, "repo.rebase_active", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->conflict_num);
-  add_command(instructions, "repo.conflicts",     itoa_buf);
+  text_hash_add(instructions, "repo.conflicts",     itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->has_upstream);
-  add_command(instructions, "repo.has_upstream",  itoa_buf);
+  text_hash_add(instructions, "repo.has_upstream",  itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->ahead_num);
-  add_command(instructions, "repo.ahead",         itoa_buf);
+  text_hash_add(instructions, "repo.ahead",         itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->behind_num);
-  add_command(instructions, "repo.behind",        itoa_buf);
+  text_hash_add(instructions, "repo.behind",        itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->staged_num);
-  add_command(instructions, "repo.staged",        itoa_buf);
+  text_hash_add(instructions, "repo.staged",        itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->modified_num);
-  add_command(instructions, "repo.modified",      itoa_buf);
+  text_hash_add(instructions, "repo.modified",      itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->untracked_num);
-  add_command(instructions, "repo.untracked",     itoa_buf);
+  text_hash_add(instructions, "repo.untracked",     itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->aws_token_is_valid);
-  add_command(instructions, "aws.token_is_valid", itoa_buf);
+  text_hash_add(instructions, "aws.token_is_valid", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",               state->aws_token_remaining_hours);
-  add_command(instructions, "aws.token_remaining_hours",   itoa_buf);
+  text_hash_add(instructions, "aws.token_remaining_hours",   itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",               state->aws_token_remaining_minutes);
-  add_command(instructions, "aws.token_remaining_minutes", itoa_buf);
+  text_hash_add(instructions, "aws.token_remaining_minutes", itoa_buf);
 }
 
 
@@ -326,16 +326,7 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   // Format the value
   char widget[WIDGET_MAX_LEN];
   const char *format_string = is_active ? wc->string_active : wc->string_inactive;
-  snprintf(widget, sizeof(widget), format_string, value);
-
-  // Wrap resulting string in colours (if needed)
-  const char *colour_string = is_active ? wc->colour_on : wc->colour_off;
-  const char *reset_term_colours = "";
-
-  if (strstr(colour_string, "\\[\\033[") != NULL || strstr(colour_string, "\\[\\e[") != NULL) {
-    reset_term_colours = "\\[\\033[0m\\]";
-  }
-  snprintf(widget, sizeof(widget), "%s%s%s", colour_string, value, reset_term_colours);
+  snprintf(widget, sizeof(widget), format_string, value);const alue, reset_term_colours);
  
   return strdup(widget);
 }
@@ -363,7 +354,7 @@ const char *format_widget(const char *name, const char *value, int is_active, st
  *         string.
  */
 const char *parse_prompt(const char *unparsed_git_prompt,
-                         struct CommandMap *instructions,
+                         struct TextHashMap *instructions,
                          struct WidgetConfig *defaults) {
   char git_prompt[PROMPT_MAX_LEN] = "";
   const char *ptr = unparsed_git_prompt;
@@ -381,7 +372,7 @@ const char *parse_prompt(const char *unparsed_git_prompt,
       command[command_index] = '\0'; // Null-terminate the command string
 
       // Look up the command and append its value to git_prompt
-      const char *replacement = lookup_command(&instructions, command);
+      const char *replacement = text_hash_lookup(&instructions, command);
       if (replacement) {
         int is_active = is_widget_active(command, replacement);
         const char *formatted_replacement = format_widget(command, replacement, is_active, defaults);
@@ -413,7 +404,7 @@ const char *parse_prompt(const char *unparsed_git_prompt,
 int main(void) {
   struct CurrentState state;
   struct ConfigRoot config;
-  struct CommandMap *instructions = NULL;
+  struct TextHashMap *instructions = NULL;
 
   git_libgit2_init();
   initialise_state(&state);
@@ -463,7 +454,7 @@ int main(void) {
         int max_width = cwd_length - (visible_prompt_length - terminal_width);
         shorten_path(cwd, max_width);
       }
-      add_command(&instructions, "cwd",  cwd); // lowercase
+      text_hash_add(&instructions, "cwd",  cwd); // lowercase
       line = (char *) parse_prompt(line, instructions, &config.defaults); // Re-parse the current line
     }
 
