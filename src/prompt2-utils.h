@@ -10,31 +10,15 @@ enum generic_return_values {
 };
 
 
-/* ========================================================
-    Resources for manipulating hash tables
-   ======================================================== */
-
-struct TextHashMap {
-  const char *key;      // key
-  const char *value;  // value
-  UT_hash_handle hh;        // makes this structure hashable
-} ;
-void text_hash_add(struct TextHashMap **instructions,
-                 const char *command,
-                 const char *replacement);
-const char *text_hash_lookup(struct TextHashMap **instructions,
-                           const char *command);
-void free_instructions(struct TextHashMap **instructions);
-
 
 /* ========================================================
     Resources for manipulating the command hash table
    ======================================================== */
 
 /**
- * Make the string `str` lowercase
+ * Return lowercase version of const char *str
 */
-void to_lower (char *str);
+char *to_lower (const char *str);
 
 
 /**

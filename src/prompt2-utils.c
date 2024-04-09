@@ -13,48 +13,12 @@
 #include "prompt2-utils.h"
 
 
-/* ========================================================
-    Resources for manipulating hash tables
-   ======================================================== */
+enum generic_return_values {
+  SUCCESS =  0,
+  FAILURE =  1,
+  ERROR   = -1,
+};
 
-
-// Function to add entries to the hash table
-void text_hash_add(struct TextHashMap **hash_map,
-                 const char *key,
-                 const char *value) {
-  struct TextHashMap *i = malloc(sizeof(struct TextHashMap));
-  if (i == NULL) {
-    printf("HASH INSERT FAIL (malloc) $ ");
-    exit(EXIT_FAILURE);
-  }
-  i->key = key;
-  i->value = strdup(value);
-  if (i->value == NULL) {
-    free(i);
-    printf("HASH INSERT FAIL (null value) $ ");
-    exit(EXIT_FAILURE);
-  }
-  HASH_ADD_KEYPTR(hh, *hash_map, i->key, strlen(i->key), i);
-}
-
-// Function to find an entry in the hash table
-const char *text_hash_lookup(struct TextHashMap **hash_map,
-                        const char *key) {
-  struct TextHashMap *i;
-  char *key_lowercase = strdup(key);
-  to_lower(key_lowercase);
-  HASH_FIND_STR(*hash_map, key_lowercase, i);
-  return i ? i->value : NULL;
-}
-
-void free_instructions(struct TextHashMap **hash_map) {
-  struct TextHashMap *current, *tmp1;
-  HASH_ITER(hh, *hash_map, current, tmp1) {
-    HASH_DEL(*hash_map, current);
-    free((char*)current->value);
-    free(current);
-  }
-}
 
 /* ========================================================
     Resources for manipulating strings
@@ -64,13 +28,19 @@ void free_instructions(struct TextHashMap **hash_map) {
 /**
  * make str lowercase
 */
-void to_lower (char *str) {
-  if (str) {
-    while (*str) {
-      *str = tolower((unsigned char) *str);
-      str++;
+char * to_lower (const char *str) {
+  if (str == NULL) return NULL;
+
+  char * lc = strdup(str);
+  if (lc) {
+    char *orig_lc = lc;
+    while (*lc) {
+      *lc = tolower((unsigned char) *lc);
+      lc++;
     }
+    lc = orig_lc;
   }
+  return lc;
 }
 
 
