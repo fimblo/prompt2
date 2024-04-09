@@ -22,10 +22,8 @@
 #define DICTIONARY_MAX_SIZE    64
 #define WIDGET_MAX_LEN         256
 #define INI_SECTION_MAX_SIZE   64
-#define ITOA_BUFFER_SIZE       8
 #define DEFAULT_TERMINAL_WIDTH 80
 #define BRANCH_MAX_WIDTH       128
-#define PATH_MAX               4096
 #define INI_SECTION_DEFAULT    "default"
 #define INI_SECTION_GENERIC    "generic"
 

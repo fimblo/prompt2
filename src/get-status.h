@@ -6,16 +6,6 @@
 #include <git2.h>
 
 
-/*
-  The prompt can be 4 * PATH_MAX (4 * 4096)
-
-  This should be enough for many multi-line prompts with an absurd number of
-  many escape characters
-*/
-#define PROMPT_MAX_LEN 16384
-
-
-
 enum aws_related_return_values {
   SUCCESS_HAS_AWS_CONFIG    = 0,
   FAILURE_HAS_NO_AWS_CONFIG = 1,
