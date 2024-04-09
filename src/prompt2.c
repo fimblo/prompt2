@@ -124,7 +124,7 @@ int read_ini_config(struct ConfigRoot *config) {
   config->branch_max_width = (size_t) 40;
   config->git_prompt = "G: \\W $ ";
   config->non_git_prompt = "\\W $ ";
-  
+
   // Find INI file either in . or home
   char *config_file_name = ".prompt2_config.ini";
   char config_file_path[PATH_MAX];
@@ -154,7 +154,7 @@ int read_ini_config(struct ConfigRoot *config) {
   // Set widget defaults
   populate_widget_from_config(ini, INI_SECTION_DEFAULT, &config->defaults, NULL);
 
-  // Read each ini section  
+  // Read each ini section
   for (int i = 0; i < iniparser_getnsec(ini); i++) {
     const char * section = iniparser_getsecname(ini, i);
     if (strcmp(section, INI_SECTION_DEFAULT) == 0) continue;
@@ -170,12 +170,12 @@ int read_ini_config(struct ConfigRoot *config) {
   return SUCCESS;
 
   // If there is no config file, just go with these plain defaults
-  default_config:
-    config->defaults.string_active   = "%s";
-    config->defaults.string_inactive = "%s";
-    config->defaults.colour_on       = "";
-    config->defaults.colour_off      = "";
-    return ERROR;
+ default_config:
+  config->defaults.string_active   = "%s";
+  config->defaults.string_inactive = "%s";
+  config->defaults.colour_on       = "";
+  config->defaults.colour_off      = "";
+  return ERROR;
 }
 
 
@@ -186,8 +186,8 @@ void setup_instruction_map(struct CurrentState *state, dictionary *instr) {
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
   dictionary_set(instr, "repo.is_git_repo",   itoa_buf);
 
-  dictionary_set(instr, "repo.name",          state->repo_name);
-  dictionary_set(instr, "repo.branch_name",   state->branch_name);
+  dictionary_set(instr, "repo.name",              state->repo_name);
+  dictionary_set(instr, "repo.branch_name",       state->branch_name);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
   dictionary_set(instr, "repo.rebase_active", itoa_buf);
@@ -221,7 +221,7 @@ void setup_instruction_map(struct CurrentState *state, dictionary *instr) {
 // return 0 if false, 1 if true
 int is_widget_active(const char * name, const char *value) {
   char * name_lowercase = to_lower(name);
-  
+
   /*
     Widgets can be active or inactive.
 
@@ -231,14 +231,14 @@ int is_widget_active(const char * name, const char *value) {
 
     TYPE_STRING widgets are inactive if value is the empty string.
     TYPE_TOGGLE widgets are inactive if value is "0" (not int. string)
-    
+
     The third type of widget are special cases and are treated
     specially.
 
     For example, the widget 'Repo.is_git_repo' is active when the user
     is standing in a directory which is a git repo (not "0"), and
     inactive otherwise ("0").
-    
+
     | WIDGET                         | inactive     | active      |
     | ------------------------------ | ------------ | ----------- |
     | `cwd.full`                     | empty string | string      |
@@ -326,8 +326,17 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   // Format the value
   char widget[WIDGET_MAX_LEN];
   const char *format_string = is_active ? wc->string_active : wc->string_inactive;
-  snprintf(widget, sizeof(widget), format_string, value);const alue, reset_term_colours);
- 
+  snprintf(widget, sizeof(widget), format_string, value);
+
+  // Wrap resulting string in colours (if needed)
+  const char *colour_string = is_active ? wc->colour_on : wc->colour_off;
+  const char *reset_term_colours = "";
+
+  if (strstr(colour_string, "\\[\\033[") != NULL || strstr(colour_string, "\\[\\e[") != NULL) {
+    reset_term_colours = "\\[\\033[0m\\]";
+  }
+  snprintf(widget, sizeof(widget), "%s%s%s", colour_string, value, reset_term_colours);
+
   return strdup(widget);
 }
 
@@ -419,7 +428,7 @@ int main(void) {
     printf("MALFORMED GP2_GIT_PROMPT $ ");
     return ERROR;
   }
-  
+
   if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
     printf("%s", config.non_git_prompt);
     return SUCCESS;
@@ -429,27 +438,21 @@ int main(void) {
   // Limit branch name string length
   truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
 
-/*
+  /*
     parse_prompt will replace all instruction strings with their
     values - except for the CWD instruction.
-*/
- setup_instruction_map(&state, instr);
-
-
-
-// There is something wrong with the colouring. 
-
-
+  */
+  setup_instruction_map(&state, instr);
 
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(config.git_prompt);
   const char *git_prompt = parse_prompt(unparsed_git_prompt, instr, &config.defaults);
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
-  
+
   char temp_prompt[PROMPT_MAX_LEN] = "";
   char *tokenized_prompt = strdup(git_prompt);
   char *line = strtok(tokenized_prompt, "\n");
-  
+
   while (line != NULL) {
     if (strstr(line, "@{CWD}")) {
       char* cwd = get_cwd(&state, config.cwd_type);

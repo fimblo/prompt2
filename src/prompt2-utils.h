@@ -12,12 +12,12 @@ enum generic_return_values {
 
 
 /* ========================================================
-    Resources for manipulating the command hash table
+   Resources for manipulating the command hash table
    ======================================================== */
 
 /**
  * Return lowercase version of const char *str
-*/
+ */
 char *to_lower (const char *str);
 
 
@@ -32,7 +32,7 @@ int safe_strcat(char *target_string, const char *addition, int max_len);
 /**
  * Cut off a string at length `max_width`, and replace the last
  * three characters with '...'
-*/
+ */
 void truncate_with_ellipsis(char *str, size_t max_width);
 
 
@@ -48,7 +48,7 @@ char* replace_literal_newlines(const char* input);
 
 
 /* ========================================================
-    Resources for manipulating strings
+   Resources for manipulating strings
    ======================================================== */
 
 /**
