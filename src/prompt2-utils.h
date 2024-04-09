@@ -4,31 +4,15 @@
 #include <uthash.h>
 
 
-/* ========================================================
-    Resources for manipulating the command hash table
-   ======================================================== */
-
-struct CommandMap {
-  const char *command;      // key
-  const char *replacement;  // value
-  UT_hash_handle hh;        // makes this structure hashable
-} ;
-void add_command(struct CommandMap **instructions,
-                 const char *command,
-                 const char *replacement);
-const char *lookup_command(struct CommandMap **instructions,
-                           const char *command);
-void free_instructions(struct CommandMap **instructions);
-
 
 /* ========================================================
     Resources for manipulating the command hash table
    ======================================================== */
 
 /**
- * Make the string `str` lowercase
+ * Return lowercase version of const char *str
 */
-void to_lower (char *str);
+char *to_lower (const char *str);
 
 
 /**
