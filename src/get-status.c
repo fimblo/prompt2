@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "constants.h"
 #include "get-status.h"
 
 /* ================================================== */

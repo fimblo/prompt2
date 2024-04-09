@@ -15,11 +15,6 @@
 #define PROMPT_MAX_LEN 16384
 
 
-enum generic_return_values {
-  SUCCESS =  0,
-  FAILURE =  1,
-  ERROR   = -1,
-};
 
 enum aws_related_return_values {
   SUCCESS_HAS_AWS_CONFIG    = 0,

@@ -11,14 +11,9 @@
 #include <unistd.h>
 #include <uthash.h>
 
+#include "constants.h"
 #include "prompt2-utils.h"
 
-
-enum generic_return_values {
-  SUCCESS =  0,
-  FAILURE =  1,
-  ERROR   = -1,
-};
 
 
 /* ========================================================
