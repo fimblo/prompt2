@@ -1,9 +1,9 @@
 #include <git2.h>
 #include <stdio.h>
 
+#include "constants.h"
 #include "get-status.h"
 
-//int main(int argc, char *argv[]) {
 int main(void) {
   struct CurrentState state;
 
@@ -41,5 +41,5 @@ int main(void) {
 
   cleanup_resources(&state);
   git_libgit2_shutdown();
-  return 0;
+  return SUCCESS; // enforce happy ending
 }
