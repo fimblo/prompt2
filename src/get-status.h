@@ -111,7 +111,7 @@ const char *get_cwd_from_home(struct CurrentState *state);
 
 /**
  * CWD selector
-*/
+ */
 char * get_cwd(struct CurrentState *state, const char *cwd_type);
 
 

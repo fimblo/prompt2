@@ -1,3 +1,4 @@
+
 #ifdef __linux__
 #define _XOPEN_SOURCE
 #define _POSIX_C_SOURCE 200809L
@@ -21,13 +22,13 @@ enum generic_return_values {
 
 
 /* ========================================================
-    Resources for manipulating strings
+   Resources for manipulating strings
    ======================================================== */
 
 
 /**
  * make str lowercase
-*/
+ */
 char * to_lower (const char *str) {
   if (str == NULL) return NULL;
 
@@ -61,7 +62,7 @@ int safe_strcat(char *target_string, const char *addition, int max_len) {
 /**
  * Cut off a string at length `max_width`, and replace the last
  * three characters with '...'
-*/
+ */
 void truncate_with_ellipsis(char *str, size_t max_width) {
   if (str && strlen(str) > max_width) {
     strcpy(&str[max_width - 3], "...");
@@ -102,7 +103,7 @@ char* replace_literal_newlines(const char* input) {
 }
 
 /* ========================================================
-    Other resources
+   Other resources
    ======================================================== */
 
 
