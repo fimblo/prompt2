@@ -14,7 +14,6 @@
 
 #include <errno.h>
 #include <git2.h>
-//#include <limits.h>
 #include <stdio.h>
 #include <uthash.h>
 #ifdef __unix__
@@ -96,7 +95,10 @@ struct WidgetConfigMap {
 struct WidgetConfigMap *configurations = NULL;
 
 
-void print_debug_widget_config(struct WidgetConfig wc) {
+/**
+ * helper function for debugging
+*/
+void __print_debug_widget_config(struct WidgetConfig wc) {
   char * reset = "\\[\\033[0m\\]";
   printf("string_active: '%s'\n", wc.string_active);
   printf("string_inactive: '%s'\n", wc.string_inactive);
