@@ -14,6 +14,7 @@
 #endif
 
 
+#include "constants.h"
 #include "get-status.h"
 #include "prompt2-utils.h"
 
