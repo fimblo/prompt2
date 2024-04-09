@@ -112,7 +112,7 @@ int term_width() {
   struct winsize w;
   if (ioctl(STDERR_FILENO, TIOCGWINSZ, &w) == -1) {
     perror("ioctl error");
-    return -1;
+    return 0;
   }
   return (int) w.ws_col;
 }
