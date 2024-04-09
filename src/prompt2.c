@@ -1,3 +1,17 @@
+/*
+ * prompt2
+ *
+ * Generate a dynamic shell prompt based on environment context
+ *
+ * This program reads configuration from an INI file and uses the
+ * current state of the environment to construct a shell prompt. It
+ * supports various widgets that can be customized through the INI
+ * file, such as displaying the current git branch, repository status,
+ * and AWS token validity. The prompt is dynamically adjusted based on
+ * the terminal width and can handle escape sequences for color and
+ * formatting.
+ */
+
 #include <errno.h>
 #include <git2.h>
 //#include <limits.h>
@@ -13,22 +27,46 @@
 #error "Unknown or unsupported OS"
 #endif
 
-
 #include "constants.h"
 #include "get-status.h"
 #include "prompt2-utils.h"
 
+/**
+   Max length of a command in the config file variable `git_prompt`
+*/
 #define COMMAND_MAX_LEN        256
-#define DICTIONARY_MAX_SIZE    64
+
+/**
+   Max length in characters of a widget in the resulting prompt
+*/
 #define WIDGET_MAX_LEN         256
-#define INI_SECTION_MAX_SIZE   64
+
+/**
+   Width of terminal if I can't get it from ioctl
+*/
 #define DEFAULT_TERMINAL_WIDTH 80
+
+/**
+   Default length of a git branch to show
+*/
 #define BRANCH_MAX_WIDTH       128
+
+/**
+   Max number of commands I support
+*/
+#define DICTIONARY_MAX_SIZE    64
+
+/**
+   Max length of a section in an ini file
+*/
+#define INI_SECTION_MAX_SIZE   64
 #define INI_SECTION_DEFAULT    "default"
 #define INI_SECTION_GENERIC    "generic"
 
 
-// struct to contain configuration for a widget
+/**
+   Struct to contain configuration for a widget
+*/
 struct WidgetConfig {
   char *string_active;
   char *string_inactive;
@@ -36,8 +74,9 @@ struct WidgetConfig {
   char *colour_off;
 };
 
-// Struct to contain non-widget configuration
-//
+/**
+   Struct to contain non-widget configuration
+*/
 struct ConfigRoot {
   char *              git_prompt;
   char *              non_git_prompt;
@@ -46,7 +85,9 @@ struct ConfigRoot {
   struct WidgetConfig defaults;
 };
 
-// struct to store all widget configes (except default)
+/**
+   Struct to store all widget configes (except default)
+*/
 struct WidgetConfigMap {
   char                *name;
   struct WidgetConfig  config;
