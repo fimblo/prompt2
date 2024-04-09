@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
+  push:
+    branches:
+      - '*'
+      
 jobs:
   build-and-test:
     name: build and test
