@@ -1,4 +1,8 @@
 #!/usr/bin/env perl
+#
+# This script visualises colour names alongside their RGB values in
+# the terminal.
+
 use FindBin;
 use strict;
 use warnings;
