@@ -3,12 +3,6 @@
 
 #include <uthash.h>
 
-enum generic_return_values {
-  SUCCESS =  0,
-  FAILURE =  1,
-  ERROR   = -1,
-};
-
 
 
 /* ========================================================
