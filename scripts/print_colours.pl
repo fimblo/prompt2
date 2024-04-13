@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 my $script_dir = $FindBin::Bin;
-my $rgb_file = "$script_dir/rgb.txt";
+my $rgb_file = "$script_dir/../etc/rgb.txt";
 
 open(my $fh, '<', $rgb_file) or die "Cannot open $rgb_file: $!";
 

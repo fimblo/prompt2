@@ -61,5 +61,5 @@ If you like what you see, you can add it to your =.bashrc= (after updating the p
 
 This project includes the =external/rgb.txt= file from Xorg, which is
 licensed under the MIT License. The original license text for this
-file can be found in the =external/LICENSE_rgb.txt= file in this
+file can be found in the =etc/LICENSE_rgb.txt= file in this
 repository.
