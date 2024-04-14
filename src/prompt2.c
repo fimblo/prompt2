@@ -189,7 +189,7 @@ void create_widget(dictionary *ini,
 int read_ini_config(struct ConfigRoot *config) {
   // Set hard-coded default values
   config->cwd_type = "home";
-  config->branch_max_width = (size_t) 40;
+  config->branch_max_width = (size_t) BRANCH_MAX_WIDTH;
   config->git_prompt = "G: \\W $ ";
   config->non_git_prompt = "\\W $ ";
 
@@ -215,7 +215,7 @@ int read_ini_config(struct ConfigRoot *config) {
   config->git_prompt     = strdup(iniparser_getstring(ini, "GENERIC:git_prompt",     config->git_prompt));
   config->non_git_prompt = strdup(iniparser_getstring(ini, "GENERIC:non_git_prompt", config->non_git_prompt));
   config->cwd_type       = strdup(iniparser_getstring(ini, "GENERIC:cwd_type",       config->cwd_type));
-  char bmw_tmp[BRANCH_MAX_WIDTH];
+  char bmw_tmp[SHORT_STRING];
   sprintf(bmw_tmp, "%d", (int) config->branch_max_width);
   config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", bmw_tmp));
 

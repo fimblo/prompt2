@@ -38,5 +38,9 @@ enum generic_return_values {
  */
 #define PATH_MAX               4096
 
+/**
+ * The maximum length of a short string
+*/
+#define SHORT_STRING           16
 
 #endif // ENUM_H
