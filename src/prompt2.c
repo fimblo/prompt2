@@ -258,48 +258,48 @@ int handle_configuration(struct ConfigRoot *config) {
 /**
  * Map widget tokens with specific environment state
 */
-void map_widget_token_to_state(dictionary *instr, struct CurrentState *state) {
+void map_wtoken_to_state(dictionary *dict, struct CurrentState *state) {
 
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
-  dictionary_set(instr, "repo.is_git_repo",   itoa_buf);
+  dictionary_set(dict, "repo.is_git_repo",   itoa_buf);
 
-  dictionary_set(instr, "repo.name",              state->repo_name);
-  dictionary_set(instr, "repo.branch_name",       state->branch_name);
+  dictionary_set(dict, "repo.name",              state->repo_name);
+  dictionary_set(dict, "repo.branch_name",       state->branch_name);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_rebase_in_progress);
-  dictionary_set(instr, "repo.rebase_active", itoa_buf);
+  dictionary_set(dict, "repo.rebase_active", itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->conflict_num);
-  dictionary_set(instr, "repo.conflicts",     itoa_buf);
+  dictionary_set(dict, "repo.conflicts",     itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->has_upstream);
-  dictionary_set(instr, "repo.has_upstream",  itoa_buf);
+  dictionary_set(dict, "repo.has_upstream",  itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->ahead_num);
-  dictionary_set(instr, "repo.ahead",         itoa_buf);
+  dictionary_set(dict, "repo.ahead",         itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->behind_num);
-  dictionary_set(instr, "repo.behind",        itoa_buf);
+  dictionary_set(dict, "repo.behind",        itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->staged_num);
-  dictionary_set(instr, "repo.staged",        itoa_buf);
+  dictionary_set(dict, "repo.staged",        itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->modified_num);
-  dictionary_set(instr, "repo.modified",      itoa_buf);
+  dictionary_set(dict, "repo.modified",      itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->untracked_num);
-  dictionary_set(instr, "repo.untracked",     itoa_buf);
+  dictionary_set(dict, "repo.untracked",     itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->aws_token_is_valid);
-  dictionary_set(instr, "aws.token_is_valid", itoa_buf);
+  dictionary_set(dict, "aws.token_is_valid", itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",               state->aws_token_remaining_hours);
-  dictionary_set(instr, "aws.token_remaining_hours",   itoa_buf);
+  dictionary_set(dict, "aws.token_remaining_hours",   itoa_buf);
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",               state->aws_token_remaining_minutes);
-  dictionary_set(instr, "aws.token_remaining_minutes", itoa_buf);
+  dictionary_set(dict, "aws.token_remaining_minutes", itoa_buf);
 }
 
 
 // return 0 if false, 1 if true
-int is_widget_active(const char * name, const char *value) {
-  char * name_lowercase = to_lower(name);
+int is_widget_active(const char * wtoken, const char *value) {
+  char * wtoken_lc = to_lower(wtoken);
 
   /*
     Widgets can be active or inactive.
@@ -350,7 +350,7 @@ int is_widget_active(const char * name, const char *value) {
   } WidgetType;
 
   struct WidgetTypeTable {
-    const char *name;
+    const char *wtoken;
     WidgetType type;
   };
 
@@ -375,7 +375,7 @@ int is_widget_active(const char * name, const char *value) {
 
   int type = TYPE_UNKNOWN;
   for (size_t i = 0; i < sizeof(widget_type_table) / sizeof(widget_type_table[0]); i++) {
-    if (strcmp(name_lowercase, widget_type_table[i].name) == 0) {
+    if (strcmp(wtoken_lc, widget_type_table[i].wtoken) == 0) {
       type = widget_type_table[i].type;
       break;
     }
@@ -387,10 +387,10 @@ int is_widget_active(const char * name, const char *value) {
   int is_active = 0;
   if (type == TYPE_STRING && value[0] != '\0') is_active = 1;
   else if (type == TYPE_TOGGLE && strcmp(value, "0") != 0) is_active = 1;
-  else if (strcmp(name_lowercase, "aws.token_remaining_hours") == 0) {
+  else if (strcmp(wtoken_lc, "aws.token_remaining_hours") == 0) {
     if (atoi(value) <= 0) is_active = 1;
   }
-  else if (strcmp(name_lowercase, "aws.token_remaining_minutes") == 0) {
+  else if (strcmp(wtoken_lc, "aws.token_remaining_minutes") == 0) {
     if (atoi(value) <= 10) is_active = 1;
   }
   return is_active;
@@ -440,39 +440,39 @@ const char *format_widget(const char *name, const char *value, int is_active, st
  *         string.
  */
 const char *parse_prompt(const char *unparsed_git_prompt,
-                         dictionary *instr,
+                         dictionary *wtoken_state_map,
                          struct WidgetConfig *defaults) {
   char git_prompt[PROMPT_MAX_LEN] = "";
   const char *ptr = unparsed_git_prompt;
-  char w_token[WIDGET_TOKEN_MAX_LEN];
+  char wtoken[WIDGET_TOKEN_MAX_LEN];
   int index = 0;
-  int inside_w_token = 0;
+  int inside_wtoken = 0;
 
   while (*ptr) {
     if (*ptr == '@' && *(ptr + 1) == '{') {
-      inside_w_token = 1;
+      inside_wtoken = 1;
       index = 0;
       ptr += 2; // Skip past the '@{'
-    } else if (*ptr == '}' && inside_w_token) {
-      inside_w_token = 0;
-      w_token[index] = '\0'; // Null-terminate the widget token
+    } else if (*ptr == '}' && inside_wtoken) {
+      inside_wtoken = 0;
+      wtoken[index] = '\0'; // Null-terminate the widget token
 
       // Look up the widget token and append its value to git_prompt
-      const char *replacement = dictionary_get(instr, (const char *) to_lower(w_token), NULL);
+      const char *replacement = dictionary_get(wtoken_state_map, (const char *) to_lower(wtoken), NULL);
       if (replacement) {
-        int is_active = is_widget_active(w_token, replacement);
-        const char *formatted_replacement = format_widget(w_token, replacement, is_active, defaults);
+        int is_active = is_widget_active(wtoken, replacement);
+        const char *formatted_replacement = format_widget(wtoken, replacement, is_active, defaults);
         if(safe_strcat(git_prompt, formatted_replacement, PROMPT_MAX_LEN) == FAILURE) { goto error; }
       } else {
         // Token not found: put the widget token back, as is
         if(safe_strcat(git_prompt, "@{", PROMPT_MAX_LEN) == FAILURE) { goto error; }
-        if(safe_strcat(git_prompt, w_token, PROMPT_MAX_LEN) == FAILURE) { goto error; }
+        if(safe_strcat(git_prompt, wtoken, PROMPT_MAX_LEN) == FAILURE) { goto error; }
         if(safe_strcat(git_prompt, "}", PROMPT_MAX_LEN) == FAILURE) { goto error; }
       }
       ptr++; // Move past the '}'
-    } else if (inside_w_token) {
+    } else if (inside_wtoken) {
       // We are inside a widget token, accumulate characters
-      w_token[index++] = *ptr++;
+      wtoken[index++] = *ptr++;
     } else {
       // We are outside a widget token, copy character directly to git_prompt
       char str[2] = {*ptr++, '\0'};
@@ -490,7 +490,7 @@ const char *parse_prompt(const char *unparsed_git_prompt,
 int main(void) {
   struct CurrentState state;
   struct ConfigRoot config;
-  dictionary *instr = dictionary_new(DICTIONARY_MAX_SIZE);
+  dictionary *wtoken_state_map = dictionary_new(DICTIONARY_MAX_SIZE);
 
 
   git_libgit2_init();
@@ -516,11 +516,11 @@ int main(void) {
   truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
 
   // Connect states to widgets
-  map_widget_token_to_state(instr, &state);
+  map_wtoken_to_state(wtoken_state_map, &state);
 
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(config.git_prompt);
-  const char *git_prompt = parse_prompt(unparsed_git_prompt, instr, &config.defaults);
+  const char *git_prompt = parse_prompt(unparsed_git_prompt, wtoken_state_map, &config.defaults);
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
 
   char temp_prompt[PROMPT_MAX_LEN] = "";
@@ -537,8 +537,8 @@ int main(void) {
         int max_width = cwd_length - (visible_prompt_length - terminal_width);
         shorten_path(cwd, max_width);
       }
-      dictionary_set(instr, "cwd", cwd);
-      line = (char *) parse_prompt(line, instr, &config.defaults); // Re-parse the current line
+      dictionary_set(wtoken_state_map, "cwd", cwd);
+      line = (char *) parse_prompt(line, wtoken_state_map, &config.defaults); // Re-parse the current line
     }
 
     // Append the processed line to temp_prompt
@@ -562,7 +562,7 @@ int main(void) {
   // clean/free memory
   cleanup_resources(&state);
   git_libgit2_shutdown();
-  dictionary_del(instr);
+  dictionary_del(wtoken_state_map);
 
   struct WidgetConfigMap *current2, *tmp2;
   HASH_ITER(hh, configurations, current2, tmp2) {
