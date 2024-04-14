@@ -7,6 +7,13 @@
  * This utility acts as a helper binary for prompt2. It serves to
  * output all the contextual data that can be utilized by prompt2 to
  * construct a dynamic shell prompt.
+ *
+ * Each row has two values, whitespace separated:
+ *
+ * - Widget token: the string representing a widget. Used in
+ *   `.prompt2_config.ini` to insert a widget.
+ * - Widget value: the current value of the widget.
+ *
  */
 
 #include <git2.h>

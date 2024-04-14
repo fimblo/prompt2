@@ -1,15 +1,39 @@
 /*
  * prompt2
  *
- * Generate a dynamic shell prompt based on environment context
+ * Generate a dynamic shell prompt based on the environment context.
  *
- * This program reads configuration from an INI file and uses the
- * current state of the environment to construct a shell prompt. It
- * supports various widgets that can be customized through the INI
- * file, such as displaying the current git branch, repository status,
- * and AWS token validity. The prompt is dynamically adjusted based on
- * the terminal width and can handle escape sequences for color and
- * formatting.
+ * This program reads configuration from an INI file and constructs a
+ * shell prompt that reflects the current state of the environment.
+ *
+ * A "Widget" is a component of the prompt that represents a specific
+ * aspect of the environment, such as the current git branch,
+ * repository status, or working directory. Widgets are dynamic; they
+ * can be active or inactive based on the state they represent. For
+ * instance, the "Repo.name" widget is active when the current
+ * directory is within a git repository.
+ *
+ * Widgets are configurable in terms of text and color, with separate
+ * settings for their active and inactive states. For example, the
+ * "Repo.name" widget configuration might look like this:
+ *   - string_active: The format string used when the widget is active
+ *     (e.g., displaying the git branch name). eg: "<%s>"
+ *   - string_inactive: The format string used when the widget is
+ *     inactive (e.g., an empty string or placeholder text). eg: "-"
+ *   - colour_on: The color code applied to the active widget text.
+ *   - colour_off: The color code applied to the inactive widget text.
+ *
+ * Widgets are assembled into a prompt using the configuration
+ * variables `git_prompt` and `non_git_prompt`. These variables define
+ * the structure of the prompt, specifying where each widget should
+ * appear. Widgets are denoted in these strings by their placeholders,
+ * which follow the pattern `@{widget_name}`. During prompt
+ * generation, these placeholders are replaced with the actual content
+ * of the corresponding widgets, formatted according to their
+ * active/inactive state and the environment context.
+ *
+ * The final prompt is a composition of these widgets, providing a
+ * rich, context-aware command line experience.
  */
 
 #include <errno.h>
@@ -220,7 +244,9 @@ int read_ini_config(struct ConfigRoot *config) {
   return ERROR;
 }
 
-
+/**
+ * Map widget names with specific environment state
+*/
 void setup_instruction_map(struct CurrentState *state, dictionary *instr) {
 
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
