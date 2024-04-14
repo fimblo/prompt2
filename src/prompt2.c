@@ -55,9 +55,10 @@
 #include "prompt2-utils.h"
 
 /**
-   Max length of a command in the config file variable `git_prompt`
+   Max length of any widget token in the config file variable
+   `git_prompt`
 */
-#define COMMAND_MAX_LEN        256
+#define WIDGET_TOKEN_MAX_LEN        256
 
 /**
    Max length in characters of a widget in the resulting prompt
@@ -75,7 +76,7 @@
 #define BRANCH_MAX_WIDTH       128
 
 /**
-   Max number of commands I support
+   Max number of widgets types
 */
 #define DICTIONARY_MAX_SIZE    64
 
@@ -410,19 +411,17 @@ const char *format_widget(const char *name, const char *value, int is_active, st
 
 
 /**
- * Parses a given input prompt string, replacing any embedded
- * commands with their corresponding values.
+ * Parses a given input prompt string, replacing any embedded widget
+ * tokens with their corresponding values.
  *
- * This function scans the input string for embedded commands, which
- * are denoted by the syntax `@{command}`. Each command is looked up
- * in a global hash table of instructions, and if found, the command
- * is replaced by its associated value in the output string. If a
- * command is not found, it is left unchanged in the output. The
- * function ensures that the length of the digested prompt does not
- * exceed `PROMPT_MAX_LEN`.
+ * This function scans the input string for embedded widget tokens,
+ * which are denoted by the syntax `@{token}`. When a widget token is
+ * found, it is replaced by the widget. If the token is unknown, it is
+ * left unchanged in the output. The function ensures that the length
+ * of the resulting prompt does not exceed `PROMPT_MAX_LEN`.
  *
  * @param unparsed_git_prompt The input prompt string containing
- *        embedded commands to be parsed.
+ *        embedded widget tokens to be parsed.
  *
  * @return A dynamically allocated string containing the digested
  *         prompt. If the resulting prompt would exceed
@@ -435,37 +434,37 @@ const char *parse_prompt(const char *unparsed_git_prompt,
                          struct WidgetConfig *defaults) {
   char git_prompt[PROMPT_MAX_LEN] = "";
   const char *ptr = unparsed_git_prompt;
-  char command[COMMAND_MAX_LEN];
-  int command_index = 0;
-  int in_command = 0;
+  char w_token[WIDGET_TOKEN_MAX_LEN];
+  int index = 0;
+  int inside_w_token = 0;
 
   while (*ptr) {
     if (*ptr == '@' && *(ptr + 1) == '{') {
-      in_command = 1;
-      command_index = 0;
+      inside_w_token = 1;
+      index = 0;
       ptr += 2; // Skip past the '@{'
-    } else if (*ptr == '}' && in_command) {
-      in_command = 0;
-      command[command_index] = '\0'; // Null-terminate the command string
+    } else if (*ptr == '}' && inside_w_token) {
+      inside_w_token = 0;
+      w_token[index] = '\0'; // Null-terminate the widget token
 
-      // Look up the command and append its value to git_prompt
-      const char *replacement = dictionary_get(instr, (const char *) to_lower(command), NULL);
+      // Look up the widget token and append its value to git_prompt
+      const char *replacement = dictionary_get(instr, (const char *) to_lower(w_token), NULL);
       if (replacement) {
-        int is_active = is_widget_active(command, replacement);
-        const char *formatted_replacement = format_widget(command, replacement, is_active, defaults);
+        int is_active = is_widget_active(w_token, replacement);
+        const char *formatted_replacement = format_widget(w_token, replacement, is_active, defaults);
         if(safe_strcat(git_prompt, formatted_replacement, PROMPT_MAX_LEN) == FAILURE) { goto error; }
       } else {
-        // Command not found, append the original command
+        // Token not found: put the widget token back, as is
         if(safe_strcat(git_prompt, "@{", PROMPT_MAX_LEN) == FAILURE) { goto error; }
-        if(safe_strcat(git_prompt, command, PROMPT_MAX_LEN) == FAILURE) { goto error; }
+        if(safe_strcat(git_prompt, w_token, PROMPT_MAX_LEN) == FAILURE) { goto error; }
         if(safe_strcat(git_prompt, "}", PROMPT_MAX_LEN) == FAILURE) { goto error; }
       }
       ptr++; // Move past the '}'
-    } else if (in_command) {
-      // We are inside a command, accumulate characters
-      command[command_index++] = *ptr++;
+    } else if (inside_w_token) {
+      // We are inside a widget token, accumulate characters
+      w_token[index++] = *ptr++;
     } else {
-      // We are outside a command, copy character directly to git_prompt
+      // We are outside a widget token, copy character directly to git_prompt
       char str[2] = {*ptr++, '\0'};
       if(safe_strcat(git_prompt, str, PROMPT_MAX_LEN) == FAILURE) { goto error; }
     }
