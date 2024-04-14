@@ -89,7 +89,7 @@
 
 
 /**
-   Struct to contain configuration for a widget
+   Struct to contain configuration for a single widget
 */
 struct WidgetConfig {
   char *string_active;
@@ -110,7 +110,8 @@ struct ConfigRoot {
 };
 
 /**
-   Struct to store all widget configes (except default)
+   Hash table to store all widget configs
+   (except the default widget which is in the ConfigRoot struct)
 */
 struct WidgetConfigMap {
   char                *name;
@@ -165,12 +166,12 @@ void create_widget(dictionary *ini,
                                  const char *section,
                                  struct WidgetConfig *widget_config,
                                  const struct WidgetConfig *defaults) {
-  char key[INI_SECTION_MAX_SIZE];
   const char *default_string_active   = defaults ? defaults->string_active : "";
   const char *default_string_inactive = defaults ? defaults->string_inactive : "";
   const char *default_colour_on       = defaults ? defaults->colour_on : "";
   const char *default_colour_off      = defaults ? defaults->colour_off : "";
 
+  char key[INI_SECTION_MAX_SIZE];
   snprintf(key, sizeof(key), "%s:string_active", section);
   widget_config->string_active = strdup(iniparser_getstring(ini, key, default_string_active));
   snprintf(key, sizeof(key), "%s:string_inactive", section);
@@ -210,7 +211,7 @@ int read_ini_config(struct ConfigRoot *config) {
   dictionary *ini = iniparser_load(config_file_path);
   if (ini == NULL) goto default_config;
 
-  // Set config struct from ini file
+  // Set basic (non-widget) config from ini file
   config->git_prompt     = strdup(iniparser_getstring(ini, "GENERIC:git_prompt",     config->git_prompt));
   config->non_git_prompt = strdup(iniparser_getstring(ini, "GENERIC:non_git_prompt", config->non_git_prompt));
   config->cwd_type       = strdup(iniparser_getstring(ini, "GENERIC:cwd_type",       config->cwd_type));
