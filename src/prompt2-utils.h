@@ -4,15 +4,10 @@
 #include <uthash.h>
 
 
-
-/* ========================================================
-   Resources for manipulating the command hash table
-   ======================================================== */
-
 /**
  * Return lowercase version of const char *str
  */
-char *to_lower (const char *str);
+char *to_lower(const char *str);
 
 
 /**
