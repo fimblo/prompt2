@@ -204,9 +204,9 @@ void set_config_defaults(struct ConfigRoot *config) {
 
 
 /**
- * Read config file.
+ * Handle prompt2 configuration
  */
-int read_ini_config(struct ConfigRoot *config) {
+int handle_configuration(struct ConfigRoot *config) {
   // Set all default values first
   set_config_defaults(config);
 
@@ -256,9 +256,9 @@ int read_ini_config(struct ConfigRoot *config) {
 }
 
 /**
- * Map widget names with specific environment state
+ * Map widget tokens with specific environment state
 */
-void setup_instruction_map(struct CurrentState *state, dictionary *instr) {
+void map_widget_token_to_state(dictionary *instr, struct CurrentState *state) {
 
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
 
@@ -495,7 +495,7 @@ int main(void) {
 
   git_libgit2_init();
   initialise_state(&state);
-  read_ini_config(&config);
+  handle_configuration(&config);
 
   if (are_escape_sequences_properly_formed(config.non_git_prompt) != SUCCESS) {
     printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
@@ -515,11 +515,8 @@ int main(void) {
   // Limit branch name string length
   truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
 
-  /*
-    parse_prompt will replace all instruction strings with their
-    values - except for the CWD instruction.
-  */
-  setup_instruction_map(&state, instr);
+  // Connect states to widgets
+  map_widget_token_to_state(instr, &state);
 
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_git_prompt = replace_literal_newlines(config.git_prompt);
