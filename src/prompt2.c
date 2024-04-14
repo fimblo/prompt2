@@ -184,14 +184,31 @@ void create_widget(dictionary *ini,
 
 
 /**
- * read from config file, save to and return config struct
+ * Set the default values of all the fields in the config file. Any
+ * field set there will override the corresponding one found here.
  */
-int read_ini_config(struct ConfigRoot *config) {
-  // Set hard-coded default values
+void set_config_defaults(struct ConfigRoot *config) {
+  // Set non-widget defaults
   config->cwd_type = "home";
   config->branch_max_width = (size_t) BRANCH_MAX_WIDTH;
   config->git_prompt = "G: \\W $ ";
   config->non_git_prompt = "\\W $ ";
+
+  // Set widget defaults
+  config->defaults.string_active   = "%s";
+  config->defaults.string_inactive = "%s";
+  config->defaults.colour_on       = "";
+  config->defaults.colour_off      = "";
+}
+
+
+
+/**
+ * Read config file.
+ */
+int read_ini_config(struct ConfigRoot *config) {
+  // Set all default values first
+  set_config_defaults(config);
 
   // Find INI file either in . or home
   char *config_file_name = ".prompt2_config.ini";
@@ -205,11 +222,11 @@ int read_ini_config(struct ConfigRoot *config) {
       break;
     }
   }
-  if (!found) goto default_config;
+  if (!found) return ERROR;
 
   // Load INI file
   dictionary *ini = iniparser_load(config_file_path);
-  if (ini == NULL) goto default_config;
+  if (ini == NULL) return ERROR;
 
   // Set basic (non-widget) config from ini file
   config->git_prompt     = strdup(iniparser_getstring(ini, "GENERIC:git_prompt",     config->git_prompt));
@@ -236,14 +253,6 @@ int read_ini_config(struct ConfigRoot *config) {
   // Free the dictionary
   iniparser_freedict(ini);
   return SUCCESS;
-
-  // If there is no config file, just go with these plain defaults
- default_config:
-  config->defaults.string_active   = "%s";
-  config->defaults.string_inactive = "%s";
-  config->defaults.colour_on       = "";
-  config->defaults.colour_off      = "";
-  return ERROR;
 }
 
 /**
