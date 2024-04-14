@@ -131,8 +131,8 @@ void __print_debug_widget_config(struct WidgetConfig wc) {
 }
 
 
-// Function to find a widget configuration
-struct WidgetConfig *get_widget_config(const char *name) {
+// Function to get a widget from the hash table
+struct WidgetConfig *get_widget(const char *name) {
   struct WidgetConfigMap *s;
 
   HASH_FIND_STR(configurations, name, s);
@@ -143,8 +143,8 @@ struct WidgetConfig *get_widget_config(const char *name) {
 }
 
 
-// Function to add or update a widget configuration
-void upsert_widget_config(const char *name, struct WidgetConfig widget_config) {
+// Saves the widget in the hash table for later retrieval
+void save_widget(const char *name, struct WidgetConfig widget_config) {
   struct WidgetConfigMap *s;
 
   HASH_FIND_STR(configurations, name, s);
@@ -160,7 +160,7 @@ void upsert_widget_config(const char *name, struct WidgetConfig widget_config) {
 
 // transfer INI file section into a WidgetConfig struct
 // if this fails, use the default values.
-void populate_widget_from_config(dictionary *ini,
+void create_widget(dictionary *ini,
                                  const char *section,
                                  struct WidgetConfig *widget_config,
                                  const struct WidgetConfig *defaults) {
@@ -217,8 +217,8 @@ int read_ini_config(struct ConfigRoot *config) {
   sprintf(bmw_tmp, "%d", (int) config->branch_max_width);
   config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "GENERIC:branch_max_width", bmw_tmp));
 
-  // Set widget defaults
-  populate_widget_from_config(ini, INI_SECTION_DEFAULT, &config->defaults, NULL);
+  // Set default widget to fall back on
+  create_widget(ini, INI_SECTION_DEFAULT, &config->defaults, NULL);
 
   // Read each ini section
   for (int i = 0; i < iniparser_getnsec(ini); i++) {
@@ -227,8 +227,8 @@ int read_ini_config(struct ConfigRoot *config) {
     if (strcmp(section, INI_SECTION_GENERIC) == 0) continue;
 
     struct WidgetConfig wc = { NULL, NULL, NULL, NULL };
-    populate_widget_from_config(ini, section, &wc, &config->defaults);
-    upsert_widget_config(section, wc);
+    create_widget(ini, section, &wc, &config->defaults);
+    save_widget(section, wc);
   }
 
   // Free the dictionary
@@ -387,7 +387,7 @@ int is_widget_active(const char * name, const char *value) {
 
 
 const char *format_widget(const char *name, const char *value, int is_active, struct WidgetConfig *defaults) {
-  struct WidgetConfig *wc = get_widget_config(to_lower(name));
+  struct WidgetConfig *wc = get_widget(to_lower(name));
   if (!wc) {
     wc = defaults;
   }
