@@ -423,9 +423,10 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   if (strstr(colour_string, "\\[\\033[") != NULL || strstr(colour_string, "\\[\\e[") != NULL) {
     reset_term_colours = "\\[\\033[0m\\]";
   }
-  snprintf(widget, sizeof(widget), "%s%s%s", colour_string, value, reset_term_colours);
+  char coloured_widget[WIDGET_MAX_LEN];
+  snprintf(coloured_widget, sizeof(widget), "%s%s%s", colour_string, widget, reset_term_colours);
 
-  return strdup(widget);
+  return strdup(coloured_widget);
 }
 
 
