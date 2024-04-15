@@ -14,6 +14,12 @@ enum generic_return_values {
   ERROR   = -1,
 };
 
+enum file_related_return_values {
+  ERROR_CUSTOM_INI_FILE_NOT_FOUND = -10,
+  ERROR_DEFAULT_INI_FILE_NOT_FOUND = -11,
+  ERROR_INVALID_INI_FILE = -12,
+};
+
 
 
 //note: Each of these max sizes are "famous last words" haha

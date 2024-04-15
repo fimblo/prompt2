@@ -206,27 +206,36 @@ void set_config_defaults(struct ConfigRoot *config) {
 /**
  * Handle prompt2 configuration
  */
-int handle_configuration(struct ConfigRoot *config) {
+int handle_configuration(struct ConfigRoot *config, const char *config_file_path) {
   // Set all default values first
   set_config_defaults(config);
 
-  // Find INI file either in . or home
-  char *config_file_name = ".prompt2_config.ini";
-  char config_file_path[PATH_MAX];
-  const char *config_dirs[] = {".", getenv("HOME")};
-  int found = 0;
-  for (long unsigned int i = 0; i < sizeof(config_dirs)/sizeof(config_dirs[0]); i++) {
-    sprintf(config_file_path, "%s/%s", config_dirs[i], config_file_name);
-    if (access(config_file_path, R_OK) == 0) {
-      found = 1;
-      break;
+  char selected_config_file[PATH_MAX];
+  if (config_file_path == NULL) {
+    // Find INI file either in . or home
+    char *default_config_filename = ".prompt2_config.ini";
+    const char *config_dirs[] = {".", getenv("HOME")};
+    int found = 0;
+    for (long unsigned int i = 0; i < sizeof(config_dirs)/sizeof(config_dirs[0]); i++) {
+      snprintf(selected_config_file, PATH_MAX, "%s/%s", config_dirs[i], default_config_filename);
+      if (access(selected_config_file, R_OK) == 0) {
+        found = 1;
+        break;
+      }
     }
+    if (!found) return ERROR_DEFAULT_INI_FILE_NOT_FOUND;
   }
-  if (!found) return ERROR;
+  else {
+    if (access(config_file_path, R_OK) != 0) {
+      return ERROR_CUSTOM_INI_FILE_NOT_FOUND;
+    }
+    sprintf(selected_config_file, "%s", config_file_path);
+  }
+
 
   // Load INI file
-  dictionary *ini = iniparser_load(config_file_path);
-  if (ini == NULL) return ERROR;
+  dictionary *ini = iniparser_load(selected_config_file);
+  if (ini == NULL) return ERROR_INVALID_INI_FILE;
 
   // Set basic (non-widget) config from ini file
   config->git_prompt     = strdup(iniparser_getstring(ini, "GENERIC:git_prompt",     config->git_prompt));
@@ -487,7 +496,7 @@ const char *parse_prompt(const char *unparsed_git_prompt,
 }
 
 
-int main(void) {
+int main(int argc, char *argv[]) {
   struct CurrentState state;
   struct ConfigRoot config;
   dictionary *wtoken_state_map = dictionary_new(DICTIONARY_MAX_SIZE);
@@ -495,7 +504,22 @@ int main(void) {
 
   git_libgit2_init();
   initialise_state(&state);
-  handle_configuration(&config);
+
+  char *config_file_path = (argc > 1) ? argv[1] : NULL;
+  int retval = handle_configuration(&config, config_file_path);
+  if (retval != SUCCESS) {
+    if (retval == ERROR_CUSTOM_INI_FILE_NOT_FOUND) {
+      printf("USER-SPECIFIED INI FILE '%s' NOT FOUND\n$ ", config_file_path);
+    }
+    if (retval == ERROR_DEFAULT_INI_FILE_NOT_FOUND) {
+      printf("INI FILE '.prompt2_config.ini' NOT FOUND IN $HOME OR '.'\n$ ");
+    }
+    if (retval == ERROR_INVALID_INI_FILE) {
+      printf("INVALID INI FILE\n$ ");
+    }
+    return ERROR;
+  }
+  
 
   if (are_escape_sequences_properly_formed(config.non_git_prompt) != SUCCESS) {
     printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
