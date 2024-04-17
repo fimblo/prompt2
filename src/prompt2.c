@@ -503,7 +503,6 @@ int main(int argc, char *argv[]) {
   struct ConfigRoot config;
   dictionary *wtoken_state_map = dictionary_new(DICTIONARY_MAX_SIZE);
 
-
   git_libgit2_init();
   initialise_state(&state);
 
@@ -521,7 +520,6 @@ int main(int argc, char *argv[]) {
     }
     return ERROR;
   }
-  
 
   if (are_escape_sequences_properly_formed(config.non_git_prompt) != SUCCESS) {
     printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
@@ -532,9 +530,18 @@ int main(int argc, char *argv[]) {
     return ERROR;
   }
 
-  int is_git_repo = gather_git_context(&state);
-  char * selected_prompt;
 
+  /*
+    Ok, now that the error checking is done, let's gather some info on the environment
+  */
+  gather_aws_context(&state);
+  int is_git_repo = gather_git_context(&state);
+  
+
+  /*
+    .. and figure out which prompt config to select
+  */
+  char * selected_prompt;
   if (is_git_repo == SUCCESS_IS_GIT_REPO) {
     selected_prompt = strdup(config.git_prompt);
     truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
@@ -546,8 +553,6 @@ int main(int argc, char *argv[]) {
     printf("UNDEFINED STATE $ ");
     return ERROR;
   }
-
-  gather_aws_context(&state);
 
   
   // Connect states to widgets
