@@ -47,8 +47,8 @@ load test_helper_functions
   assert Repo.is_git_repo 0
   assert CWD.full      $(realpath $HOME)
   assert CWD.basename  $(basename $PWD)
-  assert CWD.home_path "${PWD/$HOME/\~\/}"
-  assert CWD.git_path  "${PWD/$HOME/\~\/}"
+  assert CWD.home_path "${PWD/$HOME/\~}"
+  assert CWD.git_path  "${PWD/$HOME/\~}"
 }
 
 # --------------------------------------------------
@@ -122,8 +122,8 @@ load test_helper_functions
   assert Repo.is_git_repo 1
   assert CWD.full      $(realpath $PWD)
   assert CWD.basename  $(basename $PWD)
-  assert CWD.home_path "${PWD/$HOME/\~\/}"
-  assert CWD.git_path  "${PWD/$HOME/\~\/}"
+  assert CWD.home_path "${PWD/$HOME/\~}"
+  assert CWD.git_path  "${PWD/$HOME/\~}"
   assert Repo.has_upstream '-1'
 
 }
@@ -145,8 +145,8 @@ load test_helper_functions
   assert Repo.is_git_repo 1
   assert CWD.full      $(realpath $PWD)
   assert CWD.basename  $(basename $PWD)
-  assert CWD.home_path "${PWD/$HOME/\~\/}"
-  assert CWD.git_path  "${PWD/$HOME/\~\/}"
+  assert CWD.home_path "${PWD/$HOME/\~}"
+  assert CWD.git_path  "${PWD/$HOME/\~}"
 }
 
 # --------------------------------------------------
@@ -165,7 +165,7 @@ load test_helper_functions
   # - repo name should be set to basename of pwd
   echo "$output" > "$HOME/assert-file"
   assert CWD.git_path     '+/'
-  assert CWD.home_path    "${PWD/$HOME/\~\/}"
+  assert CWD.home_path    "${PWD/$HOME/\~}"
   assert Repo.name        $(basename $PWD)
 }
 

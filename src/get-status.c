@@ -500,7 +500,7 @@ const char *get_cwd_from_home(struct CurrentState *state) {
     // Inside HOME directory
     if (strlen(state->cwd_full) == strlen(home_path)) {
       // At HOME root
-      sprintf(wd, "~/");
+      sprintf(wd, "~");
     } else {
       // Deeper in HOME directory
       sprintf(wd, "~%s", state->cwd_full + strlen(home_path));
