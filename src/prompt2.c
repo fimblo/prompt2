@@ -416,10 +416,11 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   const char *format_string = is_active ? wc->string_active : wc->string_inactive;
   snprintf(widget, sizeof(widget), format_string, value);
 
-  // Wrap resulting string in colours (if needed)
+  // Wrap resulting string in colours
   const char *colour_string = is_active ? wc->colour_on : wc->colour_off;
-  const char *reset_term_colours = "";
 
+  // define reset if colours were added in the preceding step
+  const char *reset_term_colours = "";
   if (strstr(colour_string, "\\[\\033[") != NULL || strstr(colour_string, "\\[\\e[") != NULL) {
     reset_term_colours = "\\[\\033[0m\\]";
   }
