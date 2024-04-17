@@ -103,6 +103,7 @@ struct WidgetConfig {
 */
 struct ConfigRoot {
   char *              git_prompt;
+  char *              zero_git_prompt;
   char *              non_git_prompt;
   char *              cwd_type;
   size_t              branch_max_width;
@@ -192,6 +193,7 @@ void set_config_defaults(struct ConfigRoot *config) {
   config->cwd_type = "home";
   config->branch_max_width = (size_t) BRANCH_MAX_WIDTH;
   config->git_prompt = "G: \\W $ ";
+  config->zero_git_prompt = "Z: \\W $ ";
   config->non_git_prompt = "\\W $ ";
 
   // Set widget defaults
@@ -239,6 +241,7 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
 
   // Set basic (non-widget) config from ini file
   config->git_prompt     = strdup(iniparser_getstring(ini, "GENERIC:git_prompt",     config->git_prompt));
+  config->zero_git_prompt= strdup(iniparser_getstring(ini, "GENERIC:zero_git_prompt",config->zero_git_prompt));
   config->non_git_prompt = strdup(iniparser_getstring(ini, "GENERIC:non_git_prompt", config->non_git_prompt));
   config->cwd_type       = strdup(iniparser_getstring(ini, "GENERIC:cwd_type",       config->cwd_type));
   char bmw_tmp[SHORT_STRING];
@@ -540,11 +543,23 @@ int main(int argc, char *argv[]) {
 
   /*
     .. and figure out which prompt config to select
+
+    There are three prompts to choose from:
+    - git prompt: for use in normal git repos
+    - zero git prompt: for use in newly initialized git repos, with no
+      commits as of yet.
+    - non-git-repo: the default to use in all other directories
   */
   char * selected_prompt;
   if (is_git_repo == SUCCESS_IS_GIT_REPO) {
-    selected_prompt = strdup(config.git_prompt);
-    truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
+    if (state.ahead_num  == -1 && state.behind_num   == -1 &&
+        state.staged_num == -1 && state.modified_num == -1) {
+      selected_prompt = strdup(config.zero_git_prompt);
+    }
+    else {
+      selected_prompt = strdup(config.git_prompt);
+      truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
+    }
   }
   else if (is_git_repo == FAILURE_IS_NOT_GIT_REPO) {
     selected_prompt = strdup(config.non_git_prompt);
