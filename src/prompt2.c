@@ -441,7 +441,7 @@ const char *format_widget(const char *name, const char *value, int is_active, st
  * left unchanged in the output. The function ensures that the length
  * of the resulting prompt does not exceed `PROMPT_MAX_LEN`.
  *
- * @param unparsed_git_prompt The input prompt string containing
+ * @param unparsed_prompt The input prompt string containing
  *        embedded widget tokens to be parsed.
  *
  * @return A dynamically allocated string containing the digested
@@ -450,11 +450,11 @@ const char *format_widget(const char *name, const char *value, int is_active, st
  *         instead. The caller is responsible for freeing the returned
  *         string.
  */
-const char *parse_prompt(const char *unparsed_git_prompt,
+const char *parse_prompt(const char *unparsed_prompt,
                          dictionary *wtoken_state_map,
                          struct WidgetConfig *defaults) {
-  char git_prompt[PROMPT_MAX_LEN] = "";
-  const char *ptr = unparsed_git_prompt;
+  char prompt[PROMPT_MAX_LEN] = "";
+  const char *ptr = unparsed_prompt;
   char wtoken[WIDGET_TOKEN_MAX_LEN];
   int index = 0;
   int inside_wtoken = 0;
@@ -468,30 +468,30 @@ const char *parse_prompt(const char *unparsed_git_prompt,
       inside_wtoken = 0;
       wtoken[index] = '\0'; // Null-terminate the widget token
 
-      // Look up the widget token and append its value to git_prompt
+      // Look up the widget token and append its value to prompt
       const char *replacement = dictionary_get(wtoken_state_map, (const char *) to_lower(wtoken), NULL);
       if (replacement) {
         int is_active = is_widget_active(wtoken, replacement);
         const char *formatted_replacement = format_widget(wtoken, replacement, is_active, defaults);
-        if(safe_strcat(git_prompt, formatted_replacement, PROMPT_MAX_LEN) == FAILURE) { goto error; }
+        if(safe_strcat(prompt, formatted_replacement, PROMPT_MAX_LEN) == FAILURE) { goto error; }
       } else {
         // Token not found: put the widget token back, as is
-        if(safe_strcat(git_prompt, "@{", PROMPT_MAX_LEN) == FAILURE) { goto error; }
-        if(safe_strcat(git_prompt, wtoken, PROMPT_MAX_LEN) == FAILURE) { goto error; }
-        if(safe_strcat(git_prompt, "}", PROMPT_MAX_LEN) == FAILURE) { goto error; }
+        if(safe_strcat(prompt, "@{", PROMPT_MAX_LEN) == FAILURE) { goto error; }
+        if(safe_strcat(prompt, wtoken, PROMPT_MAX_LEN) == FAILURE) { goto error; }
+        if(safe_strcat(prompt, "}", PROMPT_MAX_LEN) == FAILURE) { goto error; }
       }
       ptr++; // Move past the '}'
     } else if (inside_wtoken) {
       // We are inside a widget token, accumulate characters
       wtoken[index++] = *ptr++;
     } else {
-      // We are outside a widget token, copy character directly to git_prompt
+      // We are outside a widget token, copy character directly to prompt
       char str[2] = {*ptr++, '\0'};
-      if(safe_strcat(git_prompt, str, PROMPT_MAX_LEN) == FAILURE) { goto error; }
+      if(safe_strcat(prompt, str, PROMPT_MAX_LEN) == FAILURE) { goto error; }
     }
   }
 
-  return strdup(git_prompt);
+  return strdup(prompt);
 
  error:
   return "PROMPT TOO LONG $ ";
@@ -532,25 +532,34 @@ int main(int argc, char *argv[]) {
     return ERROR;
   }
 
-  if (gather_git_context(&state) == FAILURE_IS_NOT_GIT_REPO) {
-    printf("%s", config.non_git_prompt);
-    return SUCCESS;
+  int is_git_repo = gather_git_context(&state);
+  char * selected_prompt;
+
+  if (is_git_repo == SUCCESS_IS_GIT_REPO) {
+    selected_prompt = strdup(config.git_prompt);
+    truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
   }
+  else if (is_git_repo == FAILURE_IS_NOT_GIT_REPO) {
+    selected_prompt = strdup(config.non_git_prompt);
+  }
+  else {
+    printf("UNDEFINED STATE $ ");
+    return ERROR;
+  }
+
   gather_aws_context(&state);
 
-  // Limit branch name string length
-  truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
-
+  
   // Connect states to widgets
   map_wtoken_to_state(wtoken_state_map, &state);
 
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
-  const char * unparsed_git_prompt = replace_literal_newlines(config.git_prompt);
-  const char *git_prompt = parse_prompt(unparsed_git_prompt, wtoken_state_map, &config.defaults);
+  const char * unparsed_prompt = replace_literal_newlines(selected_prompt);
+  const char *prompt = parse_prompt(unparsed_prompt, wtoken_state_map, &config.defaults);
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
 
   char temp_prompt[PROMPT_MAX_LEN] = "";
-  char *tokenized_prompt = strdup(git_prompt);
+  char *tokenized_prompt = strdup(prompt);
   char *line = strtok(tokenized_prompt, "\n");
 
   while (line != NULL) {
@@ -579,11 +588,11 @@ int main(int argc, char *argv[]) {
     line = strtok(NULL, "\n"); // Get the next line
   }
 
-  git_prompt = strdup(temp_prompt);
+  prompt = strdup(temp_prompt);
   free(tokenized_prompt); // Free the duplicated string used for tokenization
 
-  // Finally, print the git prompt
-  printf("%s", git_prompt);
+  // Finally, print the prompt
+  printf("%s", prompt);
 
   // clean/free memory
   cleanup_resources(&state);
