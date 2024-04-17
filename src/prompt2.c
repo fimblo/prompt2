@@ -318,7 +318,7 @@ int is_widget_active(const char * wtoken, const char *value) {
     check, depending on the type of widget.
 
     TYPE_STRING widgets are inactive if value is the empty string.
-    TYPE_TOGGLE widgets are inactive if value is "0" (not int. string)
+    TYPE_TOGGLE widgets are inactive if value is zero or negative.
 
     The third type of widget are special cases and are treated
     specially.
@@ -335,16 +335,16 @@ int is_widget_active(const char * wtoken, const char *value) {
     | `cwd.home_path`                | empty string | string      |
     | `repo.name`                    | empty string | string      |
     | `repo.branch_name`             | empty string | string      |
-    | `repo.is_git_repo`             | "0"          | otherwise   |
-    | `repo.rebase_active`           | "0"          | otherwise   |
-    | `repo.conflicts`               | "0"          | otherwise   |
-    | `repo.has_upstream`            | "0"          | otherwise   |
-    | `repo.ahead`                   | "0"          | otherwise   |
-    | `repo.behind`                  | "0"          | otherwise   |
-    | `repo.staged`                  | "0"          | otherwise   |
-    | `repo.modified`                | "0"          | otherwise   |
-    | `repo.untracked`               | "0"          | otherwise   |
-    | `aws.token_is_valid`           | "0"          | otherwise   |
+    | `repo.is_git_repo`             | <1           | otherwise   |
+    | `repo.rebase_active`           | <1           | otherwise   |
+    | `repo.conflicts`               | <1           | otherwise   |
+    | `repo.has_upstream`            | <1           | otherwise   |
+    | `repo.ahead`                   | <1           | otherwise   |
+    | `repo.behind`                  | <1           | otherwise   |
+    | `repo.staged`                  | <1           | otherwise   |
+    | `repo.modified`                | <1           | otherwise   |
+    | `repo.untracked`               | <1           | otherwise   |
+    | `aws.token_is_valid`           | <1           | otherwise   |
     | `aws.token_remaining_hours`    | >0           | <=0         |
     | `aws.token_remaining_minutes`  | >10          | <=10        |
 
@@ -395,7 +395,7 @@ int is_widget_active(const char * wtoken, const char *value) {
 
   int is_active = 0;
   if (type == TYPE_STRING && value[0] != '\0') is_active = 1;
-  else if (type == TYPE_TOGGLE && strcmp(value, "0") != 0) is_active = 1;
+  else if (type == TYPE_TOGGLE && atoi(value) > 0) is_active = 1;
   else if (strcmp(wtoken_lc, "aws.token_remaining_hours") == 0) {
     if (atoi(value) <= 0) is_active = 1;
   }
