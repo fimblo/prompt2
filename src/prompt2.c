@@ -603,7 +603,8 @@ int main(int argc, char *argv[]) {
     if (strstr(line, "@{CWD}")) {
       char* cwd = get_cwd(&state, config.cwd_type);
       int cwd_length = strlen(cwd);
-      int visible_prompt_length = cwd_length + count_visible_chars(line) - 6; // len("@{CWD}") = 6
+      int WIDGET_TOKEN_CWD_LEN = 6; // length of "@{CWD}"
+      int visible_prompt_length = cwd_length + count_visible_chars(line) - WIDGET_TOKEN_CWD_LEN;
 
       if (visible_prompt_length > terminal_width) {
         int max_width = cwd_length - (visible_prompt_length - terminal_width);
