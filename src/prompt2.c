@@ -583,6 +583,13 @@ int main(int argc, char *argv[]) {
   char *line = strtok(tokenized_prompt, "\n");
 
   while (line != NULL) {
+    // check if there are any new (non-cwd) widget tokens introduced by parse_prompt
+    if (has_non_cwd_tokens(line)) {
+      line = (char *) parse_prompt(line, wtoken_state_map, &config.defaults);
+    }
+
+    // if there is a CWD widget token, shorten the CWD to fit the
+    // terminal, then re-parse the line
     if (strstr(line, "@{CWD}")) {
       char* cwd = get_cwd(&state, config.cwd_type);
       int cwd_length = strlen(cwd);

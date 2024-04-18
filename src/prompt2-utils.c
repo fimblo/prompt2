@@ -97,6 +97,25 @@ char* replace_literal_newlines(const char* input) {
   return result;
 }
 
+int has_non_cwd_tokens(const char *str) {
+  const int CWD_len = 5;
+
+  const char *start;
+  const char *end;
+  while ((start = strstr(str, "@{")) != NULL) {
+    end = strchr(start + 2, '}');
+    if (end == NULL) {
+      break;
+    }
+    if (end != start + CWD_len || strncmp(start + 2, "CWD", 3) != 0) {
+      return SUCCESS;
+    }
+    str = end + 1;
+  }
+  return FAILURE;
+}
+
+ 
 /* ========================================================
    Other resources
    ======================================================== */

@@ -36,6 +36,18 @@ void truncate_with_ellipsis(char *str, size_t max_width);
 char* replace_literal_newlines(const char* input);
 
 
+/**
+ * Checks if the given string contains any widget tokens that do not
+ * exactly match "@{CWD}".
+ *
+ * @param str The input string to check for widget tokens.
+ *
+ * @return Returns SUCCESS if there is at least one non-CWD widget token;
+ *   otherwise, FAILURE.
+ */
+int has_non_cwd_tokens(const char *str);
+
+
 /* ========================================================
    Resources for manipulating strings
    ======================================================== */
