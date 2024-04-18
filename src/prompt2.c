@@ -43,9 +43,11 @@
 #ifdef __unix__
 #include <iniparser/dictionary.h>
 #include <iniparser/iniparser.h>
+#include <linux/limits.h>
 #elif __APPLE__
 #include <dictionary.h>
 #include <iniparser.h>
+#include <sys/syslimits.h>
 #else
 #error "Unknown or unsupported OS"
 #endif

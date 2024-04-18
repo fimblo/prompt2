@@ -40,11 +40,6 @@ enum file_related_return_values {
 
 
 /**
- * This is how long a path this program can accept.
- */
-#define PATH_MAX               4096
-
-/**
  * The maximum length of a short string
 */
 #define SHORT_STRING           16

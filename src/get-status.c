@@ -13,6 +13,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#ifdef __unix__
+#include <linux/limits.h>
+#elif __APPLE__
+#include <sys/syslimits.h>
+#else
+#error "Unknown or unsupported OS"
+#endif
 #include <unistd.h>
 
 #include "constants.h"
