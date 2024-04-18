@@ -410,15 +410,25 @@ int is_widget_active(const char * wtoken, const char *value) {
 
 
 const char *format_widget(const char *name, const char *value, int is_active, struct WidgetConfig *defaults) {
-  struct WidgetConfig *wc = get_widget(to_lower(name));
+  const char *lower_name = to_lower(name);
+  struct WidgetConfig *wc = get_widget(lower_name);
   if (!wc) {
     wc = defaults;
   }
   // Format the value
+  char padded_value[4];
+  const char *value_to_format;
+  if (strcmp(lower_name, "aws.token_remaining_minutes") == 0 && strlen(value) == 1) {
+    snprintf(padded_value, sizeof(padded_value), "0%s", value);
+    value_to_format = padded_value;
+  }
+  else {
+    value_to_format = value;
+  }
   char widget[WIDGET_MAX_LEN];
   const char *format_string = is_active ? wc->string_active : wc->string_inactive;
-  snprintf(widget, sizeof(widget), format_string, value);
-
+  snprintf(widget, sizeof(widget), format_string, value_to_format);
+  
   // Wrap resulting string in colours
   const char *colour_string = is_active ? wc->colour_on : wc->colour_off;
 
