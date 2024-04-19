@@ -105,7 +105,7 @@ struct WidgetConfig {
 */
 struct ConfigRoot {
   char *              git_prompt;
-  char *              zero_git_prompt;
+  char *              git_prompt_zero;
   char *              default_prompt;
   char *              cwd_type;
   size_t              branch_max_width;
@@ -195,7 +195,7 @@ void set_config_defaults(struct ConfigRoot *config) {
   config->cwd_type = "home";
   config->branch_max_width = (size_t) BRANCH_MAX_WIDTH;
   config->git_prompt = "G: \\W $ ";
-  config->zero_git_prompt = "Z: \\W $ ";
+  config->git_prompt_zero = "Z: \\W $ ";
   config->default_prompt = "\\W $ ";
 
   // Set widget defaults
@@ -243,7 +243,7 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
 
   // get prompt-related config
   config->git_prompt     = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
-  config->zero_git_prompt= strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->zero_git_prompt));
+  config->git_prompt_zero= strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->git_prompt_zero));
   config->default_prompt = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:prompt", config->default_prompt));
   
 
@@ -569,7 +569,7 @@ int main(int argc, char *argv[]) {
   if (is_git_repo == SUCCESS_IS_GIT_REPO) {
     if (state.ahead_num  == -1 && state.behind_num   == -1 &&
         state.staged_num == -1 && state.modified_num == -1) {
-      selected_prompt = strdup(config.zero_git_prompt);
+      selected_prompt = strdup(config.git_prompt_zero);
     }
     else {
       selected_prompt = strdup(config.git_prompt);
