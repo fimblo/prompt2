@@ -241,10 +241,13 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   dictionary *ini = iniparser_load(selected_config_file);
   if (ini == NULL) return ERROR_INVALID_INI_FILE;
 
-  // Set basic (non-widget) config from ini file
-  config->git_prompt     = strdup(iniparser_getstring(ini, "MISC:git_prompt",     config->git_prompt));
-  config->zero_git_prompt= strdup(iniparser_getstring(ini, "MISC:zero_git_prompt",config->zero_git_prompt));
-  config->non_git_prompt = strdup(iniparser_getstring(ini, "MISC:non_git_prompt", config->non_git_prompt));
+  // get prompt-related config
+  config->git_prompt     = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
+  config->zero_git_prompt= strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->zero_git_prompt));
+  config->non_git_prompt = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:prompt", config->non_git_prompt));
+  
+
+  // Set other config from ini file
   config->cwd_type       = strdup(iniparser_getstring(ini, "MISC:cwd_type",       config->cwd_type));
   char bmw_tmp[SHORT_STRING];
   sprintf(bmw_tmp, "%d", (int) config->branch_max_width);
