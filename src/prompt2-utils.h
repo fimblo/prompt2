@@ -5,6 +5,16 @@
 
 
 /**
+ * Return string with 'number_of_spaces" spaces.
+ *
+ * @param number_of_spaces The number of spaces to include in the string.
+ * @return A pointer to a string containing the specified number of spaces.
+ *         Don't forget to free this string!
+ */
+const char *spacefiller(int number_of_spaces);
+
+
+/**
  * Return lowercase version of const char *str
  */
 char *to_lower(const char *str);

@@ -20,6 +20,27 @@
    Resources for manipulating strings
    ======================================================== */
 
+/**
+ * Return string with 'number_of_spaces" spaces.
+ *
+ * @param number_of_spaces The number of spaces to include in the string.
+ * @return A pointer to a string containing the specified number of spaces.
+ *         Don't forget to free this string!
+ */
+const char *spacefiller(int number_of_spaces) {
+  if (number_of_spaces < 0) return NULL;
+
+  char *space_str = malloc(number_of_spaces + 1);
+  if (!space_str) {
+    perror("malloc error in function 'filler'");
+    exit(EXIT_FAILURE);
+  }
+
+  memset(space_str, ' ', number_of_spaces);
+  space_str[number_of_spaces] = '\0';
+
+  return space_str;
+}
 
 /**
  * make str lowercase
