@@ -24,7 +24,7 @@
  *   - colour_off: The color code applied to the inactive widget text.
  *
  * Widgets are assembled into a prompt using the configuration
- * variables `git_prompt` and `non_git_prompt`. These variables define
+ * variables `git_prompt` and `default_prompt`. These variables define
  * the structure of the prompt, specifying where each widget should
  * appear. Widgets are denoted in these strings by their placeholders,
  * which follow the pattern `@{widget_name}`. During prompt
@@ -106,7 +106,7 @@ struct WidgetConfig {
 struct ConfigRoot {
   char *              git_prompt;
   char *              zero_git_prompt;
-  char *              non_git_prompt;
+  char *              default_prompt;
   char *              cwd_type;
   size_t              branch_max_width;
   struct WidgetConfig defaults;
@@ -196,7 +196,7 @@ void set_config_defaults(struct ConfigRoot *config) {
   config->branch_max_width = (size_t) BRANCH_MAX_WIDTH;
   config->git_prompt = "G: \\W $ ";
   config->zero_git_prompt = "Z: \\W $ ";
-  config->non_git_prompt = "\\W $ ";
+  config->default_prompt = "\\W $ ";
 
   // Set widget defaults
   config->defaults.string_active   = "%s";
@@ -244,7 +244,7 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   // get prompt-related config
   config->git_prompt     = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
   config->zero_git_prompt= strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->zero_git_prompt));
-  config->non_git_prompt = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:prompt", config->non_git_prompt));
+  config->default_prompt = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:prompt", config->default_prompt));
   
 
   // Set other config from ini file
@@ -539,8 +539,8 @@ int main(int argc, char *argv[]) {
     return ERROR;
   }
 
-  if (are_escape_sequences_properly_formed(config.non_git_prompt) != SUCCESS) {
-    printf("MALFORMED GP2_NON_GIT_PROMPT $ ");
+  if (are_escape_sequences_properly_formed(config.default_prompt) != SUCCESS) {
+    printf("MALFORMED GP2_DEFAULT_PROMPT $ ");
     return ERROR;
   }
   if (are_escape_sequences_properly_formed(config.git_prompt) != SUCCESS) {
@@ -577,7 +577,7 @@ int main(int argc, char *argv[]) {
     }
   }
   else if (is_git_repo == FAILURE_IS_NOT_GIT_REPO) {
-    selected_prompt = strdup(config.non_git_prompt);
+    selected_prompt = strdup(config.default_prompt);
   }
   else {
     printf("UNDEFINED STATE $ ");
