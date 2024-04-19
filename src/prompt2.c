@@ -540,11 +540,11 @@ int main(int argc, char *argv[]) {
   }
 
   if (are_escape_sequences_properly_formed(config.default_prompt) != SUCCESS) {
-    printf("MALFORMED GP2_DEFAULT_PROMPT $ ");
+    printf("MALFORMED DEFAULT_PROMPT $ ");
     return ERROR;
   }
   if (are_escape_sequences_properly_formed(config.git_prompt) != SUCCESS) {
-    printf("MALFORMED GP2_GIT_PROMPT $ ");
+    printf("MALFORMED GIT_PROMPT $ ");
     return ERROR;
   }
 
