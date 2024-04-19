@@ -86,8 +86,8 @@
    Max length of a section in an ini file
 */
 #define INI_SECTION_MAX_SIZE   64
-#define INI_SECTION_DEFAULT    "default"
-#define INI_SECTION_MISC       "misc"
+#define INI_SECTION_WIDGET_DEFAULT  "widget_default"
+#define INI_SECTION_MISC            "misc"
 
 
 /**
@@ -251,12 +251,12 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "MISC:branch_max_width", bmw_tmp));
 
   // Set default widget to fall back on
-  create_widget(ini, INI_SECTION_DEFAULT, &config->defaults, NULL);
+  create_widget(ini, INI_SECTION_WIDGET_DEFAULT, &config->defaults, NULL);
 
   // Read each ini section
   for (int i = 0; i < iniparser_getnsec(ini); i++) {
     const char * section = iniparser_getsecname(ini, i);
-    if (strcmp(section, INI_SECTION_DEFAULT) == 0) continue;
+    if (strcmp(section, INI_SECTION_WIDGET_DEFAULT) == 0) continue;
     if (strcmp(section, INI_SECTION_MISC) == 0) continue;
 
     struct WidgetConfig wc = { NULL, NULL, NULL, NULL };
