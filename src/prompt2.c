@@ -279,6 +279,9 @@ void map_wtoken_to_state(dictionary *dict, struct CurrentState *state) {
 
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
 
+  dictionary_set(dict, "sys.username",            state->username);
+  dictionary_set(dict, "sys.hostname",            state->hostname);
+
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
   dictionary_set(dict, "repo.is_git_repo",   itoa_buf);
 
@@ -337,6 +340,8 @@ int is_widget_active(const char * wtoken, const char *value) {
 
     | WIDGET                         | inactive     | active      |
     | ------------------------------ | ------------ | ----------- |
+    | `sys.username`                 | empty string | string      |
+    | `sys.hostname`                 | empty string | string      |
     | `cwd.full`                     | empty string | string      |
     | `cwd.basename`                 | empty string | string      |
     | `cwd.git_path`                 | empty string | string      |
@@ -374,6 +379,8 @@ int is_widget_active(const char * wtoken, const char *value) {
 
   // Define the widget type entries
   const struct WidgetTypeTable widget_type_table[] = {
+    { "sys.username",       TYPE_STRING },
+    { "sys.hostname",       TYPE_STRING },
     { "cwd",                TYPE_STRING },
     { "repo.name",          TYPE_STRING },
     { "repo.branch_name",   TYPE_STRING },
@@ -552,6 +559,7 @@ int main(int argc, char *argv[]) {
   /*
     Ok, now that the error checking is done, let's gather some info on the environment
   */
+  gather_system_context(&state);
   gather_aws_context(&state);
   int is_git_repo = gather_git_context(&state);
   
