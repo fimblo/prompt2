@@ -57,6 +57,11 @@ int main(void) {
   printf("AWS.token_remaining_hours %d\n", state.aws_token_remaining_hours);
   printf("AWS.token_remaining_minutes %d\n", state.aws_token_remaining_minutes);
 
+  gather_system_context(&state);
+  printf("SYS.username %s\n",         state.username);
+  printf("SYS.hostname %s\n",         state.hostname);
+
+
   cleanup_resources(&state);
   git_libgit2_shutdown();
   return SUCCESS; // enforce happy ending

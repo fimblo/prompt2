@@ -338,6 +338,9 @@ void initialise_state(struct CurrentState *state) {
   state->repo_name                   = "";
   state->branch_name                 = "";
 
+  state->username                    = "";
+  state->hostname                    = "";
+
   state->is_git_repo                 = -1;
   state->has_upstream                = -1;
   state->conflict_num                = -1;
@@ -386,6 +389,38 @@ int gather_git_context(struct CurrentState *state) {
   return ! state->is_git_repo;
 }
 
+/**
+ * Gather regular system context
+ * 
+ * Currently this covers:
+ * - username
+ * - hostname
+*/
+int gather_system_context(struct CurrentState *state) {
+  // Get the effective username of this shell and save in state->username
+  char *username = getenv("USER") ?: getenv("LOGNAME");
+  if (!username) {
+    return ERROR;
+  }
+  state->username = username;
+
+  // Get the short-form hostname of this machine and save in state->hostname
+  char hostname[HOST_NAME_MAX];
+  if (gethostname(hostname, sizeof(hostname)) != 0) {
+    return ERROR;
+  }
+  // Only keep the short form of the hostname, truncate at the first dot if present
+  char *short_hostname = strtok(hostname, ".");
+  if (!short_hostname) {
+    // If the hostname does not contain a dot, use the full hostname
+    short_hostname = hostname;
+  }
+  state->hostname = strdup(short_hostname);
+
+  return SUCCESS;
+
+}
+
 
 /**
  * Check the validity of the AWS SSO login token and calculates the
@@ -397,7 +432,7 @@ int gather_git_context(struct CurrentState *state) {
  */
 int gather_aws_context(struct CurrentState *state) {
   const char *home_dir = getenv("HOME");
-  if (!home_dir) return ERROR; // error
+  if (!home_dir) return ERROR;
 
   char cache_dir[1024];
   snprintf(cache_dir, sizeof(cache_dir), "%s/.aws/sso/cache", home_dir);
@@ -548,6 +583,8 @@ char * get_cwd(struct CurrentState *state, const char *cwd_type) {
  * Memory management
  */
 void cleanup_resources(struct CurrentState *state) {
+  // TODO: investigate if I should free everything in state
+
   if (state->repo_obj) {
     git_repository_free(state->repo_obj);
     state->repo_obj = NULL;

@@ -39,6 +39,9 @@ struct CurrentState {
   const char *repo_name;
   const char *branch_name;
 
+  const char *username;
+  const char *hostname;
+
   int is_git_repo;
   int has_upstream;
   int conflict_num;
@@ -67,6 +70,16 @@ void initialise_state(struct CurrentState *state);
  * @returns 0 if . is inside a git-repo, 1 otherwise
  */
 int gather_git_context(struct CurrentState *state);
+
+
+/**
+ * Gather regular system context
+ * 
+ * Currently this covers:
+ * - username
+ * - hostname
+*/
+int gather_system_context(struct CurrentState *state);
 
 
 /**

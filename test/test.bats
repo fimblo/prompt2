@@ -13,6 +13,38 @@ load test_helper_functions
 
 
 # --------------------------------------------------
+@test "getting username" {
+  # Given
+  # - we set the envvar USER to testuser
+  USER_ORIG=$USER
+  USER='testuser'
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+  USER="$USER_ORIG"
+
+  # Then
+  # - the user field should be correct
+
+  echo "$output" > "$HOME/assert-file"
+  assert SYS.username "testuser"
+}
+
+# --------------------------------------------------
+@test "getting hostname" {
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+
+  # Then
+  # - the hostname field should be set
+  myhostname=$(hostname -s) # should work on bsd and linuxen
+
+  echo "$output" > "$HOME/assert-file"
+  assert SYS.hostname "$myhostname"
+}
+
+# --------------------------------------------------
 @test "running from a non-git-repo" {
   # Given
   # - it's not a git repo
