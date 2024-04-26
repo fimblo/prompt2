@@ -598,6 +598,7 @@ int main(int argc, char *argv[]) {
 
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_prompt = replace_literal_newlines(selected_prompt);
+  free(selected_prompt);
   const char *prompt = parse_prompt(unparsed_prompt, wtoken_state_map, &config.defaults);
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
 
@@ -661,22 +662,40 @@ int main(int argc, char *argv[]) {
   }
 
   prompt = strdup(temp_prompt);
-  free(tokenized_prompt); // Free the duplicated string used for tokenization
+  free(tokenized_prompt);
 
   // Finally, print the prompt
   printf("%s", prompt);
+  free((char *) prompt);
 
-  // clean/free memory
-  cleanup_resources(&state);
-  git_libgit2_shutdown();
-  dictionary_del(wtoken_state_map);
+  
+  /*
+    Time to free up memory
+  */
+  free(config.git_prompt);
+  free(config.git_prompt_zero);
+  free(config.default_prompt);
+  free(config.cwd_type);
+  free(config.defaults.string_active);
+  free(config.defaults.string_inactive);
+  free(config.defaults.colour_on);
+  free(config.defaults.colour_off);
 
   struct WidgetConfigMap *current2, *tmp2;
   HASH_ITER(hh, configurations, current2, tmp2) {
     HASH_DEL(configurations, current2);
+    free(current2->config.string_active);
+    free(current2->config.string_inactive);
+    free(current2->config.colour_on);
+    free(current2->config.colour_off);
     free(current2->name);
     free(current2);
   }
+
+  cleanup_resources(&state);
+  git_libgit2_shutdown();
+  dictionary_del(wtoken_state_map);
+
 
   return 0;
 }

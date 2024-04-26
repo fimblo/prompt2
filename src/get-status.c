@@ -583,14 +583,16 @@ char * get_cwd(struct CurrentState *state, const char *cwd_type) {
  * Memory management
  */
 void cleanup_resources(struct CurrentState *state) {
-  // TODO: investigate if I should free everything in state
+  if (state->hostname) {
+    free((char *) state->hostname);
+  }
 
   if (state->repo_obj) {
     git_repository_free(state->repo_obj);
     state->repo_obj = NULL;
   }
   if (state->repo_path) {
-    free((void *) state->repo_path);
+    free((char *) state->repo_path);
     state->repo_path = NULL;
   }
   if (state->head_ref) {
