@@ -608,7 +608,7 @@ int main(int argc, char *argv[]) {
 
   while (line != NULL) {
     // check if there are any widget tokens which aren't the expanding type
-    if (has_nonexpanding_tokens(line)) {
+    if (has_nonexpanding_tokens(line) == SUCCESS) {
       line = (char *) parse_prompt(line, wtoken_state_map, &config.defaults);
     }
 
