@@ -14,9 +14,12 @@
 #include <string.h>
 #include <sys/stat.h>
 #ifdef __unix__
-#include <linux/limits.h>
+#include <linux/limits.h> // For PATH_MAX
 #elif __APPLE__
-#include <sys/syslimits.h>
+#include <sys/syslimits.h> // For PATH_MAX
+// HOST_NAME_MAX is not defined on macOS
+// use _POSIX_HOST_NAME_MAX from limit.h instead
+#define HOST_NAME_MAX _POSIX_HOST_NAME_MAX
 #else
 #error "Unknown or unsupported OS"
 #endif
