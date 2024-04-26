@@ -598,18 +598,19 @@ int main(int argc, char *argv[]) {
   char *line = strtok(tokenized_prompt, "\n");
 
   while (line != NULL) {
-    // check if there are any new (non-cwd) widget tokens introduced by parse_prompt
-    if (has_non_cwd_tokens(line)) {
+    // check if there are any widget tokens which aren't the expanding type
+    if (has_nonexpanding_tokens(line)) {
       line = (char *) parse_prompt(line, wtoken_state_map, &config.defaults);
     }
 
+    // Expanding type 1:
     // if there is a CWD widget token, shorten the CWD to fit the
-    // terminal, then re-parse the line
+    // terminal (if it's long) then re-parse the line
     if (strstr(line, "@{CWD}")) {
       char* cwd = get_cwd(&state, config.cwd_type);
       int cwd_length = strlen(cwd);
-      int WIDGET_TOKEN_CWD_LEN = 6; // length of "@{CWD}"
-      int visible_prompt_length = cwd_length + count_visible_chars(line) - WIDGET_TOKEN_CWD_LEN;
+      //int WIDGET_TOKEN_CWD_LEN = 6; // length of "@{CWD}"
+      int visible_prompt_length = cwd_length + count_visible_chars(line); //- WIDGET_TOKEN_CWD_LEN;
 
       if (visible_prompt_length > terminal_width) {
         int max_width = cwd_length - (visible_prompt_length - terminal_width);
@@ -618,6 +619,26 @@ int main(int argc, char *argv[]) {
       dictionary_set(wtoken_state_map, "cwd", cwd);
       line = (char *) parse_prompt(line, wtoken_state_map, &config.defaults); // Re-parse the current line
     }
+
+    // Expanding type 2:
+    // if there are any SPC tokens, and if the prompt is smaller
+    // than the terminal, then replace it with filler text (whitespace)
+    //int WIDGET_TOKEN_SPC_LEN = 6; // length of "@{SPC}"
+    int visible_prompt_length = count_visible_chars(line); //- WIDGET_TOKEN_SPC_LEN;
+    if (strstr(line, "@{SPC}")) {
+      if (visible_prompt_length < terminal_width) {
+        int number_of_spaces = terminal_width - visible_prompt_length;
+        const char *filler = spacefiller(number_of_spaces);
+        dictionary_set(wtoken_state_map, "spc", strdup(filler));
+        free((void *)filler);
+        line = (char *) parse_prompt(line, wtoken_state_map, &config.defaults); // Re-parse the current line
+      }
+      else {
+        remove_widget_token(line, "@{SPC}");
+      }
+    }
+
+
 
     // Append the processed line to temp_prompt
     if (strlen(temp_prompt) + strlen(line) < PROMPT_MAX_LEN - 1) {

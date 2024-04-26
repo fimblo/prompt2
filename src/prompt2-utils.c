@@ -118,9 +118,12 @@ char* replace_literal_newlines(const char* input) {
   return result;
 }
 
-int has_non_cwd_tokens(const char *str) {
-  const int CWD_len = 5;
-
+int has_nonexpanding_tokens(const char *str) {
+  // two types of expanding widget tokens:
+  // - CWD
+  // - SPC
+  const int token_len = 5;
+  
   const char *start;
   const char *end;
   while ((start = strstr(str, "@{")) != NULL) {
@@ -128,7 +131,10 @@ int has_non_cwd_tokens(const char *str) {
     if (end == NULL) {
       break;
     }
-    if (end != start + CWD_len || strncmp(start + 2, "CWD", 3) != 0) {
+    if ((end != start + token_len) ||
+        (strncmp(start + 2, "CWD", 3) != 0
+          &&
+        strncmp(start + 2, "SPC", 3) != 0)) {
       return SUCCESS;
     }
     str = end + 1;
@@ -136,6 +142,27 @@ int has_non_cwd_tokens(const char *str) {
   return FAILURE;
 }
 
+/**
+ * Removes all occurrences of a specified token from a string.
+ *
+ * This function searches for the token in the string and, if found, removes it by
+ * shifting the remainder of the string over the token's position. It continues to
+ * search and remove subsequent occurrences of the token. The original string is
+ * modified in place.
+ *
+ * @param str The string from which the token will be removed. Must be null-terminated.
+ * @param token The token to be removed from the string. Must be null-terminated.
+ */
+void remove_widget_token(char *str, const char *token) {
+  size_t token_len = strlen(token);
+  char *token_pos;
+
+  // Continue to search for the token until it's no longer found
+  while ((token_pos = strstr(str, token)) != NULL) {
+    // Move the rest of the string to overwrite the token
+    memmove(token_pos, token_pos + token_len, strlen(token_pos + token_len) + 1);
+  }
+}
  
 /* ========================================================
    Other resources

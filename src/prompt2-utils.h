@@ -48,14 +48,29 @@ char* replace_literal_newlines(const char* input);
 
 /**
  * Checks if the given string contains any widget tokens that do not
- * exactly match "@{CWD}".
+ * exactly match "@{CWD}" or "@{SPC}", which both are tokens which can
+ * have a variable length, decided after all the other widgets.
  *
  * @param str The input string to check for widget tokens.
  *
- * @return Returns SUCCESS if there is at least one non-CWD widget token;
- *   otherwise, FAILURE.
+ * @return Returns SUCCESS if there is at least one non-expanding
+ *   widget token; otherwise, FAILURE.
  */
-int has_non_cwd_tokens(const char *str);
+int has_nonexpanding_tokens(const char *str);
+
+
+/**
+ * Removes all occurrences of a specified token from a string.
+ *
+ * This function searches for the token in the string and, if found, removes it by
+ * shifting the remainder of the string over the token's position. It continues to
+ * search and remove subsequent occurrences of the token. The original string is
+ * modified in place.
+ *
+ * @param str The string from which the token will be removed. Must be null-terminated.
+ * @param token The token to be removed from the string. Must be null-terminated.
+ */
+void remove_widget_token(char *str, const char *token);
 
 
 /* ========================================================

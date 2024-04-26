@@ -669,9 +669,9 @@ int are_escape_sequences_properly_formed(const char *mystring) {
 int count_visible_chars(const char *mystring) {
   int real_chars = 0;
   int in_bracket_sequence = 0;
-
+  int in_widget_token = 0;
   while (*mystring) {
-    if (*mystring == '\\' && *(mystring + 1) == '[') {
+    if (!in_widget_token && *mystring == '\\' && *(mystring + 1) == '[') {
       // Found the start of a bracketed sequence
       in_bracket_sequence = 1;
       mystring++; // Skip the '[' character
@@ -679,8 +679,14 @@ int count_visible_chars(const char *mystring) {
       // Found the end of a bracketed sequence
       in_bracket_sequence = 0;
       mystring++; // Skip the ']' character
-    } else if (!in_bracket_sequence) {
-      // Count the character if it's not within a bracketed sequence
+    } else if (!in_bracket_sequence && *mystring == '@' && *(mystring + 1) == '{') {
+      // Found the start of a widget token
+      in_widget_token = 1;
+    } else if (in_widget_token && *mystring == '}') {
+      // Found the end of a widget token
+      in_widget_token = 0;
+    } else if (!in_bracket_sequence && !in_widget_token) {
+      // Count the character if it's not within a bracketed sequence or a widget token
       real_chars++;
     }
     mystring++;
