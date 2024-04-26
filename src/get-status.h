@@ -120,36 +120,4 @@ void cleanup_resources(struct CurrentState *state);
 
 
 
-/**
- * Shortens a filesystem path to a specified maximum width by
- * truncating the beginning of the string
- */
-void shorten_path(char *original_path, int max_width);
-
-
-/**
- * Checks if the escape sequences within a string are properly formed.
- * A properly formed escape sequence starts with '\033' or '\e' and ends with 'm'.
- * This function verifies that each escape sequence is correctly started and ended,
- * without overlapping or improperly nested sequences.
- *
- * @param mystring The string to be checked for properly formed escape sequences.
- * @return SUCCESS if all escape sequences are properly formed, ERROR otherwise.
- */
-int are_escape_sequences_properly_formed(const char *mystring);
-
-
-/**
- * Counts the number of visible (non-escape sequence) characters
- * in a string.
- * This function iterates through the given string, ignoring characters that
- * are part of terminal escape sequences (which start with '\033' and end with 'm').
- * Only characters outside of these sequences are counted as "visible" characters.
- *
- * @param mystring The string to be analyzed.
- * @return The count of visible characters in the string.
- */
-int count_visible_chars(const char *mystring);
-
-
 #endif //GETSTATUS_H
