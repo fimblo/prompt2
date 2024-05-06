@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <uthash.h>
 
@@ -290,7 +291,65 @@ int count_visible_chars(const char *mystring) {
   return real_chars;
 }
 
- 
+/* ========================================================
+  Cookies
+
+  A cookie jar is a directory:  ~/.config/prompt2-cookie-jar
+
+  A cookie is an empty file stored in the cookie jar directory,
+  where the filename itself contains the data in question.
+
+  A cookie has a retention-time of 5 minutes; after this point,
+  it will be refreshed.
+
+  ======================================================== */
+
+/**
+ * Creates the directory ~/.config/prompt2-cookie-jar if it does not already exist.
+ * Additionally, ensures that the ~/.config directory exists and creates it if necessary.
+ * 
+ * @return int Returns 0 on success, or -1 if an error occurred.
+ */
+int create_cookie_jar() {
+    const char *home = getenv("HOME");
+    if (!home) {
+        return ERROR;
+    }
+
+    char config_path[512];
+    snprintf(config_path, sizeof(config_path), "%s/.config", home);
+    struct stat config_stat = {0};
+    if (stat(config_path, &config_stat) == -1) {
+        if (mkdir(config_path, 0700) == -1) {
+            return ERROR;
+        }
+    }
+
+    char cookie_jar_path[512];
+    snprintf(cookie_jar_path, sizeof(cookie_jar_path), "%s/.config/prompt2-cookie-jar", home);
+    struct stat st = {0};
+    if (stat(cookie_jar_path, &st) == -1) {
+        if (mkdir(cookie_jar_path, 0700) == -1) {
+            return ERROR;
+        }
+    }
+
+    return SUCCESS; // Successfully created or already exists
+}
+
+// widget_name: aws
+// content: 2024-03-12T12:22:33Z
+// results in a file: ~/.config/prompt2-cookie-jar/aws--2024-03-12T12~22~33Z
+// note that colons should be auto-replaced with the tilde, stupid macos
+// finally, filename is updated with the full path to the file in question
+int save_cookie(const char *widget_name, const char *content, const char *filename);
+
+int delete_cookie_by_filename(const char *filename);
+int delete_widget_cookies(const char *widget_name);
+
+int find_cookie(const char *widget_name, const char *content, const char *filename);
+
+
 /* ========================================================
    Other resources
    ======================================================== */

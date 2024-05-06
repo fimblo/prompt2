@@ -105,6 +105,26 @@ int are_escape_sequences_properly_formed(const char *mystring);
 int count_visible_chars(const char *mystring);
 
 
+
+/* ========================================================
+  Cookies
+
+  A cookie jar is a directory:  ~/.config/prompt2-cookie-jar
+
+  A cookie is an empty file stored in the cookie jar directory,
+  where the filename itself contains the data in question.
+
+  ======================================================== */
+
+/**
+ * Creates the directory ~/.config/prompt2-cookie-jar if it does not already exist.
+ * Additionally, ensures that the ~/.config directory exists and creates it if necessary.
+ * 
+ * @return int Returns 0 on success, or -1 if an error occurred.
+ */
+int create_cookie_jar();
+
+
 /* ========================================================
    Resources for manipulating strings
    ======================================================== */
