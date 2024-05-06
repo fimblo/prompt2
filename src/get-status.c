@@ -451,6 +451,22 @@ int gather_aws_context(struct CurrentState *state) {
   time_t newest_mtime = 0;
   char newest_file[1024];
 
+  /*
+   Look for the newest file in the cache dir containing the relevant
+   token info. There are two types of aws json cache files in the
+   sso/cache dir:
+
+   - the one with the token allowing access to AWS services
+     (containing "startUrl", "region", "expiresAt", etc.) This one has
+     an "expiresAt" which is set in the near future (typically some
+     hours). This is the one we want.
+
+   - the one with a token identifying this client - this one has three
+     fields: "clientId", "clientSecret" and "expiresAt". This file's
+     "expiresAt" expires in the far future (typically weeks or
+     months). We don't want to read this one.
+  */
+
   while ((entry = readdir(dir)) != NULL) {
     if (entry->d_type == DT_REG) {
       char file_path[2048];
@@ -458,8 +474,32 @@ int gather_aws_context(struct CurrentState *state) {
 
       if (stat(file_path, &file_stat) == 0) {
         if (file_stat.st_mtime > newest_mtime) {
-          newest_mtime = file_stat.st_mtime;
-          strncpy(newest_file, file_path, sizeof(newest_file));
+          // Open the file to check its contents for "startUrl"
+          FILE *fp = fopen(file_path, "r");
+          if (fp != NULL) {
+            char *line = NULL;
+            size_t len = 0;
+            ssize_t read;
+            int found = 0;
+
+            while ((read = getline(&line, &len, fp)) != -1) {
+              if (strstr(line, "startUrl") != NULL) {
+                found = 1;
+                break;
+              }
+            }
+
+            // Clean up
+            free(line);
+            fclose(fp);
+
+            // If "startUrl" was found and the file is newer, update the newest file info
+            if (found) {
+              newest_mtime = file_stat.st_mtime;
+              strncpy(newest_file, file_path, sizeof(newest_file) - 1);
+              newest_file[sizeof(newest_file) - 1] = '\0';  // Ensure null-termination
+            }
+          }
         }
       }
     }
