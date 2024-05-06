@@ -316,6 +316,90 @@ int __get_repo_divergence(struct CurrentState *state) {
 }
 
 
+/**
+ * Helper: Find the aws token file
+ */
+int __get_aws_token_file(char **aws_token_file) {
+  const char *home_dir = getenv("HOME");
+  if (!home_dir) return ERROR;
+
+  char cache_dir[1024];
+  snprintf(cache_dir, sizeof(cache_dir), "%s/.aws/sso/cache", home_dir);
+
+  DIR *dir = opendir(cache_dir);
+  if (!dir) { // cache dir doesn't exist.
+    return FAILURE_HAS_NO_AWS_CONFIG;
+  }
+
+  struct dirent *entry;
+  struct stat file_stat;
+  time_t newest_mtime = 0;
+  char newest_file[1024];
+
+  /*
+   Look for the newest file in the cache dir containing the relevant
+   token info. There are two types of aws json cache files in the
+   sso/cache dir:
+
+   - the one with the token allowing access to AWS services
+     (containing "startUrl", "region", "expiresAt", etc.) This one has
+     an "expiresAt" which is set in the near future (typically some
+     hours). This is the one we want.
+
+   - the one with a token identifying this client - this one has three
+     fields: "clientId", "clientSecret" and "expiresAt". This file's
+     "expiresAt" expires in the far future (typically weeks or
+     months). We don't want to read this one.
+  */
+
+  while ((entry = readdir(dir)) != NULL) {
+    if (entry->d_type == DT_REG) {
+      char file_path[2048];
+      snprintf(file_path, sizeof(file_path), "%s/%s", cache_dir, entry->d_name);
+
+      if (stat(file_path, &file_stat) == 0) {
+        if (file_stat.st_mtime > newest_mtime) {
+          // Open the file to check its contents for "startUrl"
+          FILE *fp = fopen(file_path, "r");
+          if (fp != NULL) {
+            char *line = NULL;
+            size_t len = 0;
+            ssize_t read;
+            int found = 0;
+
+            while ((read = getline(&line, &len, fp)) != -1) {
+              if (strstr(line, "startUrl") != NULL) {
+                found = 1;
+                break;
+              }
+            }
+
+            // Clean up
+            free(line);
+            fclose(fp);
+
+            // If "startUrl" was found and the file is newer, update the newest file info
+            if (found) {
+              newest_mtime = file_stat.st_mtime;
+              strncpy(newest_file, file_path, sizeof(newest_file) - 1);
+              newest_file[sizeof(newest_file) - 1] = '\0';
+            }
+          }
+        }
+      }
+    }
+  }
+  closedir(dir);
+
+  if (newest_mtime == 0) { // no files exist in cachedir
+    return FAILURE_HAS_NO_AWS_CONFIG;
+  }
+
+  *aws_token_file = strdup(newest_file);
+  return SUCCESS_HAS_AWS_CONFIG;
+}
+
+
 
 
 /* ================================================== */
@@ -434,86 +518,17 @@ int gather_system_context(struct CurrentState *state) {
  * state->aws_token_is_valid.
  */
 int gather_aws_context(struct CurrentState *state) {
-  const char *home_dir = getenv("HOME");
-  if (!home_dir) return ERROR;
+  char *aws_token_file = NULL;
 
-  char cache_dir[1024];
-  snprintf(cache_dir, sizeof(cache_dir), "%s/.aws/sso/cache", home_dir);
-
-  DIR *dir = opendir(cache_dir);
-  if (!dir) { // cache dir doesn't exist.
+  int retval = __get_aws_token_file(&aws_token_file);
+  if (retval != SUCCESS_HAS_AWS_CONFIG) {
     state->aws_token_is_valid = 0; // so invalid
-    return 0;
-  }
-
-  struct dirent *entry;
-  struct stat file_stat;
-  time_t newest_mtime = 0;
-  char newest_file[1024];
-
-  /*
-   Look for the newest file in the cache dir containing the relevant
-   token info. There are two types of aws json cache files in the
-   sso/cache dir:
-
-   - the one with the token allowing access to AWS services
-     (containing "startUrl", "region", "expiresAt", etc.) This one has
-     an "expiresAt" which is set in the near future (typically some
-     hours). This is the one we want.
-
-   - the one with a token identifying this client - this one has three
-     fields: "clientId", "clientSecret" and "expiresAt". This file's
-     "expiresAt" expires in the far future (typically weeks or
-     months). We don't want to read this one.
-  */
-
-  while ((entry = readdir(dir)) != NULL) {
-    if (entry->d_type == DT_REG) {
-      char file_path[2048];
-      snprintf(file_path, sizeof(file_path), "%s/%s", cache_dir, entry->d_name);
-
-      if (stat(file_path, &file_stat) == 0) {
-        if (file_stat.st_mtime > newest_mtime) {
-          // Open the file to check its contents for "startUrl"
-          FILE *fp = fopen(file_path, "r");
-          if (fp != NULL) {
-            char *line = NULL;
-            size_t len = 0;
-            ssize_t read;
-            int found = 0;
-
-            while ((read = getline(&line, &len, fp)) != -1) {
-              if (strstr(line, "startUrl") != NULL) {
-                found = 1;
-                break;
-              }
-            }
-
-            // Clean up
-            free(line);
-            fclose(fp);
-
-            // If "startUrl" was found and the file is newer, update the newest file info
-            if (found) {
-              newest_mtime = file_stat.st_mtime;
-              strncpy(newest_file, file_path, sizeof(newest_file) - 1);
-              newest_file[sizeof(newest_file) - 1] = '\0';  // Ensure null-termination
-            }
-          }
-        }
-      }
-    }
-  }
-  closedir(dir);
-
-  if (newest_mtime == 0) { // no files exist in cachedir
-    state->aws_token_is_valid = 0; // so invalid.
-    return 0;
+    return 0; // Note: inverted failure return value
   }
 
 
-  FILE *file = fopen(newest_file, "r");
-  if (!file) return -1; // can't read - so error
+  FILE *file = fopen(aws_token_file, "r");
+  if (!file) return ERROR; // can't read - so error
 
   struct json_object *parsed_json, *expires_at;
   char buffer[4096];
@@ -522,11 +537,11 @@ int gather_aws_context(struct CurrentState *state) {
   fclose(file);
 
   parsed_json = json_tokener_parse(buffer);
-  if (!parsed_json) return ERROR;
+  if (!parsed_json) return ERROR; // error because invalid json
 
   if (!json_object_object_get_ex(parsed_json, "expiresAt", &expires_at)) {
     json_object_put(parsed_json);
-    return ERROR; // error because invalid json
+    return ERROR; // error because no "expiresAt"
   }
 
   const char *expires_at_str = json_object_get_string(expires_at);
