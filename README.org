@@ -30,6 +30,8 @@ Repo.untracked               # number of untracked files
 AWS.token_is_valid           # if there is a valid AWS SSO token
 AWS.token_remaining_hours    # AWS SSO token: how many hours are remaining
 AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining
+SYS.username                 # username
+SYS.hostname                 # hostname
 #+end_example
 
 (The =prompt2-state-dump= binary is used in the tests for the =get-status.c=
