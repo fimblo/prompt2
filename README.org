@@ -2,14 +2,131 @@
 [[https://github.com/fimblo/prompt2/actions/workflows/ubuntu.yml/badge.svg]]
 [[https://github.com/fimblo/prompt2/actions/workflows/macos.yml/badge.svg]]
 
-prompt2 - a fast binary which generates a configurable and dynamic bash prompt
+prompt2 - Dynamic Shell Prompt Generator
 
-This is still work in progress. See [[https://github.com/fimblo/prompt2/issues][Issues]] for feature ideas. Oh and bugs of course.
+prompt2 is a highly configurable utility designed to enhance the
+command line experience by generating dynamic shell prompts. It adapts
+to your environment, utilizing information such as the current git
+branch, repository status, and working directory to create
+context-aware prompts. This makes it a useful tool for developers and
+sysadmins who require a quick, real-time overview of their system's
+state directly from the command line.
 
-** Aspects which can be shown in the prompt
+** Features
+- *Performance*: Executes in under 100ms on older hardware (pre-2010
+  with spinning disks) and around 12-15ms on modern machines equipped
+  with SSDs.
+- *Customization*: Offers customizable widgets for both git and
+  default prompts that can be tailored to fit your needs.
+- *Ease of Configuration*: Configurable through a simple INI file,
+  making setup and adjustments straightforward.
+- *Cross-Platform Compatibility*: Supports both Debian/Ubuntu and
+  macOS, ensuring functionality across different systems.
+- *Extensibility*: Designed with extensibility in mind, allowing for
+  the addition of new widgets by writing some C code.
+  
+** Installation
 
-The =prompt2= binary gathers info from the environment and can use these to
-generate a dynamic prompt.
+Follow these steps to install prompt2 on your system.
+
+Note: if these instructions don't work for you, I advise that you
+check the github action for your operating system ([[.github/workflows/ubuntu.yml][Debian/Ubuntu]],
+[[.github/workflows/macos.yml][MacOS]]), since this should be up-to-date.
+
+*** Debian/Ubuntu:
+
+#+begin_src bash
+  # Install necessary dependencies
+  sudo apt-get install build-essential git libgit2-dev libiniparser-dev libjson-c-dev uthash-dev
+  sudo apt-get install bats
+
+  # Clone the prompt2 repository
+  git clone https://github.com/fimblo/prompt2.git
+
+  # Navigate to the prompt2 directory
+  cd prompt2
+
+  # Compile the source and run tests
+  make
+
+  # Install prompt2 to your local bin directory
+  make install-local
+#+end_src
+
+
+*** macOS:
+
+#+begin_src bash
+  # Install Xcode Command Line Tools if not already installed
+  xcode-select --install
+
+  # Install Homebrew if not already installed
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+  # Install necessary dependencies using Homebrew
+  brew install libgit2 json-c uthash iniparser
+  brew install bats-core # for testing
+  brew install bash # since macos vanilla bash is outdated
+
+
+  # Clone the prompt2 repository
+  git clone https://github.com/fimblo/prompt2.git
+
+  # Navigate to the prompt2 directory
+  cd prompt2
+
+  # Compile the source and run tests
+  make
+
+  # Install prompt2 to your local bin directory
+  make install-local
+#+end_src
+
+
+The make command compiles the source and runs tests, ensuring
+everything is set up correctly. If you prefer to install prompt2
+globally, you can use =make install= to place the binaries in
+=/usr/local/bin=. Use =make help= to see other available make targets
+and options.
+
+** Usage
+
+To test prompt2, you can use the provided script
+=config/set-prompt.ini.sh=. This will only make changes in your
+current bash session:
+
+#+begin_src bash
+  source path/to/prompt2/config/set-prompt.ini.sh
+#+end_src
+
+
+
+Alternatively for a more permanent setup, copy the file
+=config/dot.prompt2_config.ini= to =HOME=, removing the prefix along
+the way:
+
+#+begin_src bash
+  cp path/to/prompt2/config/dot.prompt2_config.ini ~/.prompt2_config.ini
+#+end_src
+
+Then add this snippet into your =.bashrc=:
+
+#+begin_src bash
+  prompt_cmd() {
+    PS1=$(prompt2)
+  }
+  PROMPT_COMMAND=prompt_cmd
+#+end_src
+
+** Customisation
+
+Customizing prompt2 involves modifying the INI configuration file to
+adjust the appearance and behavior of the prompt components, known as
+widgets. The configuration file allows you to set various parameters
+for each widget, such as text formatting, active and inactive states,
+and color settings.
+
+*** Available Widgets
 
 #+begin_example
 $ bin/prompt2-state-dump
@@ -34,34 +151,84 @@ SYS.username                 # username
 SYS.hostname                 # hostname
 #+end_example
 
-(The =prompt2-state-dump= binary is used in the tests for the =get-status.c=
-library, which is used to to get environment status.)
+(The =prompt2-state-dump= binary is used in the tests for the
+=get-status.c= library, which is used to to get environment status.
+It's also useful to get a full dump of all available widgets)
 
-** Configuring the prompt
+*** Example Customisation
 
-See [[https://github.com/fimblo/prompt2/blob/main/config/set-prompt.ini.sh][config/set-prompt.ini.sh]] for a simple example.
+To customize the Default settings for all widgets, you can modify its
+settings in the INI file as follows:
 
-To run:
-#+begin_src bash
-  source config/set-prompt.ini.sh
+#+begin_src conf
+  [WIDGET_DEFAULT]
+  string_active="%s"
+  string_inactive="%s"
+  colour_on="\[\e[36;22m\]"  # Active color in cyan
+  colour_off="\[\e[36;2m\]"  # Inactive color in dim cyan
 #+end_src
 
-If you like what you see, you can add it to your =.bashrc= (after updating the path).
+- =string_active= and =string_inactive=: These parameters define the
+  format strings used when the widget is active or inactive. You can
+  include placeholders and formatting options here.
 
-** Prerequisites
-*** Debian
-- =apt-get install build-essential libgit2 bats libjson-c-dev uthash-dev=
-*** Mac
-- =xcode-select --install ; brew install libgit2 bats json-c uthash=
-- ... and if you're bash is the default provided by the OS, you'll need to =brew install bash= to get a more modern version.
-** Building and testing
-- =make= will build the binary and run all tests.
-- =make install-local= will install to ~/bin
-- =make help= for the rest of the targets
+- =colour_on= and =colour_off=: These parameters control the text
+  color for the active and inactive states of the widget. The color
+  codes are specified using ANSI escape sequences.
+
+  - Standard ANSI Colors: You can use standard ANSI color codes such
+    as =\[\e[31m\]= for red, =\[\e[32m\]= for green, etc. These are
+    widely supported and easy to use.
+
+  - RGB Colors: For more precise color control, you can specify RGB
+    values using the ANSI escape sequences for 24-bit color. This is
+    done using the sequences =\[\e[38;2;R;G;Bm\]= for foreground
+    colors and =\[\e[48;2;R;G;Bm\]= for background colors, where R, G,
+    and B represent the red, green, and blue components of the color,
+    respectively. Each component can be a value from 0 to 255.
+
+  For example, to set the foreground color to a specific shade of blue
+  using RGB values, you would use:
+  #+begin_src conf
+    colour_on="\[\e[38;2;0;120;215m\]"  # A nice shade of blue
+  #+end_src
+
+  Similarly, to set a background color using RGB, you might use:
+  #+begin_src conf
+    colour_off="\[\e[48;2;255;200;0m\]"  # A warm yellow background
+  #+end_src
+
+**** Overriding the default widget
+
+Each individual widget can override the default setting, for example
+for =Repo.branch_name= here, which we will override to show a hyphen
+if there is no known branch name.
+#+begin_src conf
+  [Repo.branch_name]
+  string_inactive="-"
+#+end_src
+
+Here's another example, where prompt2 will only show the conflict
+widget if there is a git conflict. In other situations, it will not be
+visible.
+
+#+begin_src conf
+  [Repo.conflicts]
+  string_active="<conflicts: %s>"
+  string_inactive=""
+  colour_on="\[\e[35m\]"
+  colour_off=""
+#+end_src
 
 ** Third-party Licenses
 
-This project includes the =external/rgb.txt= file from Xorg, which is
+prompt2 is distributed under the GNU General Public License v3
+(GPLv3), which allows users to use, modify, and distribute the
+software, provided that all copies and derivatives remain under the
+same license. This ensures that improvements and modifications to the
+software remain free and accessible to the community.
+
+This project includes the =etc/rgb.txt= file from Xorg, which is
 licensed under the MIT License. The original license text for this
 file can be found in the =etc/LICENSE_rgb.txt= file in this
 repository.
