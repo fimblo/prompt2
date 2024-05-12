@@ -29,9 +29,9 @@ state directly from the command line.
 
 Follow these steps to install prompt2 on your system.
 
-Note: if these instructions don't work for you, I advise that you
-check the github action for your operating system ([[.github/workflows/ubuntu.yml][Debian/Ubuntu]],
-[[.github/workflows/macos.yml][MacOS]]), since this should be up-to-date.
+| Note on the build instructions                                        |
+|-----------------------------------------------------------------------|
+| If the instructions below don't work for you, I advise that you check the  github action for your operating system([[.github/workflows/ubuntu.yml][Debian/Ubuntu]], [[.github/workflows/macos.yml][MacOS]]), since this should be up-to-date. |
 
 *** Debian/Ubuntu:
 
