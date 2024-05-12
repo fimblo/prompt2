@@ -150,6 +150,7 @@ AWS.token_remaining_minutes  # AWS SSO token: how many minutes are remaining
 SYS.username                 # username
 SYS.hostname                 # hostname
 SYS.uid                      # the effective uid of the user
+SYS.gid                      # the effective gid of the user
 SYS.promptchar               # set to '#' if the uid==0, '$' otherwise
 #+end_example
 

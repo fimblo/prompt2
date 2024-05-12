@@ -42,6 +42,7 @@ struct CurrentState {
   const char *username;
   const char *hostname;
   int uid;
+  int gid;
 
   int is_git_repo;
   int has_upstream;

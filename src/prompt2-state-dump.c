@@ -61,6 +61,7 @@ int main(void) {
   printf("SYS.username %s\n",         state.username);
   printf("SYS.hostname %s\n",         state.hostname);
   printf("SYS.uid %d\n",              state.uid);
+  printf("SYS.gid %d\n",              state.gid);
   printf("SYS.promptchar %s\n",       state.uid ? "$" : "#");
 
 

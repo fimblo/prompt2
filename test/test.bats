@@ -47,6 +47,22 @@ load test_helper_functions
 }
 
 # --------------------------------------------------
+@test "getting gid" {
+  # Given
+  # - 
+  MY_GID=$(id -g)
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+  
+  # Then
+  # - the gid field should be correct
+
+  echo "$output" > "$HOME/assert-file"
+  assert SYS.gid "$MY_GID"
+}
+
+# --------------------------------------------------
 @test "getting hostname" {
 
   # When we test the prompt lib

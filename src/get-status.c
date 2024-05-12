@@ -428,6 +428,7 @@ void initialise_state(struct CurrentState *state) {
   state->username                    = "";
   state->hostname                    = "";
   state->uid                         = -1;
+  state->gid                         = -1;
 
   state->is_git_repo                 = -1;
   state->has_upstream                = -1;
@@ -493,6 +494,7 @@ int gather_system_context(struct CurrentState *state) {
   state->username = username;
 
   state->uid = getuid();
+  state->gid = getgid();
 
   // Get the short-form hostname of this machine and save in state->hostname
   char hostname[HOST_NAME_MAX];
