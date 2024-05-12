@@ -281,6 +281,10 @@ void map_wtoken_to_state(dictionary *dict, struct CurrentState *state) {
 
   dictionary_set(dict, "sys.username",            state->username);
   dictionary_set(dict, "sys.hostname",            state->hostname);
+  dictionary_set(dict, "sys.promptchar",          state->uid ? "$": "#");
+
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      (int) state->uid);
+  dictionary_set(dict, "sys.uid",            itoa_buf);
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
   dictionary_set(dict, "repo.is_git_repo",   itoa_buf);
@@ -385,6 +389,7 @@ int is_widget_active(const char * wtoken, const char *value) {
     { "repo.name",          TYPE_STRING },
     { "repo.branch_name",   TYPE_STRING },
 
+    { "sys.promptchar",     TYPE_TOGGLE },
     { "repo.is_git_repo",   TYPE_TOGGLE },
     { "repo.rebase_active", TYPE_TOGGLE },
     { "repo.conflicts",     TYPE_TOGGLE },

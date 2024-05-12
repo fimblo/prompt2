@@ -31,6 +31,22 @@ load test_helper_functions
 }
 
 # --------------------------------------------------
+@test "getting uid" {
+  # Given
+  # - 
+  MY_UID=$(id -u)
+
+  # When we test the prompt lib
+  run -0 $TEST_FUNCTION
+  
+  # Then
+  # - the uid field should be correct
+
+  echo "$output" > "$HOME/assert-file"
+  assert SYS.uid "$MY_UID"
+}
+
+# --------------------------------------------------
 @test "getting hostname" {
 
   # When we test the prompt lib

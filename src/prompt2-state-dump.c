@@ -60,6 +60,8 @@ int main(void) {
   gather_system_context(&state);
   printf("SYS.username %s\n",         state.username);
   printf("SYS.hostname %s\n",         state.hostname);
+  printf("SYS.uid %d\n",              state.uid);
+  printf("SYS.promptchar %s\n",       state.uid ? "$" : "#");
 
 
   cleanup_resources(&state);
