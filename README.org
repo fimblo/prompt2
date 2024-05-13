@@ -154,6 +154,10 @@ SYS.gid                      # the effective gid of the user
 SYS.promptchar               # set to '#' if the uid==0, '$' otherwise
 #+end_example
 
+Aside from the above, there's the special widget =SPC= which can
+be used once on each line of the prompt to align the remaining
+widgets to the right of the terminal.
+
 (The =prompt2-state-dump= binary is used in the tests for the
 =get-status.c= library, which is used to to get environment status.
 It's also useful to get a full dump of all available widgets)
