@@ -73,11 +73,6 @@
 #define DEFAULT_TERMINAL_WIDTH 80
 
 /**
-   Default length of a git branch to show
-*/
-#define BRANCH_MAX_WIDTH       128
-
-/**
    Max number of widgets types
 */
 #define DICTIONARY_MAX_SIZE    64
@@ -109,7 +104,6 @@ struct ConfigRoot {
   char *              git_prompt_zero;
   char *              default_prompt;
   char *              cwd_type;
-  size_t              branch_max_width;
   struct WidgetConfig defaults;
 };
 
@@ -175,7 +169,7 @@ void create_widget(dictionary *ini,
   const char *default_string_inactive = defaults ? defaults->string_inactive : "";
   const char *default_colour_on       = defaults ? defaults->colour_on : "";
   const char *default_colour_off      = defaults ? defaults->colour_off : "";
-  const int default_max_width         = defaults ? defaults->max_width : WIDGET_MAX_LEN;
+  const int   default_max_width       = defaults ? defaults->max_width : WIDGET_MAX_LEN;
 
   char key[INI_SECTION_MAX_SIZE];
   snprintf(key, sizeof(key), "%s:string_active", section);
@@ -198,7 +192,6 @@ void create_widget(dictionary *ini,
 void set_config_defaults(struct ConfigRoot *config) {
   // Set non-widget defaults
   config->cwd_type = "home";
-  config->branch_max_width = (size_t) BRANCH_MAX_WIDTH;
   config->git_prompt = "G: \\W $ ";
   config->git_prompt_zero = "Z: \\W $ ";
   config->default_prompt = "\\W $ ";
@@ -255,13 +248,9 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
 
   // Set other config from ini file
   config->cwd_type       = strdup(iniparser_getstring(ini, "MISC:cwd_type",       config->cwd_type));
-  char bmw_tmp[SHORT_STRING];
-  sprintf(bmw_tmp, "%d", (int) config->branch_max_width);
-  config->branch_max_width = (size_t) atoi(iniparser_getstring(ini, "MISC:branch_max_width", bmw_tmp));
 
   // Set default widget to fall back on
   create_widget(ini, INI_SECTION_WIDGET_DEFAULT, &config->defaults, NULL);
-//  printf("after create_widget. This is default width: '%d'\n", config->defaults.max_width); // debug
 
   // Read each ini section
   for (int i = 0; i < iniparser_getnsec(ini); i++) {
@@ -272,8 +261,6 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
     struct WidgetConfig wc = { NULL, NULL, NULL, NULL, 0 };
     create_widget(ini, section, &wc, &config->defaults);
     save_widget(section, wc);
- //   printf("after creating %s, max width: '%d'\n", section, wc.max_width);
-
   }
 
   // Free the dictionary
@@ -611,7 +598,6 @@ int main(int argc, char *argv[]) {
     }
     else {
       selected_prompt = strdup(config.git_prompt);
-      truncate_with_ellipsis((char *) state.branch_name, config.branch_max_width);
     }
   }
   else if (is_git_repo == FAILURE_IS_NOT_GIT_REPO) {
