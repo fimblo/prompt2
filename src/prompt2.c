@@ -13,15 +13,15 @@
  * instance, the "Repo.name" widget is active when the current
  * directory is within a git repository.
  *
- * Widgets are configurable in terms of text and color, with separate
+ * Widgets are configurable in terms of text and colour, with separate
  * settings for their active and inactive states. For example, the
  * "Repo.name" widget configuration might look like this:
  *   - string_active: The format string used when the widget is active
  *     (e.g., displaying the git branch name). eg: "<%s>"
  *   - string_inactive: The format string used when the widget is
  *     inactive (e.g., an empty string or placeholder text). eg: "-"
- *   - colour_on: The color code applied to the active widget text.
- *   - colour_off: The color code applied to the inactive widget text.
+ *   - colour_on: The colour code applied to the active widget text.
+ *   - colour_off: The colour code applied to the inactive widget text.
  *
  * Widgets are assembled into a prompt using the configuration
  * variables `git_prompt` and `default_prompt`. These variables define
@@ -132,7 +132,17 @@ void __print_debug_widget_config(struct WidgetConfig wc) {
 }
 
 
-// Function to get a widget from the hash table
+/**
+ * Retrieves a widget configuration from the hash table by name.
+ *
+ * This function searches the hash table for a widget configuration
+ * with the specified name. If found, it returns a pointer to the
+ * WidgetConfig struct; otherwise, it returns NULL.
+ *
+ * @param name The name of the widget to retrieve.
+ * @return     A pointer to the WidgetConfig struct if found, or NULL
+ *             if not found.
+ */
 struct WidgetConfig *get_widget(const char *name) {
   struct WidgetConfigMap *s;
 
@@ -144,7 +154,17 @@ struct WidgetConfig *get_widget(const char *name) {
 }
 
 
-// Saves the widget in the hash table for later retrieval
+/**
+ * Saves the widget in the hash table for later retrieval.
+ *
+ * This function stores a WidgetConfig in a hash table, allowing it to
+ * be retrieved later by name. If a widget with the same name already
+ * exists, its configuration is updated.
+ *
+ * @param name The name of the widget to save.
+ * @param widget_config The WidgetConfig struct containing the
+ *                      widget's configuration.
+ */
 void save_widget(const char *name, struct WidgetConfig widget_config) {
   struct WidgetConfigMap *s;
 
@@ -159,8 +179,19 @@ void save_widget(const char *name, struct WidgetConfig widget_config) {
 }
 
 
-// transfer INI file section into a WidgetConfig struct
-// if this fails, use the default values.
+/**
+ * Transfers INI file section into a WidgetConfig struct.
+ *
+ * This function populates a WidgetConfig struct with values from a
+ * specified INI file section. If a value is not found in the INI
+ * file, it uses the provided default values.
+ *
+ * @param ini The dictionary representing the INI file.
+ * @param section The section of the INI file to read.
+ * @param widget_config The WidgetConfig struct to populate.
+ * @param defaults The default values to use if a value is not found
+ *                 in the INI file.
+ */
 void create_widget(dictionary *ini,
                                  const char *section,
                                  struct WidgetConfig *widget_config,
@@ -186,8 +217,15 @@ void create_widget(dictionary *ini,
 
 
 /**
- * Set the default values of all the fields in the config file. Any
- * field set there will override the corresponding one found here.
+ * Sets the default values for all fields in the configuration
+ * structure.
+ *
+ * This function initializes the configuration structure with default
+ * values. Any field set in the configuration file will override the
+ * corresponding default value.
+ *
+ * @param config The configuration structure to initialize with
+ *               default values.
  */
 void set_config_defaults(struct ConfigRoot *config) {
   // Set non-widget defaults
@@ -207,7 +245,19 @@ void set_config_defaults(struct ConfigRoot *config) {
 
 
 /**
- * Handle prompt2 configuration
+ * Handles the configuration of the prompt by loading settings from an
+ * INI file.
+ *
+ * This function sets default values for the configuration and then
+ * attempts to load and override these values from a specified INI
+ * file. If no file path is provided, it searches for a default
+ * configuration file in the current directory or the user's home
+ * directory.
+ *
+ * @param config The configuration structure to populate.
+ * @param config_file_path The path to the INI file to load. If NULL,
+ *                         a default file is searched for.
+ * @return SUCCESS unless something goes wrong
  */
 int handle_configuration(struct ConfigRoot *config, const char *config_file_path) {
   // Set all default values first
@@ -269,8 +319,16 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
 }
 
 /**
- * Map widget tokens with specific environment state
-*/
+ * Maps widget tokens to their corresponding values based on the
+ * current state.
+ *
+ * This function populates a dictionary with key-value pairs where the
+ * keys are widget tokens and the values are derived from the current
+ * state of the environment.
+ *
+ * @param dict The dictionary to populate with widget tokens and their values.
+ * @param state The current state of the environment from which values are derived.
+ */
 void map_wtoken_to_state(dictionary *dict, struct CurrentState *state) {
 
   char itoa_buf[ITOA_BUFFER_SIZE]; // to store numbers as strings
@@ -319,7 +377,20 @@ void map_wtoken_to_state(dictionary *dict, struct CurrentState *state) {
 }
 
 
-// return 0 if false, 1 if true
+/**
+ * Determines if a widget is active based on its token and value.
+ *
+ * Widgets can be active or inactive depending on the type of widget
+ * and its value.
+ * - String-type widgets are inactive if the value is an empty string.
+ * - Number-type widgets are inactive if the value is zero or negative.
+ * - Special cases are handled for specific widgets like
+     `aws.token_remaining_hours` and `aws.token_remaining_minutes`.
+ *
+ * @param wtoken The widget token to check.
+ * @param value The value associated with the widget token.
+ * @return 1 if the widget is active, 0 if inactive.
+ */
 int is_widget_active(const char * wtoken, const char *value) {
   char * wtoken_lc = to_lower(wtoken);
 
