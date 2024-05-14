@@ -49,7 +49,7 @@ Follow these steps to install prompt2 on your system.
   # Compile the source and run tests
   make
 
-  # Install prompt2 to your local bin directory
+  # Install prompt2 to ~/bin
   make install-local
 #+end_src
 
@@ -78,7 +78,7 @@ Follow these steps to install prompt2 on your system.
   # Compile the source and run tests
   make
 
-  # Install prompt2 to your local bin directory
+  # Install prompt2 to ~/bin
   make install-local
 #+end_src
 
