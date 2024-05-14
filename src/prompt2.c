@@ -449,14 +449,24 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   }
   // Format the value
   char padded_value[4];
-  const char *value_to_format;
+  char *value_to_format;
   if (strcmp(lower_name, "aws.token_remaining_minutes") == 0 && strlen(value) == 1) {
     snprintf(padded_value, sizeof(padded_value), "0%s", value);
     value_to_format = padded_value;
   }
   else {
-    value_to_format = value;
+    value_to_format = (char *) value;
   }
+
+  if (strlen(value_to_format) > (size_t) wc->max_width) {
+    if (strcmp(lower_name, "cwd") == 0) {
+      shorten_path(value_to_format, wc->max_width);
+    }
+    else {
+      truncate_with_ellipsis(value_to_format, (size_t) wc->max_width);
+    }
+  }
+
   char widget[WIDGET_MAX_LEN];
   const char *format_string = is_active ? wc->string_active : wc->string_inactive;
   snprintf(widget, sizeof(widget), format_string, value_to_format);
