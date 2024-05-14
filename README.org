@@ -176,9 +176,8 @@ Now let's make these act differently:
   prompt="@{Repo.name}-@{Repo.branch_name} @{CWD}\n@{SYS.promptchar} "
 #+end_src
 
-There are two miscellaneous configurations - for the style of printing
-the CWD and how many characters of the repo branch to show before
-truncation. These are both under the =MISC= section, and are:
+There is one miscellaneous configuration - for the style of printing
+the CWD. This is under the =MISC= section, and:
 - =cwd_type=: This can be home, basename, full and git.
   - =home=: show the path from your home directory. This is used if
     =cwd_type= is unset.
@@ -186,8 +185,6 @@ truncation. These are both under the =MISC= section, and are:
     in.
   - =full=: show the full path from /
   - =git=: show the path from the root of the git repo. 
-- =branch_max_width=: branch names can be long - so you might want to
-  truncate it to N characters.
 
 Here's what it could look like if one writes it out with =CWD= set to
 basename, and showing at most 10 characters of the git repo branch
@@ -202,10 +199,9 @@ name:
 
   [MISC]
   cwd_type="basename"
-  branch_max_width="10"
 #+end_src
 
-These miscellaneous configurations will be folded into the widget
+This miscellaneous configuration will be folded into the widget
 configurations at a later date, so that one could have different CWD
 types in the git prompt and the default prompt ([[https://github.com/fimblo/prompt2/issues/42][Issue #42]]).
 
@@ -233,11 +229,15 @@ SYS.hostname                 # hostname
 SYS.uid                      # the effective uid of the user
 SYS.gid                      # the effective gid of the user
 SYS.promptchar               # set to '#' if the uid==0, '$' otherwise
+SPC                          # spacefiller (see below)
 #+end_example
 
-Aside from the above, there's the special widget =SPC= which can
-be used once on each line of the prompt to align the remaining
-widgets to the right of the terminal.
+Notes on the widgets:
+- =CWD=: This widget, which prints the path to your location in the
+  filesystem, will automatically be truncated if the path won't fit in
+  your terminal.
+- =SPC=: Can be used once on each line of the prompt to align the
+  remaining widgets to the right of the terminal.
 
 *** Customising Widgets
 
@@ -251,11 +251,18 @@ settings in the INI file as follows:
 
 #+begin_src conf
   [WIDGET_DEFAULT]
+  max_width=256              # shorten if longer than this
   string_active="%s"
   string_inactive="%s"
   colour_on="\[\e[36;22m\]"  # Active colour in cyan
   colour_off="\[\e[36;2m\]"  # Inactive colour in dim cyan
 #+end_src
+
+- =max_width=: The space a widget takes in the prompt, sans terminal
+  escape codes. All widgets will be shortened on the right edge except
+  for CWD where the beginning is cut away. Like mentioned above, CWD
+  is automatically shortened if it doesn't fit in the terminal (so you
+  only need to set =max_width= if you want to).
 
 - =string_active= and =string_inactive=: These parameters define the
   format strings used when the widget is active or inactive. You can
@@ -299,10 +306,20 @@ settings in the INI file as follows:
 **** Overriding the default widget
 
 Each individual widget can override the default setting, for example
-for =Repo.branch_name= here, which we will override to show a hyphen
-if there is no known branch name.
+for =Repo.branch_name= here, where we normally would shorten longer
+branch names to save space in the terminal.
+
 #+begin_src conf
   [Repo.branch_name]
+  max_width=20
+#+end_src
+
+
+We might also want to override =string_inactive= to show a hyphen
+if there is no defined branch name yet:
+#+begin_src conf
+  [Repo.branch_name]
+  max_width=20
   string_inactive="-"
 #+end_src
 
