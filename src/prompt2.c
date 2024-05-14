@@ -98,6 +98,7 @@ struct WidgetConfig {
   char *string_inactive;
   char *colour_on;
   char *colour_off;
+  int max_width;
 };
 
 /**
@@ -133,6 +134,7 @@ void __print_debug_widget_config(struct WidgetConfig wc) {
   printf("string_inactive: '%s'\n", wc.string_inactive);
   printf("colour_on: '%s'%s\n", wc.colour_on, reset);
   printf("colour_off: '%s'%s\n", wc.colour_off, reset);
+  printf("max_width: %d\n", wc.max_width);
 }
 
 
@@ -173,6 +175,7 @@ void create_widget(dictionary *ini,
   const char *default_string_inactive = defaults ? defaults->string_inactive : "";
   const char *default_colour_on       = defaults ? defaults->colour_on : "";
   const char *default_colour_off      = defaults ? defaults->colour_off : "";
+  const int default_max_width         = defaults ? defaults->max_width : WIDGET_MAX_LEN;
 
   char key[INI_SECTION_MAX_SIZE];
   snprintf(key, sizeof(key), "%s:string_active", section);
@@ -183,6 +186,8 @@ void create_widget(dictionary *ini,
   widget_config->colour_on = strdup(iniparser_getstring(ini, key, default_colour_on));
   snprintf(key, sizeof(key), "%s:colour_off", section);
   widget_config->colour_off = strdup(iniparser_getstring(ini, key, default_colour_off));
+  snprintf(key, sizeof(key), "%s:max_width", section);
+  widget_config->max_width = iniparser_getint(ini, key, default_max_width);
 }
 
 
@@ -203,6 +208,7 @@ void set_config_defaults(struct ConfigRoot *config) {
   config->defaults.string_inactive = "%s";
   config->defaults.colour_on       = "";
   config->defaults.colour_off      = "";
+  config->defaults.max_width       = WIDGET_MAX_LEN;
 }
 
 
@@ -255,6 +261,7 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
 
   // Set default widget to fall back on
   create_widget(ini, INI_SECTION_WIDGET_DEFAULT, &config->defaults, NULL);
+//  printf("after create_widget. This is default width: '%d'\n", config->defaults.max_width); // debug
 
   // Read each ini section
   for (int i = 0; i < iniparser_getnsec(ini); i++) {
@@ -262,9 +269,11 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
     if (strcmp(section, INI_SECTION_WIDGET_DEFAULT) == 0) continue;
     if (strcmp(section, INI_SECTION_MISC) == 0) continue;
 
-    struct WidgetConfig wc = { NULL, NULL, NULL, NULL };
+    struct WidgetConfig wc = { NULL, NULL, NULL, NULL, 0 };
     create_widget(ini, section, &wc, &config->defaults);
     save_widget(section, wc);
+ //   printf("after creating %s, max width: '%d'\n", section, wc.max_width);
+
   }
 
   // Free the dictionary
