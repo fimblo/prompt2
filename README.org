@@ -176,9 +176,12 @@ Now let's make these act differently:
   prompt="@{Repo.name}-@{Repo.branch_name} @{CWD}\n@{SYS.promptchar} "
 #+end_src
 
-There is one miscellaneous configuration - for the style of printing
-the CWD. This is under the =MISC= section, and:
-- =cwd_type=: This can be home, basename, full and git.
+CWD is shorthand for 'Current Working Directory' - that is, the name
+of the directory you're standing in. This can traditionally be shown
+in one of two ways: the full path from the root of the file system or
+the path starting from your HOME directory.
+
+prompt2 supports four styles of CWD:
   - =home=: show the path from your home directory. This is used if
     =cwd_type= is unset.
   - =basename=: show only the name of the directory you're standing
@@ -186,9 +189,7 @@ the CWD. This is under the =MISC= section, and:
   - =full=: show the full path from /
   - =git=: show the path from the root of the git repo. 
 
-Here's what it could look like if one writes it out with =CWD= set to
-basename, and showing at most 10 characters of the git repo branch
-name:
+You can modify the CWD style for your prompts:
 
 #+begin_src conf
   [PROMPT.DEFAULT]
@@ -196,14 +197,12 @@ name:
 
   [PROMPT.GIT]
   prompt="@{Repo.name}-@{Repo.branch_name} @{CWD}\n@{SYS.promptchar} "
-
-  [MISC]
-  cwd_type="basename"
+  cwd_type="git"
 #+end_src
 
-This miscellaneous configuration will be folded into the widget
-configurations at a later date, so that one could have different CWD
-types in the git prompt and the default prompt ([[https://github.com/fimblo/prompt2/issues/42][Issue #42]]).
+In the example above, you will get the traditional path from HOME when
+wandering about your file-system, but when you enter a git repo the
+CWD will show your location in relation to the root of the repo.
 
 *** Widgets
 
