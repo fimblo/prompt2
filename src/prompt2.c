@@ -99,12 +99,17 @@ struct WidgetConfig {
    Struct to contain non-widget configuration
 */
 struct ConfigRoot {
+  char *              default_prompt;
+  char *              default_prompt_cwd_type;
   char *              git_prompt;
   char *              git_prompt_zero;
   char *              git_prompt_cwd_type;
-  char *              default_prompt;
-  char *              default_prompt_cwd_type;
   struct WidgetConfig defaults;
+
+  // horrid way to ensure to free these if necessary
+  int dynamic_default_prompt;
+  int dynamic_git_prompt;
+  int dynamic_widget_config;
 };
 
 /**
@@ -228,13 +233,14 @@ void create_widget(dictionary *ini,
  *               default values.
  */
 void set_config_defaults(struct ConfigRoot *config) {
-  // Set non-widget defaults
+  // Set default prompt defaults  
+  config->default_prompt = "\\W $ ";
+  config->default_prompt_cwd_type = "home";
+
+  // Set git prompt defaults
   config->git_prompt = "G: \\W $ ";
   config->git_prompt_zero = "Z: \\W $ ";
   config->git_prompt_cwd_type = "home";
-  
-  config->default_prompt = "\\W $ ";
-  config->default_prompt_cwd_type = "home";
 
   // Set widget defaults
   config->defaults.string_active   = "%s";
@@ -242,6 +248,10 @@ void set_config_defaults(struct ConfigRoot *config) {
   config->defaults.colour_on       = "";
   config->defaults.colour_off      = "";
   config->defaults.max_width       = WIDGET_MAX_LEN;
+
+  config->dynamic_default_prompt = 0;
+  config->dynamic_git_prompt     = 0;
+  config->dynamic_widget_config  = 0;
 }
 
 
@@ -293,16 +303,24 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   if (ini == NULL) return ERROR_INVALID_INI_FILE;
 
   // get prompt-related config
-  config->git_prompt          = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
-  config->git_prompt_zero     = strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->git_prompt_zero));
-  config->git_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.GIT:cwd_type",   config->git_prompt_cwd_type));
+  if (iniparser_find_entry(ini, "PROMPT.DEFAULT") == 1) {
+    config->default_prompt          = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:prompt",     config->default_prompt));
+    config->default_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:cwd_type",   config->default_prompt_cwd_type));
+    config->dynamic_default_prompt = 1;
+  }
 
-  config->default_prompt          = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:prompt",     config->default_prompt));
-  config->default_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:cwd_type",   config->default_prompt_cwd_type));
-  
+  if (iniparser_find_entry(ini, "PROMPT.GIT") == 1) {
+    config->git_prompt          = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
+    config->git_prompt_zero     = strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->git_prompt_zero));
+    config->git_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.GIT:cwd_type",   config->git_prompt_cwd_type));
+    config->dynamic_git_prompt = 1;
+  }
 
   // Set default widget to fall back on
-  create_widget(ini, INI_SECTION_WIDGET_DEFAULT, &config->defaults, NULL);
+  if (iniparser_find_entry(ini, INI_SECTION_WIDGET_DEFAULT) == 1) {
+    create_widget(ini, INI_SECTION_WIDGET_DEFAULT, &config->defaults, &config->defaults);
+    config->dynamic_widget_config = 1;
+  }
 
   // Read each ini section
   for (int i = 0; i < iniparser_getnsec(ini); i++) {
@@ -763,15 +781,21 @@ int main(int argc, char *argv[]) {
   /*
     Time to free up memory
   */
-  free(config.git_prompt);
-  free(config.git_prompt_zero);
-  free(config.git_prompt_cwd_type);
-  free(config.default_prompt);
-  free(config.default_prompt_cwd_type);
-  free(config.defaults.string_active);
-  free(config.defaults.string_inactive);
-  free(config.defaults.colour_on);
-  free(config.defaults.colour_off);
+  if (config.dynamic_default_prompt) {
+    free(config.default_prompt);
+    free(config.default_prompt_cwd_type);
+  }
+  if (config.dynamic_git_prompt) {
+    free(config.git_prompt);
+    free(config.git_prompt_zero);
+    free(config.git_prompt_cwd_type);
+  }
+  if (config.dynamic_widget_config) {
+    free(config.defaults.string_active);
+    free(config.defaults.string_inactive);
+    free(config.defaults.colour_on);
+    free(config.defaults.colour_off);
+  }
 
   struct WidgetConfigMap *current2, *tmp2;
   HASH_ITER(hh, configurations, current2, tmp2) {
