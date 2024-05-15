@@ -82,7 +82,6 @@
 */
 #define INI_SECTION_MAX_SIZE   64
 #define INI_SECTION_WIDGET_DEFAULT  "widget_default"
-#define INI_SECTION_MISC            "misc"
 
 
 /**
@@ -102,8 +101,9 @@ struct WidgetConfig {
 struct ConfigRoot {
   char *              git_prompt;
   char *              git_prompt_zero;
+  char *              git_prompt_cwd_type;
   char *              default_prompt;
-  char *              cwd_type;
+  char *              default_prompt_cwd_type;
   struct WidgetConfig defaults;
 };
 
@@ -229,10 +229,12 @@ void create_widget(dictionary *ini,
  */
 void set_config_defaults(struct ConfigRoot *config) {
   // Set non-widget defaults
-  config->cwd_type = "home";
   config->git_prompt = "G: \\W $ ";
   config->git_prompt_zero = "Z: \\W $ ";
+  config->git_prompt_cwd_type = "home";
+  
   config->default_prompt = "\\W $ ";
+  config->default_prompt_cwd_type = "home";
 
   // Set widget defaults
   config->defaults.string_active   = "%s";
@@ -291,13 +293,13 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   if (ini == NULL) return ERROR_INVALID_INI_FILE;
 
   // get prompt-related config
-  config->git_prompt     = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
-  config->git_prompt_zero= strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->git_prompt_zero));
-  config->default_prompt = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:prompt", config->default_prompt));
-  
+  config->git_prompt          = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
+  config->git_prompt_zero     = strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->git_prompt_zero));
+  config->git_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.GIT:cwd_type",   config->git_prompt_cwd_type));
 
-  // Set other config from ini file
-  config->cwd_type       = strdup(iniparser_getstring(ini, "MISC:cwd_type",       config->cwd_type));
+  config->default_prompt          = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:prompt",     config->default_prompt));
+  config->default_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:cwd_type",   config->default_prompt_cwd_type));
+  
 
   // Set default widget to fall back on
   create_widget(ini, INI_SECTION_WIDGET_DEFAULT, &config->defaults, NULL);
@@ -306,7 +308,6 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   for (int i = 0; i < iniparser_getnsec(ini); i++) {
     const char * section = iniparser_getsecname(ini, i);
     if (strcmp(section, INI_SECTION_WIDGET_DEFAULT) == 0) continue;
-    if (strcmp(section, INI_SECTION_MISC) == 0) continue;
 
     struct WidgetConfig wc = { NULL, NULL, NULL, NULL, 0 };
     create_widget(ini, section, &wc, &config->defaults);
@@ -662,6 +663,7 @@ int main(int argc, char *argv[]) {
     - non-git-repo: the default to use in all other directories
   */
   char * selected_prompt;
+  char * selected_cwd_type;
   if (is_git_repo == SUCCESS_IS_GIT_REPO) {
     if (state.ahead_num  == -1 && state.behind_num   == -1 &&
         state.staged_num == -1 && state.modified_num == -1) {
@@ -670,9 +672,11 @@ int main(int argc, char *argv[]) {
     else {
       selected_prompt = strdup(config.git_prompt);
     }
+    selected_cwd_type = strdup(config.git_prompt_cwd_type);
   }
   else if (is_git_repo == FAILURE_IS_NOT_GIT_REPO) {
     selected_prompt = strdup(config.default_prompt);
+    selected_cwd_type = strdup(config.default_prompt_cwd_type);
   }
   else {
     printf("UNDEFINED STATE $ ");
@@ -703,7 +707,7 @@ int main(int argc, char *argv[]) {
     // if there is a CWD widget token, shorten the CWD to fit the
     // terminal (if it's long) then re-parse the line
     if (strstr(line, "@{CWD}")) {
-      char* cwd = get_cwd(&state, config.cwd_type);
+      char* cwd = get_cwd(&state, selected_cwd_type);
       int cwd_length = strlen(cwd);
       //int WIDGET_TOKEN_CWD_LEN = 6; // length of "@{CWD}"
       int visible_prompt_length = cwd_length + count_visible_chars(line); //- WIDGET_TOKEN_CWD_LEN;
@@ -761,8 +765,9 @@ int main(int argc, char *argv[]) {
   */
   free(config.git_prompt);
   free(config.git_prompt_zero);
+  free(config.git_prompt_cwd_type);
   free(config.default_prompt);
-  free(config.cwd_type);
+  free(config.default_prompt_cwd_type);
   free(config.defaults.string_active);
   free(config.defaults.string_inactive);
   free(config.defaults.colour_on);
