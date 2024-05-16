@@ -48,6 +48,7 @@
 #include <dictionary.h>
 #include <iniparser.h>
 #include <sys/syslimits.h>
+#include <unistd.h> // for access()
 #else
 #error "Unknown or unsupported OS"
 #endif
