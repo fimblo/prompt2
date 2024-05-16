@@ -7,6 +7,7 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <uthash.h>
@@ -19,6 +20,32 @@
 /* ========================================================
    Resources for manipulating strings
    ======================================================== */
+
+/**
+ * Trims leading and trailing whitespace from a string and returns the trimmed string.
+ *
+ * @param str The string to be trimmed.
+ * @return A newly allocated trimmed string. Don't forget to free this string!
+ */
+char *trim(char *str) {
+    char *start = str;
+    char *end = str + strlen(str) - 1;
+
+    while (isspace((unsigned char)*start)) start++; // trim leading
+    while (end > start && isspace((unsigned char)*end)) end--; // trim trailing
+
+    char *trimmed_str = malloc(end - start + 2); // +2 for the null terminator and adjustment
+    if (trimmed_str == NULL) {
+        perror("malloc error in function 'trim'");
+        exit(EXIT_FAILURE);
+    }
+
+    strncpy(trimmed_str, start, end - start + 1);
+    trimmed_str[end - start + 1] = '\0'; // Null-terminate
+
+    return trimmed_str;
+}
+
 
 /**
  * Return string with 'number_of_spaces" spaces.

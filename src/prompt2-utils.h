@@ -4,6 +4,16 @@
 #include <uthash.h>
 
 
+
+/**
+ * Trims surrounding whitespace from a string and return it
+ *
+ * @param str The string to be trimmed.
+ * @return A newly allocated trimmed string. Don't forget to free this string!
+ */
+char *trim(char *str);
+
+
 /**
  * Return string with 'number_of_spaces" spaces.
  *

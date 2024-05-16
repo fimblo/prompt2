@@ -4,6 +4,7 @@
 #define _GNU_SOURCE
 #endif
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1470,9 +1471,11 @@ const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
   char *sequences[16]; // TODO: magic number
   int i = 0;
   while ((token = strtok_r(rest, ";", &rest))) {
+    char *trimmed_token = trim(token);
     const char * code = dictionary_get(escape_code_dict,
-                                      (const char*) to_lower((const char*) token),
+                                      (const char*) to_lower((const char*) trimmed_token),
                                       NULL);
+    free(trimmed_token);
     if (code == NULL) {
       return NULL;
     }
