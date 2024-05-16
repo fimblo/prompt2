@@ -1472,7 +1472,10 @@ const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
   while ((token = strtok_r(rest, ":", &rest))) {
     const char * code = dictionary_get(escape_code_dict,
                                       (const char*) to_lower((const char*) token),
-                                      "Unknown escape token");
+                                      NULL);
+    if (code == NULL) {
+      return NULL;
+    }
     sequences[i++] = (char *) code;
   }
 
@@ -1483,26 +1486,28 @@ const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
   return (const char *) strdup(combo_result);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    printf("Usage:\n");
+    printf(" get-terminal-escape-sequence <plaintext style and colour>\n");
+    printf("\n");
+    printf("Example: to get the terminal escape code '\\[\\e[1;34;47m\\]', run:\n");
+    printf(" get-terminal-escape-sequence 'bold:fg blue:bg white'\n");
+    exit(1);
+  }
+  //  printf("arg: %s\n", argv[1]);
+  
   dictionary *escape_code_dict = create_escape_code_dict();
 
-  const char *combos[] = {
-    "bold",
-    "bg blue:bold",
-    "fg-snow:bg blue:bold"
-  };
-  size_t num_combos = sizeof(combos) / sizeof(combos[0]);
-
-  for (size_t i = 0; i < num_combos; i++) {
-    const char *seq = get_escape_combo(escape_code_dict, combos[i]);
-    if (seq) {
-      printf("Escape combo: %s\n", seq);
-    } else {
-      printf("Escape combo error\n");
-    }
+  int exit_status=-1;
+  const char *seq = get_escape_combo(escape_code_dict, argv[1]);
+  if (seq) {
+    printf("%s\n", seq);
+    exit_status=0;
   }
+
 
   // Free the dictionary
   free_escape_code_dict(escape_code_dict);
-  return 0;
+  exit(exit_status);
 }
