@@ -1453,13 +1453,13 @@ void _join_sequence(char *result, size_t result_size, char *sequences[], size_t 
  * colours.
  * 
  * @param escape_code_dict A pointer to the dictionary of escape codes
- * @param combo A colon-separated string of names of styles and
+ * @param combo A semicolon-separated string of names of styles and
  *              colours
  * @return a const char pointer to the escape sequence, or NULL in the
  *         case of an error
 */
 const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
-  // combo is "part1:part2:part3"
+  // combo is "part1;part2;part3"
   char *str = strdup(combo);
   if (str == NULL) {
     return NULL;
@@ -1469,7 +1469,7 @@ const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
   char *rest = str;
   char *sequences[16]; // TODO: magic number
   int i = 0;
-  while ((token = strtok_r(rest, ":", &rest))) {
+  while ((token = strtok_r(rest, ";", &rest))) {
     const char * code = dictionary_get(escape_code_dict,
                                       (const char*) to_lower((const char*) token),
                                       NULL);
@@ -1492,7 +1492,7 @@ int main(int argc, char *argv[]) {
     printf(" get-terminal-escape-sequence <plaintext style and colour>\n");
     printf("\n");
     printf("Example: to get the terminal escape code '\\[\\e[1;34;47m\\]', run:\n");
-    printf(" get-terminal-escape-sequence 'bold:fg blue:bg white'\n");
+    printf(" get-terminal-escape-sequence 'bold;fg blue;bg white'\n");
     exit(1);
   }
   //  printf("arg: %s\n", argv[1]);
