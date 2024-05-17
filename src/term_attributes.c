@@ -11,12 +11,8 @@
 #include <iniparser/dictionary.h>
 
 #include "prompt2-utils.h"
+#include "term_attributes.h"
 
-
-struct EscapeCode {
-  const char *name;
-  const char *code;
-};
 
 struct EscapeCode escape_codes[] = {
 
@@ -1489,28 +1485,30 @@ const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
   return (const char *) strdup(combo_result);
 }
 
-int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    printf("Usage:\n");
-    printf(" get-terminal-escape-sequence <plaintext style and colour>\n");
-    printf("\n");
-    printf("Example: to get the terminal escape code '\\[\\e[1;34;47m\\]', run:\n");
-    printf(" get-terminal-escape-sequence 'bold;fg blue;bg white'\n");
-    exit(1);
-  }
-  //  printf("arg: %s\n", argv[1]);
-  
-  dictionary *escape_code_dict = create_escape_code_dict();
 
-  int exit_status=-1;
-  const char *seq = get_escape_combo(escape_code_dict, argv[1]);
-  if (seq) {
-    printf("%s\n", seq);
-    exit_status=0;
-  }
-
-
-  // Free the dictionary
-  free_escape_code_dict(escape_code_dict);
-  exit(exit_status);
-}
+// int main(int argc, char *argv[]) {
+//   if (argc < 2) {
+//     printf("Usage:\n");
+//     printf(" get-terminal-escape-sequence <plaintext style and colour>\n");
+//     printf("\n");
+//     printf("Example: to get the terminal escape code '\\[\\e[1;34;47m\\]', run:\n");
+//     printf(" get-terminal-escape-sequence 'bold;fg blue;bg white'\n");
+//     exit(1);
+//   }
+//   //  printf("arg: %s\n", argv[1]);
+//   
+//   dictionary *escape_code_dict = create_escape_code_dict();
+// 
+//   int exit_status=-1;
+//   const char *seq = get_escape_combo(escape_code_dict, argv[1]);
+//   if (seq) {
+//     printf("%s\n", seq);
+//     exit_status=0;
+//   }
+// 
+// 
+//   // Free the dictionary
+//   free_escape_code_dict(escape_code_dict);
+//   exit(exit_status);
+// }
+// 
