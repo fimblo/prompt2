@@ -520,7 +520,24 @@ int is_widget_active(const char * wtoken, const char *value) {
 }
 
 
-const char *format_widget(const char *name, const char *value, int is_active, struct WidgetConfig *defaults) {
+/**
+ * Formats the display string of a widget based on its configuration
+ * and state. It determines the widget's appearance in the prompt,
+ * including its text and color, based on whether it is active or
+ * inactive.
+ *
+ * @param name The name of the widget.
+ * @param value The value to be displayed by the widget.
+ * @param is_active Indicates if the widget is active (1) or inactive (0).
+ * @param defaults Default configuration for widgets.
+ * @param attribute_dict Dictionary of terminal attribute escape codes.
+ * @return A dynamically allocated string of the formatted widget.
+ */
+const char *format_widget(const char *name,
+                          const char *value,
+                          int is_active,
+                          struct WidgetConfig *defaults,
+                          dictionary *attribute_dict) {
   const char *lower_name = to_lower(name);
   struct WidgetConfig *wc = get_widget(lower_name);
   if (!wc) {
@@ -551,7 +568,8 @@ const char *format_widget(const char *name, const char *value, int is_active, st
   snprintf(widget, sizeof(widget), format_string, value_to_format);
   
   // Wrap resulting string in colours
-  const char *colour_string = is_active ? wc->colour_on : wc->colour_off;
+  const char *colour_string =
+    replace_attribute_tokens(is_active ? wc->colour_on : wc->colour_off, attribute_dict);
 
   // define reset if colours were added in the preceding step
   const char *reset_term_colours = "";
@@ -567,21 +585,24 @@ const char *format_widget(const char *name, const char *value, int is_active, st
 
 /**
  * Parses a given input prompt string, replacing any embedded widget
- * tokens with their corresponding values.
+ * tokens with their corresponding values. Widget tokens are denoted
+ * by the syntax `@{token}` and are replaced by the widget's formatted
+ * string based on the current environment state and widget
+ * configuration. The function ensures the length of the resulting
+ * prompt does not exceed `PROMPT_MAX_LEN`. If a widget token is
+ * unknown, it is left unchanged in the output.
  *
- * This function scans the input string for embedded widget tokens,
- * which are denoted by the syntax `@{token}`. When a widget token is
- * found, it is replaced by the widget. If the token is unknown, it is
- * left unchanged in the output. The function ensures that the length
- * of the resulting prompt does not exceed `PROMPT_MAX_LEN`.
- *
- * @param unparsed_prompt The input prompt string containing
- *        embedded widget tokens to be parsed.
+ * @param unparsed_prompt The input prompt string containing embedded
+ *                        widget tokens to be parsed.
+
  * @param wtoken_state_map A dictionary mapping widget tokens to their
- *         corresponding values.
- * @param defaults A pointer to a `WidgetConfig` struct containing the
- *         default widget configuration.
- *
+ *                        corresponding values.
+
+ * @param defaults        A pointer to a `WidgetConfig` struct
+ *                        containing the default widget configuration.
+
+ * @param attribute_dict  A dictionary of terminal attribute escape codes.
+
  * @return A dynamically allocated string containing the digested
  *         prompt. If the resulting prompt would exceed
  *         `PROMPT_MAX_LEN`, a predefined error message is returned
@@ -590,7 +611,8 @@ const char *format_widget(const char *name, const char *value, int is_active, st
  */
 const char *parse_prompt(const char *unparsed_prompt,
                          dictionary *wtoken_state_map,
-                         struct WidgetConfig *defaults) {
+                         struct WidgetConfig *defaults,
+                         dictionary *attribute_dict) {
   char prompt[PROMPT_MAX_LEN] = "";
   const char *ptr = unparsed_prompt;
   char wtoken[WIDGET_TOKEN_MAX_LEN];
@@ -610,7 +632,11 @@ const char *parse_prompt(const char *unparsed_prompt,
       const char *replacement = dictionary_get(wtoken_state_map, (const char *) to_lower(wtoken), NULL);
       if (replacement) {
         int is_active = is_widget_active(wtoken, replacement);
-        const char *formatted_replacement = format_widget(wtoken, replacement, is_active, defaults);
+        const char *formatted_replacement =format_widget(wtoken,
+                                                         replacement,
+                                                         is_active,
+                                                         defaults,
+                                                         attribute_dict);
         if(safe_strcat(prompt, formatted_replacement, PROMPT_MAX_LEN) == FAILURE) { goto error; }
       } else {
         // Token not found: put the widget token back, as is
@@ -715,7 +741,10 @@ int main(int argc, char *argv[]) {
   // for tokenization on \n to work, we need to replace the string "\n" with a newline character.
   const char * unparsed_prompt = replace_literal_newlines(selected_prompt);
   free(selected_prompt);
-  const char *prompt = parse_prompt(unparsed_prompt, wtoken_state_map, &config.defaults);
+  const char *prompt = parse_prompt(unparsed_prompt,
+                                    wtoken_state_map,
+                                    &config.defaults,
+                                    escape_code_dict);
   int terminal_width = term_width() ?: DEFAULT_TERMINAL_WIDTH;
 
   char temp_prompt[PROMPT_MAX_LEN] = "";
@@ -725,7 +754,10 @@ int main(int argc, char *argv[]) {
   while (line != NULL) {
     // check if there are any widget tokens which aren't the expanding type
     if (has_nonexpanding_tokens(line) == SUCCESS) {
-      line = (char *) parse_prompt(line, wtoken_state_map, &config.defaults);
+      line = (char *) parse_prompt(line,
+                                   wtoken_state_map,
+                                   &config.defaults,
+                                   escape_code_dict);
     }
 
     // Expanding type 1:
@@ -742,7 +774,10 @@ int main(int argc, char *argv[]) {
         shorten_path(cwd, max_width);
       }
       dictionary_set(wtoken_state_map, "cwd", cwd);
-      line = (char *) parse_prompt(line, wtoken_state_map, &config.defaults); // Re-parse the current line
+      line = (char *) parse_prompt(line,
+                                   wtoken_state_map,
+                                   &config.defaults,
+                                   escape_code_dict); // Re-parse the current line
     }
 
     // Expanding type 2:
@@ -756,7 +791,10 @@ int main(int argc, char *argv[]) {
         const char *filler = spacefiller(number_of_spaces);
         dictionary_set(wtoken_state_map, "spc", strdup(filler));
         free((void *)filler);
-        line = (char *) parse_prompt(line, wtoken_state_map, &config.defaults); // Re-parse the current line
+        line = (char *) parse_prompt(line,
+                                     wtoken_state_map,
+                                     &config.defaults,
+                                     escape_code_dict); // Re-parse the current line
       }
       else {
         remove_widget_token(line, "@{SPC}");

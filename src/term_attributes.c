@@ -1429,7 +1429,11 @@ void free_escape_code_dict(dictionary *dict) {
 void _join_sequence(char *result, size_t result_size, char *sequences[], size_t count) {
   size_t pos = 0;
   for (size_t i = 0; i < count; i++) {
-    int written = snprintf(result + pos, result_size - pos, "%s%s", sequences[i], (i < count - 1) ? ";" : "");
+    int written = snprintf(result + pos,
+                           result_size - pos,
+                           "%s%s",
+                           sequences[i],
+                           (i < count - 1) ? ";" : "");
     if (written < 0) {
       result = strdup("Error in sequence");
       break;
@@ -1469,8 +1473,8 @@ const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
   while ((token = strtok_r(rest, ";", &rest))) {
     char *trimmed_token = trim(token);
     const char * code = dictionary_get(escape_code_dict,
-                                      (const char*) to_lower((const char*) trimmed_token),
-                                      NULL);
+                                       (const char*) to_lower((const char*) trimmed_token),
+                                       NULL);
     free(trimmed_token);
     if (code == NULL) {
       return NULL;
