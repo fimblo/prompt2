@@ -1485,6 +1485,53 @@ const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
   return (const char *) strdup(combo_result);
 }
 
+const char *replace_attribute_tokens(const char *string, dictionary *attribute_dict) {
+    // Estimate the size of the result string
+    size_t result_size = strlen(string) + 1; // +1 for the null terminator
+    char *result = malloc(result_size);
+    if (!result) return NULL; // Failed to allocate memory
+
+    const char *current = string;
+    char *result_ptr = result;
+
+    while (*current) {
+        if (strncmp(current, "%{", 2) == 0) {
+            char *end = strstr(current, "}");
+            if (!end) break; // No closing brace found, break out of the loop
+
+            size_t attr_len = end - current - 2;
+            char *attr = strndup(current + 2, attr_len);
+            const char *escape_seq = get_escape_combo(attribute_dict, attr);
+
+            if (escape_seq) {
+                // Calculate new size and reallocate result with extra space for escape sequence
+                size_t escape_seq_len = strlen(escape_seq);
+                size_t new_size = result_size + escape_seq_len - (attr_len + 3); // +3 for "%{}"
+                char *temp = realloc(result, new_size);
+                if (!temp) {
+                    free(result);
+                    free(attr);
+                    return NULL; // Failed to reallocate memory
+                }
+                result = temp;
+                result_size = new_size;
+
+                // Copy escape sequence to result
+                strcpy(result_ptr, escape_seq);
+                result_ptr += escape_seq_len;
+            }
+
+            free(attr);
+            current = end + 1; // Move past the processed token
+        } else {
+            *result_ptr++ = *current++; // Copy current character and move to the next
+        }
+    }
+
+    *result_ptr = '\0'; // Null-terminate the result string
+    return result;
+}
+
 
 // int main(int argc, char *argv[]) {
 //   if (argc < 2) {

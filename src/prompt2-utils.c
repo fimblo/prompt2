@@ -352,8 +352,8 @@ int are_escape_sequences_properly_formed(const char *mystring) {
  * string.
  *
  * This function iterates through the input string and counts
- * characters that are not part of escape sequences or widget tokens,
- * providing the total number of visible characters.
+ * characters that are not part of escape sequences, widget or
+ * attribute tokens, providing the total number of visible characters.
  *
  * @param mystring The input string to count visible characters in.
  * @return The number of visible characters in the input string.
@@ -361,9 +361,9 @@ int are_escape_sequences_properly_formed(const char *mystring) {
 int count_visible_chars(const char *mystring) {
   int real_chars = 0;
   int in_bracket_sequence = 0;
-  int in_widget_token = 0;
+  int in_token = 0; // for both widget and style attribute tokens
   while (*mystring) {
-    if (!in_widget_token && *mystring == '\\' && *(mystring + 1) == '[') {
+    if (!in_token && *mystring == '\\' && *(mystring + 1) == '[') {
       // Found the start of a bracketed sequence
       in_bracket_sequence = 1;
       mystring++; // Skip the '[' character
@@ -371,13 +371,13 @@ int count_visible_chars(const char *mystring) {
       // Found the end of a bracketed sequence
       in_bracket_sequence = 0;
       mystring++; // Skip the ']' character
-    } else if (!in_bracket_sequence && *mystring == '@' && *(mystring + 1) == '{') {
-      // Found the start of a widget token
-      in_widget_token = 1;
-    } else if (in_widget_token && *mystring == '}') {
+    } else if (!in_bracket_sequence && ( *mystring == '@' || *mystring == '%') && *(mystring + 1) == '{') {
+      // Found the start of a widget or attribute token
+      in_token = 1;
+    } else if (in_token && *mystring == '}') {
       // Found the end of a widget token
-      in_widget_token = 0;
-    } else if (!in_bracket_sequence && !in_widget_token) {
+      in_token = 0;
+    } else if (!in_bracket_sequence && !in_token) {
       // Count the character if it's not within a bracketed sequence or a widget token
       real_chars++;
     }
