@@ -21,7 +21,7 @@ struct EscapeCode {
  * 
  * @return A pointer to the newly created dictionary
  */
-dictionary *create_escape_code_dict();
+dictionary *create_attribute_dict();
 
 
 /**
@@ -29,7 +29,7 @@ dictionary *create_escape_code_dict();
  * 
  * @param dict A pointer to the dictionary to be freed
  */
-void free_escape_code_dict(dictionary *dict);
+void free_attribute_dict(dictionary *dict);
 
 
 /**
@@ -40,7 +40,7 @@ void free_escape_code_dict(dictionary *dict);
  * @param combo The combination of escape codes in the format "part1;part2;part3"
  * @return The escape sequence string
  */
-const char *get_escape_combo(dictionary *escape_code_dict, const char* combo);
+const char *get_attribute_combo(dictionary *escape_code_dict, const char* combo);
 
 
 

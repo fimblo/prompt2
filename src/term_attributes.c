@@ -14,7 +14,7 @@
 #include "term_attributes.h"
 
 
-struct EscapeCode escape_codes[] = {
+struct EscapeCode attributes[] = {
 
   // reset
   { "reset",              "0" },
@@ -1407,21 +1407,21 @@ struct EscapeCode escape_codes[] = {
  * 
  * @return A pointer to the newly created dictionary
 */
-dictionary *create_escape_code_dict() {
+dictionary *create_attribute_dict() {
   dictionary *dict = dictionary_new((size_t) 2048);
-  for (size_t i = 0; i < sizeof(escape_codes) / sizeof(escape_codes[0]); i++) {
-    dictionary_set(dict, escape_codes[i].name, escape_codes[i].code);
+  for (size_t i = 0; i < sizeof(attributes) / sizeof(attributes[0]); i++) {
+    dictionary_set(dict, attributes[i].name, attributes[i].code);
   }
   return dict;
 }
 
 
 /**
- * Frees the memory allocated for the dictionary
+ * Frees the memory allocated for the attribute dictionary
  * 
- * @param escape_code_dict A pointer to the dictionary to be freed
+ * @param dict A pointer to the dictionary to be freed
 */
-void free_escape_code_dict(dictionary *dict) {
+void free_attribute_dict(dictionary *dict) {
   dictionary_del(dict);
 }
 
@@ -1447,19 +1447,19 @@ void _join_sequence(char *result, size_t result_size, char *sequences[], size_t 
 }
 
 /**
- * Retrieves the escape code for a style/colour combo
+ * Retrieves the escape code for a style/colour attribute combo
  * 
- * This function searches the escape code dictionary for the escape
+ * This function searches the attribute dictionary for the escape
  * sequence corresponding to the specified combo of text styles and
  * colours.
  * 
- * @param escape_code_dict A pointer to the dictionary of escape codes
+ * @param attribute_dict A pointer to the dictionary of attributes
  * @param combo A semicolon-separated string of names of styles and
  *              colours
  * @return a const char pointer to the escape sequence, or NULL in the
  *         case of an error
 */
-const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
+const char * get_attribute_combo(dictionary *attribute_dict, const char* combo) {
   // combo is "part1;part2;part3"
   char *str = strdup(combo);
   if (str == NULL) {
@@ -1472,7 +1472,7 @@ const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
   int i = 0;
   while ((token = strtok_r(rest, ";", &rest))) {
     char *trimmed_token = trim(token);
-    const char * code = dictionary_get(escape_code_dict,
+    const char * code = dictionary_get(attribute_dict,
                                        (const char*) to_lower((const char*) trimmed_token),
                                        NULL);
     free(trimmed_token);
@@ -1482,10 +1482,10 @@ const char * get_escape_combo(dictionary *escape_code_dict, const char* combo) {
     sequences[i++] = (char *) code;
   }
 
-  char escape_combo_sequence[32*16]; // TODO: magic number
-  _join_sequence(escape_combo_sequence, sizeof(escape_combo_sequence), sequences, i);
-  char combo_result[sizeof(escape_combo_sequence)+8];
-  snprintf(combo_result, sizeof(combo_result), "\\[\\e[%sm\\]", escape_combo_sequence );
+  char attribute_sequence[32*16]; // TODO: magic number
+  _join_sequence(attribute_sequence, sizeof(attribute_sequence), sequences, i);
+  char combo_result[sizeof(attribute_sequence)+8];
+  snprintf(combo_result, sizeof(combo_result), "\\[\\e[%sm\\]", attribute_sequence );
   return (const char *) strdup(combo_result);
 }
 
@@ -1505,7 +1505,7 @@ const char *replace_attribute_tokens(const char *string, dictionary *attribute_d
 
             size_t attr_len = end - current - 2;
             char *attr = strndup(current + 2, attr_len);
-            const char *escape_seq = get_escape_combo(attribute_dict, attr);
+            const char *escape_seq = get_attribute_combo(attribute_dict, attr);
 
             if (escape_seq) {
                 // Calculate new size and reallocate result with extra space for escape sequence
@@ -1548,10 +1548,10 @@ const char *replace_attribute_tokens(const char *string, dictionary *attribute_d
 //   }
 //   //  printf("arg: %s\n", argv[1]);
 //   
-//   dictionary *escape_code_dict = create_escape_code_dict();
+//   dictionary *attribute_dict = create_attribute_dict();
 // 
 //   int exit_status=-1;
-//   const char *seq = get_escape_combo(escape_code_dict, argv[1]);
+//   const char *seq = get_attribute_combo(attribute_dict, argv[1]);
 //   if (seq) {
 //     printf("%s\n", seq);
 //     exit_status=0;
@@ -1559,7 +1559,7 @@ const char *replace_attribute_tokens(const char *string, dictionary *attribute_d
 // 
 // 
 //   // Free the dictionary
-//   free_escape_code_dict(escape_code_dict);
+//   free_attribute_dict(attribute_dict);
 //   exit(exit_status);
 // }
 // 

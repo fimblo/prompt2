@@ -714,7 +714,7 @@ int main(int argc, char *argv[]) {
   */
   char * selected_prompt;
   char * selected_cwd_type;
-  dictionary *escape_code_dict = create_escape_code_dict();
+  dictionary *escape_code_dict = create_attribute_dict();
   if (is_git_repo == SUCCESS_IS_GIT_REPO) {
     if (state.ahead_num  == -1 && state.behind_num   == -1 &&
         state.staged_num == -1 && state.modified_num == -1) {
@@ -856,7 +856,7 @@ int main(int argc, char *argv[]) {
   cleanup_resources(&state);
   git_libgit2_shutdown();
   dictionary_del(wtoken_state_map);
-  free_escape_code_dict(escape_code_dict);
+  free_attribute_dict(escape_code_dict);
 
   return 0;
 }
