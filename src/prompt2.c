@@ -53,6 +53,7 @@
 #error "Unknown or unsupported OS"
 #endif
 
+#include "term_attributes.h"
 #include "constants.h"
 #include "get-status.h"
 #include "prompt2-utils.h"
@@ -576,6 +577,10 @@ const char *format_widget(const char *name, const char *value, int is_active, st
  *
  * @param unparsed_prompt The input prompt string containing
  *        embedded widget tokens to be parsed.
+ * @param wtoken_state_map A dictionary mapping widget tokens to their
+ *         corresponding values.
+ * @param defaults A pointer to a `WidgetConfig` struct containing the
+ *         default widget configuration.
  *
  * @return A dynamically allocated string containing the digested
  *         prompt. If the resulting prompt would exceed
@@ -683,18 +688,19 @@ int main(int argc, char *argv[]) {
   */
   char * selected_prompt;
   char * selected_cwd_type;
+  dictionary *escape_code_dict = create_escape_code_dict();
   if (is_git_repo == SUCCESS_IS_GIT_REPO) {
     if (state.ahead_num  == -1 && state.behind_num   == -1 &&
         state.staged_num == -1 && state.modified_num == -1) {
-      selected_prompt = strdup(config.git_prompt_zero);
+      selected_prompt = (char *) replace_attribute_tokens(config.git_prompt_zero, escape_code_dict);
     }
     else {
-      selected_prompt = strdup(config.git_prompt);
+      selected_prompt = (char *) replace_attribute_tokens(config.git_prompt, escape_code_dict);
     }
     selected_cwd_type = strdup(config.git_prompt_cwd_type);
   }
   else if (is_git_repo == FAILURE_IS_NOT_GIT_REPO) {
-    selected_prompt = strdup(config.default_prompt);
+    selected_prompt = (char *) replace_attribute_tokens(config.default_prompt, escape_code_dict);
     selected_cwd_type = strdup(config.default_prompt_cwd_type);
   }
   else {
@@ -812,7 +818,7 @@ int main(int argc, char *argv[]) {
   cleanup_resources(&state);
   git_libgit2_shutdown();
   dictionary_del(wtoken_state_map);
-
+  free_escape_code_dict(escape_code_dict);
 
   return 0;
 }
