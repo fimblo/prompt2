@@ -1505,7 +1505,14 @@ const char *replace_attribute_tokens(const char *string, dictionary *attribute_d
 
             size_t attr_len = end - current - 2;
             char *attr = strndup(current + 2, attr_len);
-            const char *escape_seq = get_attribute_combo(attribute_dict, attr);
+
+            const char *escape_seq;
+            if (strlen(attr) == 0) {
+              escape_seq = "\\[\\e[0m\\]";
+            }
+            else {
+              escape_seq = get_attribute_combo(attribute_dict, attr);
+            }
 
             if (escape_seq) {
                 // Calculate new size and reallocate result with extra space for escape sequence
