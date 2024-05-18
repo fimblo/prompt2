@@ -4,26 +4,29 @@
 
 prompt2 - Dynamic Shell Prompt Generator
 
-prompt2 is a highly configurable utility designed to enhance the
-command line experience by generating dynamic shell prompts. It adapts
-to your environment, utilizing information such as the current git
-branch, repository status, and working directory to create
-context-aware prompts. This makes it a useful tool for developers and
-sysadmins who require a quick, real-time overview of their system's
-state directly from the command line.
+I wrote prompt2 because I wanted a bash prompt which provided me with
+a quick, real-time overview of the system's state from the command
+line. Aside from the normal things one can find in PS1, such as
+hostname and cwd, I wanted a prompt which behaved differently in a
+normal directory and in a git repo. While doing this, I added other
+features, like AWS authentication state.
+
+It's easy to configure, and even supports named colours.
+
 
 ** Features
 - *Performance*: Executes in under 100ms on older hardware (pre-2010
-  with spinning disks) and around 12-15ms on modern machines equipped
+  with spinning disks) and around 10-13ms on modern machines equipped
   with SSDs.
-- *Customisation*: Offers customisable widgets for both git and
-  default prompts that can be tailored to fit your needs.
-- *Ease of Configuration*: Configurable through a simple INI file,
-  making setup and adjustments straightforward.
+- *Configuration*: Offers customisable prompt definitions, where
+  widgets (content) and attributes (style) are separated - and
+  configurable as well. All customisation is done in an INI file.
 - *Cross-Platform Compatibility*: Supports both Debian/Ubuntu and
-  macOS, ensuring functionality across different systems.
-- *Extensibility*: Designed with extensibility in mind, allowing for
-  the addition of new widgets by writing some C code.
+  macOS. Other systems should work - but you might need to fiddle with
+  the =include= statements.
+- *Extensibility*:  Designed with extensibility in mind, making it
+  quite easy to add your own widgets - if you're willing to submit
+  yourself to the somewhat masochistic craft known as C programming.
   
 ** Installation
 
@@ -122,9 +125,9 @@ Then add this snippet into your =.bashrc=:
 
 Customising prompt2 involves modifying the INI configuration file to
 adjust the appearance and behavior of the prompt components, known as
-widgets. The configuration file allows you to set various parameters
+Widgets. The configuration file allows you to set various parameters
 for each widget, such as text formatting, active and inactive states,
-and colour settings.
+and style Attributes.
 
 *** Defining your prompts
 
@@ -157,23 +160,20 @@ they represent at the time.
   ; show the current working directory, then
   ; add the prompt character '$' change depending on if you're root or not
   [PROMPT.DEFAULT]
-  prompt="default @{CWD} @{SYS.promptchar} "
+  prompt="@{CWD} @{SYS.promptchar} "
 
   [PROMPT.GIT]
-  prompt="git @{CWD} @{SYS.promptchar} "
+  prompt="@{CWD} @{SYS.promptchar} "
 #+end_src
 
 Now let's make these act differently:
 
 #+begin_src conf
-  ; nonRootUser@host:~/path/to/cwd $
   [PROMPT.DEFAULT]
-  prompt="@{SYS.username}@@{SYS.hostname}:@{CWD} @{SYS.promptchar} "
+  prompt="Default: @{CWD} @{SYS.promptchar} "
 
-  ; prompt2-main ~/path/to/prompt2
-  ; $
   [PROMPT.GIT]
-  prompt="@{Repo.name}-@{Repo.branch_name} @{CWD}\n@{SYS.promptchar} "
+  prompt="Git: @{CWD} @{SYS.promptchar} "
 #+end_src
 
 CWD is shorthand for 'Current Working Directory' - that is, the name
@@ -193,10 +193,10 @@ You can modify the CWD style for your prompts:
 
 #+begin_src conf
   [PROMPT.DEFAULT]
-  prompt="@{SYS.username}@@{SYS.hostname}:@{CWD} @{SYS.promptchar} "
+  prompt="Default: @{CWD} @{SYS.promptchar} "
 
   [PROMPT.GIT]
-  prompt="@{Repo.name}-@{Repo.branch_name} @{CWD}\n@{SYS.promptchar} "
+  prompt="Git: @{CWD} @{SYS.promptchar} "
   cwd_type="git"
 #+end_src
 
@@ -204,9 +204,130 @@ In the example above, you will get the traditional path from HOME when
 wandering about your file-system, but when you enter a git repo the
 CWD will show your location in relation to the root of the repo.
 
+Before we dive into widgets and how to configure them, let's take a
+short detour and talk about Attributes...
+
+*** Style Attributes
+
+Typically referred to as Attributes, these are style instructions
+which you can add to the prompt or Widget configuration. An attribute
+starts with a =%= followed by curly braces, and contains an
+instruction. It could look like this =%{bold}=. All attributes are
+case-insensitive.
+
+**** Text attributes
+
+To change the style of the font, you can use these attributes. These
+are: =bold=, =dim=, =italic=, =underline=, =blink=, =reverse=,
+=hidden=, =strikethrough=.
+
+
+Here we change the default prompt style by making everything
+strike-through, as the cool kids do:
+
+#+begin_src conf
+  [PROMPT.DEFAULT]
+  prompt="%{Strikethrough}My prompt%{Reset} $ "
+#+end_src
+
+**** Reset attributes
+
+Used to reset part or all of the set attributes. These are: =reset=,
+=reset bold/dim=, =reset italic=, =reset underline=, =reset blink=,
+=reset reverse=, =reset hidden=, =reset fg=, =reset bg=.
+
+The empty attribute =%{}= is shorthand for =%{reset}=.
+
+**** Reserved colour slot attributes
+
+Modern terminals have eight reserved colours: black, red, green,
+yellow, blue, magenta, cyan, and white. The actual colours may vary
+depending on your terminal settings but retain their slot names.
+
+You can also refer to these slots by the slot number, zero-indexed.
+
+To differentiate between foreground and background colours, prefix with
+=fg= or =bg=.
+
+
+| by name    |            | by slot    |            |
+| ---------- | ---------- | ---------- | ---------- |
+| foreground | background | foreground | background |
+| ---------- | ---------- | ---------- | ---------- |
+| fg black   | bg black   | fg c0      | bg c0      |
+| fg red     | bg red     | fg c1      | bg c1      |
+| fg green   | bg green   | fg c2      | bg c2      |
+| fg yellow  | bg yellow  | fg c3      | bg c3      |
+| fg blue    | bg blue    | fg c4      | bg c4      |
+| fg magenta | bg magenta | fg c5      | bg c5      |
+| fg cyan    | bg cyan    | fg c6      | bg c6      |
+| fg white   | bg white   | fg c7      | bg c7      |
+
+
+#+begin_src conf
+  [PROMPT.DEFAULT]
+  # blue and yellow foreground text
+  prompt="%{fg blue}My %{fg c4}prompt%{reset}$ "
+#+end_src
+
+Note: each of the above have a corresponding =bright= version. So you
+can get a bright magenta background by writing =bg bright magenta= or
+=bg bright c5=
+
+**** Named RGB codes
+
+Using a terminal palette is useful, but sometimes you might want to
+There are 658 named full RGB colours. These names come from the
+[[https://en.wikipedia.org/wiki/X11_color_names][original X11 colour-set]] which can be found littering the internet. The
+file and its license can be found in the [[etc/][etc/]] directory of this
+project.
+
+Using these are easy - prefix the colour name with =fg-= or =bg-= to
+indicate if you want to colour the text or the background. The hyphen
+is needed to differentiate from the named reserved colours.
+
+#+begin_src conf
+  [PROMPT.DEFAULT]
+  # Cadet Blue text, with empty attribute to reset the colour
+  prompt="%{fg-cadetblue}TEXT%{} $ "
+#+end_src
+
+Note: it's sometimes hard to know what colours look nice. I've
+supplied a small script in =scripts/print_colours.pl= which prints all
+the colours with their names. Run it in your terminal like this:
+  
+#+begin_src bash
+  $ path/to/repo/scripts/print_colours.pl
+#+end_src
+
+**** Combining attributes
+
+To save space and to avoid cognitive overload, it's possible to
+combine attributes. For example, if you want:
+- foreground palegreen2
+- background grey10
+- bold
+- strikethrough
+
+Then you can do this:
+
+#+begin_src conf
+  [PROMPT.DEFAULT]
+  prompt="%{fg-palegreen2, bg-grey10, bold, strikethrough}TEXT%{} $ "
+#+end_src
+
+**** Note: Plain terminal escape codes
+
+These aren't really attributes - it's just the normal terminal escape
+codes. If you want to insert a terminal bell (=\[\a\]=) or for some
+reason want to use the escape sequence for an RGB colour
+(=\[\e[38;2;30;30;30\]=), prompt2 will ignore this as long as you wrap
+the code in escaped brackets as specified in the section =[PROMPTING]=
+in the bash man-page.
 *** Widgets
 
-Here's a list of all the widgets supported currently:
+Widgets are the dynamic elements in your prompt. We've already seen
+two types: =@{CWD}= and =@{SYS.promptchar}= - but there's many more:
 
 #+begin_example
 CWD                          # current working directory
@@ -231,30 +352,46 @@ SYS.promptchar               # set to '#' if the uid==0, '$' otherwise
 SPC                          # spacefiller (see below)
 #+end_example
 
-Notes on the widgets:
+All but the =@{SPC}= can be active or inactive. Each of these two
+states have its own text replacement and colour.
+
+
+Notes on two special widgets:
 - =CWD=: This widget, which prints the path to your location in the
   filesystem, will automatically be truncated if the path won't fit in
   your terminal.
 - =SPC=: Can be used once on each line of the prompt to align the
   remaining widgets to the right of the terminal.
 
+All widgets are case-insensitive.
+
 *** Customising Widgets
 
-So far, we've been configuring what widgets and strings go into a
-prompt. But you can also configure the widgets themselves - what the
-widgets should be replaced with when active or inactive and what
-colours to use.
+So far, we've only been configuring the prompt itself. But you can
+also configure the widgets themselves - what the widgets should be
+replaced with when active or inactive and what colours to use.
 
 To customise the Default settings for all widgets, you can modify its
 settings in the INI file as follows:
 
+The default hard-coded config looks like this:
+
+- =max_width=: 256 characters
+- =string_active=: the format string "%s"
+- =string_inactive=: the format string "%s"
+- =colour_on=: no style
+- =colour_off=: no style
+
+These can be overridden with your own defaults, by creating your own
+=[WIDGET_DEFAULT]= section like this:
+
 #+begin_src conf
   [WIDGET_DEFAULT]
-  max_width=256              # shorten if longer than this
+  max_width=128              # shorten if longer than this
   string_active="%s"
   string_inactive="%s"
-  colour_on="\[\e[36;22m\]"  # Active colour in cyan
-  colour_off="\[\e[36;2m\]"  # Inactive colour in dim cyan
+  colour_on="%{fg bright cyan}"
+  colour_off="%{fg cyan; dim}"
 #+end_src
 
 - =max_width=: The space a widget takes in the prompt, sans terminal
@@ -264,47 +401,33 @@ settings in the INI file as follows:
   only need to set =max_width= if you want to).
 
 - =string_active= and =string_inactive=: These parameters define the
-  format strings used when the widget is active or inactive. You can
-  include placeholders and formatting options here.
+  format strings used when the widget is active or inactive. It's
+  inserted directly into the printf (or snprintf) function, so you can
+  use what you know from that, if you want. Otherwise, the important
+  thing is that =%s= is the placeholder for the value of the widget.
+  Use that and you'll be all set.
 
 - =colour_on= and =colour_off=: These parameters control the text
-  colour for the active and inactive states of the widget. The colour
-  codes are specified using ANSI escape sequences.
-
-  - Standard ANSI Colours: You can use standard ANSI colour codes such
-    as =\[\e[31m\]= for red, =\[\e[32m\]= for green, etc. These are
-    widely supported and easy to use.
-
-  - RGB Colours: For more precise colour control, you can specify RGB
-    values using the ANSI escape sequences for 24-bit colour. This is
-    done using the sequences =\[\e[38;2;R;G;Bm\]= for foreground
-    colours and =\[\e[48;2;R;G;Bm\]= for background colours, where R,
-    G, and B represent the red, green, and blue components of the
-    colour, respectively. Each component can be a value from 0 to 255.
+  attributes for the active and inactive states of the widget. See
+  [[#style-attributes][Style Attributes]] for details on what these are.
 
   For example, to set the foreground colour to a specific shade of blue
   using RGB values, you would use:
+  
   #+begin_src conf
-    colour_on="\[\e[38;2;0;120;215m\]"  # A nice shade of blue
+  colour_on="%{fg-goldenrod}"  # A nice shade of gold
   #+end_src
 
   Similarly, to set a background colour using RGB, you might use:
+  
   #+begin_src conf
-    colour_off="\[\e[48;2;255;200;0m\]"  # A warm yellow background
-  #+end_src
-
-  Note: it's sometimes hard to know what colours look nice. I've
-  supplied a small script in =scripts/print_colours.pl= which prints
-  all the named rgb combos used in the [[https://www.x.org/wiki/][Xorg project]]. Run it in your
-  terminal like this:
-  #+begin_src bash
-    $ perl scripts/print_colours.pl
+  colour_off="%{bg-grey10}"  # A dark background
   #+end_src
 
 
 **** Overriding the default widget
 
-Each individual widget can override the default setting, for example
+Each individual widget can override the default config, for example
 for =Repo.branch_name= here, where we normally would shorten longer
 branch names to save space in the terminal.
 
@@ -313,9 +436,10 @@ branch names to save space in the terminal.
   max_width=20
 #+end_src
 
-
-We might also want to override =string_inactive= to show a hyphen
-if there is no defined branch name yet:
+We might also want to override =string_inactive= to show a hyphen if
+there is no defined branch name yet. Remember: the other settings are
+inherited from the default, so we don't need to tell it to print the
+branch name if there is one.
 #+begin_src conf
   [Repo.branch_name]
   max_width=20
@@ -330,7 +454,7 @@ visible.
   [Repo.conflicts]
   string_active="<conflicts: %s>"
   string_inactive=""
-  colour_on="\[\e[35m\]"
+  colour_on="%{fg-orangeRed1}"
   colour_off=""
 #+end_src
 
@@ -360,7 +484,7 @@ understand.
   # goes under a threshold of ten minutes, it will go active - and
   # change to a red colour.
   [AWS.token_remaining_minutes]
-  colour_on="\[\e[35m\]"
+  colour_on="%{fg-red1}"
   colour_off=""
 #+end_src
 
