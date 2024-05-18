@@ -8,8 +8,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef __unix__
 #include <iniparser/dictionary.h>
-
+#elif __APPLE__
+#include <dictionary.h>
+#else
+#error "Unknown or unsupported OS"
+#endif
 #include "prompt2-utils.h"
 #include "term_attributes.h"
 

@@ -1,7 +1,13 @@
 #ifndef TERM_ATTRIBUTES_H
 #define TERM_ATTRIBUTES_H
 
+#ifdef __unix__
 #include <iniparser/dictionary.h>
+#elif __APPLE__
+#include <dictionary.h>
+#else
+#error "Unknown or unsupported OS"
+#endif
 
 /**
  * Structure to hold an escape code mapping.
