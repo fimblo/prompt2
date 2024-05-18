@@ -37,7 +37,7 @@ struct EscapeCode attributes[] = {
   { "hidden",             "8" },
   { "strikethrough",      "9" },
 
-  // 8-bit plain colours by name, foreground         8-bit plain colours by slot, foreground
+  // Reserved colours by name, foreground            Reserved colours by slot, foreground
   { "fg black",           "30" },                    { "fg c0",          "30" },
   { "fg red",             "31" },                    { "fg c1",          "31" },
   { "fg green",           "32" },                    { "fg c2",          "32" },
@@ -47,7 +47,7 @@ struct EscapeCode attributes[] = {
   { "fg cyan",            "36" },                    { "fg c6",          "36" },
   { "fg white",           "37" },                    { "fg c7",          "37" },
 
-  // 8-bit bright colours by name, foreground        8-bit bright colours by slot, foregroun
+  // Reserved bright colours by name, foreground     Reserved bright colours by slot, foregroun
   { "fg bright black",    "90" },                    { "fg bright c0",   "90" },
   { "fg bright red",      "91" },                    { "fg bright c1",   "91" },
   { "fg bright green",    "92" },                    { "fg bright c2",   "92" },
@@ -57,7 +57,7 @@ struct EscapeCode attributes[] = {
   { "fg bright cyan",     "96" },                    { "fg bright c6",   "96" },
   { "fg bright white",    "97" },                    { "fg bright c7",   "97" },
 
-  // 8-bit plain colours by name, background         8-bit plain colours by slot, background
+  // Reserved colours by name, background            Reserved colours by slot, background
   { "bg black",           "40" },                    { "bg c0",          "40" },
   { "bg red",             "41" },                    { "bg c1",          "41" },
   { "bg green",           "42" },                    { "bg c2",          "42" },
@@ -67,7 +67,7 @@ struct EscapeCode attributes[] = {
   { "bg cyan",            "46" },                    { "bg c6",          "46" },
   { "bg white",           "47" },                    { "bg c7",          "47" },
 
-  // 8-bit bright colours by name, background        8-bit bright colours by slot, background
+  // Reserved bright colours by name, background     Reserved bright colours by slot, background
   { "bg bright black",    "100" },                   { "bg bright c0",   "100" },
   { "bg bright red",      "101" },                   { "bg bright c1",   "101" },
   { "bg bright green",    "102" },                   { "bg bright c2",   "102" },
