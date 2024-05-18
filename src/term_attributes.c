@@ -1454,13 +1454,13 @@ void _join_sequence(char *result, size_t result_size, char *sequences[], size_t 
  * colours.
  * 
  * @param attribute_dict A pointer to the dictionary of attributes
- * @param combo A semicolon-separated string of names of styles and
+ * @param combo A comma-separated string of names of styles and
  *              colours
  * @return a const char pointer to the escape sequence, or NULL in the
  *         case of an error
 */
 const char * get_attribute_combo(dictionary *attribute_dict, const char* combo) {
-  // combo is "part1;part2;part3"
+  // combo is "part1,part2,part3"
   char *str = strdup(combo);
   if (str == NULL) {
     return NULL;
@@ -1470,7 +1470,7 @@ const char * get_attribute_combo(dictionary *attribute_dict, const char* combo) 
   char *rest = str;
   char *sequences[16]; // TODO: magic number
   int i = 0;
-  while ((token = strtok_r(rest, ";", &rest))) {
+  while ((token = strtok_r(rest, ",", &rest))) {
     char *trimmed_token = trim(token);
     const char * code = dictionary_get(attribute_dict,
                                        (const char*) to_lower((const char*) trimmed_token),
