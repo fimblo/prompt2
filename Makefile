@@ -19,7 +19,7 @@ SOURCES = $(wildcard $(SRC_DIR)/*.c)
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
 # Binaries to build
-BINARIES = $(BIN_DIR)/prompt2 $(BIN_DIR)/test-get-status $(BIN_DIR)/termstylegen
+BINARIES = $(BIN_DIR)/prompt2 $(BIN_DIR)/termstylegen $(BIN_DIR)/test-get-status $(BIN_DIR)/test-prompt2-utils
 
 # Phony Targets
 .PHONY: all clean build install-local test
@@ -32,27 +32,35 @@ build: $(BINARIES)
 
 # Compile Source Files to Object Files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	@echo "Compiling $< to $@"
+	@echo "\nCompiling $< to $@"
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 # Link prompt2
 $(BIN_DIR)/prompt2: $(BUILD_DIR)/prompt2.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term_attributes.o $(BUILD_DIR)/get-status.o
-	@echo "Linking $@"
-	@mkdir -p $(BIN_DIR)
-	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
-
-# Link test-get-status
-$(BIN_DIR)/test-get-status: $(BUILD_DIR)/test-get-status.o $(BUILD_DIR)/get-status.o
-	@echo "Linking $@"
+	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
 # Link termstylegen
 $(BIN_DIR)/termstylegen: $(BUILD_DIR)/termstylegen.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term_attributes.o
-	@echo "Linking $@"
+	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
+
+# Link test-get-status
+$(BIN_DIR)/test-get-status: $(BUILD_DIR)/test-get-status.o $(BUILD_DIR)/get-status.o
+	@echo "\nLinking $@"
+	@mkdir -p $(BIN_DIR)
+	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
+
+
+# Link test-prompt2-utils
+$(BIN_DIR)/test-prompt2-utils: $(BUILD_DIR)/test-prompt2-utils.o $(BUILD_DIR)/prompt2-utils.o
+	@echo "\nLinking $@"
+	@mkdir -p $(BIN_DIR)
+	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
+
 
 # Clean Target
 clean:
