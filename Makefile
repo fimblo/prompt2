@@ -1,80 +1,80 @@
+# Instructions when adding instructions to build a new binary:
+# - Add the name of the new binary to the list BINARIES
+# - Add a Link section for the binary.
+
+# Initial Configuration
 CC = gcc
 CFLAGS = -Wall -Wextra
 INCLUDE_DIR = /opt/homebrew/include
 LIB_DIR = /opt/homebrew/lib
 LIBS = -lgit2 -ljson-c -liniparser
 
+# Directories
 SRC_DIR = src
 BUILD_DIR = build
 BIN_DIR = bin
 
-TEST_TARGET = $(BIN_DIR)/test-get-status
-TEST_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/test-get-status.c
-TEST_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SOURCES))
+# Find all C source files and define object file paths
+SOURCES = $(wildcard $(SRC_DIR)/*.c)
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
-UTILS_SOURCE = $(SRC_DIR)/prompt2-utils.c
-UTILS_OBJECT = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(UTILS_SOURCE))
+# Binaries to build
+BINARIES = $(BIN_DIR)/prompt2 $(BIN_DIR)/test-get-status $(BIN_DIR)/termstylegen
 
-PROMPT2_TARGET = $(BIN_DIR)/prompt2
-PROMPT2_SOURCES = $(SRC_DIR)/get-status.c $(SRC_DIR)/prompt2.c
-PROMPT2_OBJECTS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(PROMPT2_SOURCES)) $(UTILS_OBJECT) $(TERMSTYLEGEN_OBJECT)
+# Phony Targets
+.PHONY: all clean build install-local test
 
-TERMSTYLEGEN_TARGET = $(BIN_DIR)/termstylegen
-TERMSTYLEGEN_SOURCE = $(SRC_DIR)/term_attributes.c $(UTILS_SOURCE)
-TERMSTYLEGEN_OBJECT = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(TERMSTYLEGEN_SOURCE))
-
-.PHONY: termstylegen
-
-.PHONY: all build run install install-local clean test help
-
+# Main Targets
 all: build test
 
-build: $(TEST_TARGET) $(PROMPT2_TARGET)
+# Build Targets
+build: $(BINARIES)
 
+# Compile Source Files to Object Files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@echo "Compiling $< to $@"
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
-$(TEST_TARGET): $(TEST_OBJECTS)
+# Link prompt2
+$(BIN_DIR)/prompt2: $(BUILD_DIR)/prompt2.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term_attributes.o $(BUILD_DIR)/get-status.o
+	@echo "Linking $@"
 	@mkdir -p $(BIN_DIR)
-	$(CC) -L$(LIB_DIR) $^ -o $@ $(LIBS)
+	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
-$(PROMPT2_TARGET): $(PROMPT2_OBJECTS)
+# Link test-get-status
+$(BIN_DIR)/test-get-status: $(BUILD_DIR)/test-get-status.o $(BUILD_DIR)/get-status.o
+	@echo "Linking $@"
 	@mkdir -p $(BIN_DIR)
-	$(CC) -L$(LIB_DIR) $^ -o $@ $(LIBS)
+	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
-run: build test
-	@echo "Run: $(TEST_TARGET)"
-	@echo "-------------------------"
-	@$(TEST_TARGET)
+# Link termstylegen
+$(BIN_DIR)/termstylegen: $(BUILD_DIR)/termstylegen.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term_attributes.o
+	@echo "Linking $@"
+	@mkdir -p $(BIN_DIR)
+	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
-install: $(PROMPT2_TARGET) $(TEST_TARGET)
-	install -m 755 $(PROMPT2_TARGET) $(TEST_TARGET) /usr/local/bin
-
-install-local: $(PROMPT2_TARGET) $(TEST_TARGET)
-	install -m 755 $(PROMPT2_TARGET) $(TEST_TARGET) $(HOME)/bin
-
+# Clean Target
 clean:
-	rm -f $(BUILD_DIR)/*.o $(TEST_TARGET) $(PROMPT2_TARGET) $(TERMSTYLEGEN_TARGET)
+	@echo "Cleaning..."
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
+# Install Target
+install-local: $(BINARIES)
+	@echo "Installing binaries to $(HOME)/bin"
+	@mkdir -p $(HOME)/bin
+	install -m 755 $^ $(HOME)/bin
+
+# Test Target
 test:
-	bats test
+	 bats test
 
-
-termstylegen: $(TERMSTYLEGEN_TARGET)
-
-$(TERMSTYLEGEN_TARGET): $(TERMSTYLEGEN_OBJECT)
-	@mkdir -p $(BIN_DIR)
-	$(CC) -L$(LIB_DIR) $^ -o $@ $(LIBS)
-
-
+# Help Target
 help:
 	@echo "Available targets:"
 	@echo "  all           - Builds the executables and runs tests"
 	@echo "  build         - Compiles the sources and creates the executables"
-	@echo "  run           - Builds, tests, and runs the program"
-	@echo "  install       - Installs the executables to /usr/local/bin"
-	@echo "  install-local - Installs the executables to ~/bin"
 	@echo "  clean         - Removes object files and the executables"
-	@echo "  test          - Runs tests using bats"
+	@echo "  install-local - Installs the executables to ~/bin"
+	@echo "  test          - Runs tests using bats or another testing framework"
 	@echo "  help          - Displays this help information"
