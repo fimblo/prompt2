@@ -15,9 +15,9 @@
 #else
 #error "Unknown or unsupported OS"
 #endif
-#include "colour-attributes.h"
+#include "attributes.h"
 #include "prompt2-utils.h"
-#include "term_attributes.h"
+#include "term-attributes.h"
 
 
 

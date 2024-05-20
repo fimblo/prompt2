@@ -12,7 +12,7 @@
 #endif
 #include "prompt2-utils.h"
 
-#include "term_attributes.h"
+#include "term-attributes.h"
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {

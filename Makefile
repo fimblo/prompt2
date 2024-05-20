@@ -37,13 +37,13 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 # Link prompt2
-$(BIN_DIR)/prompt2: $(BUILD_DIR)/prompt2.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term_attributes.o $(BUILD_DIR)/get-status.o
+$(BIN_DIR)/prompt2: $(BUILD_DIR)/prompt2.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/get-status.o
 	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
 # Link termstylegen
-$(BIN_DIR)/termstylegen: $(BUILD_DIR)/termstylegen.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term_attributes.o
+$(BIN_DIR)/termstylegen: $(BUILD_DIR)/termstylegen.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term-attributes.o
 	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)

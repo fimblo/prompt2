@@ -53,7 +53,7 @@
 #error "Unknown or unsupported OS"
 #endif
 
-#include "term_attributes.h"
+#include "term-attributes.h"
 #include "constants.h"
 #include "get-status.h"
 #include "prompt2-utils.h"
