@@ -7,11 +7,6 @@
 #include <string.h>
 #include "term-attributes.h"
 
-int test_create_and_free_dict() {
-  free_attribute_dict(create_attribute_dict());
-  return 0;
-}
-
 
 int test_create_attribute_dict(char *key, char *value) {
   dictionary *dict = create_attribute_dict();
