@@ -9,14 +9,6 @@
 #error "Unknown or unsupported OS"
 #endif
 
-/**
- * Structure to hold an escape code mapping.
- */
-struct EscapeCode {
-  const char *name;
-  const char *code;
-};
-
 
 /**
  * Creates and initializes the escape code dictionary.
