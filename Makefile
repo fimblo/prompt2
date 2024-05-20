@@ -19,7 +19,7 @@ SOURCES = $(wildcard $(SRC_DIR)/*.c)
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
 # Binaries to build
-BINARIES = $(BIN_DIR)/prompt2 $(BIN_DIR)/termstylegen $(BIN_DIR)/test-get-status $(BIN_DIR)/test-prompt2-utils
+BINARIES = $(BIN_DIR)/prompt2 $(BIN_DIR)/termstylegen $(BIN_DIR)/test-get-status $(BIN_DIR)/test-prompt2-utils $(BIN_DIR)/test-term-attributes
 
 # Phony Targets
 .PHONY: all clean build install-local test
@@ -54,9 +54,14 @@ $(BIN_DIR)/test-get-status: $(BUILD_DIR)/test-get-status.o $(BUILD_DIR)/get-stat
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
-
 # Link test-prompt2-utils
 $(BIN_DIR)/test-prompt2-utils: $(BUILD_DIR)/test-prompt2-utils.o $(BUILD_DIR)/prompt2-utils.o
+	@echo "\nLinking $@"
+	@mkdir -p $(BIN_DIR)
+	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
+
+# Link test-term-attributes
+$(BIN_DIR)/test-term-attributes: $(BUILD_DIR)/test-term-attributes.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/prompt2-utils.o
 	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
