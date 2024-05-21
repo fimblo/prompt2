@@ -11,8 +11,6 @@ hostname and cwd, I wanted a prompt which behaved differently in a
 normal directory and in a git repo. While doing this, I added other
 features, like AWS authentication state.
 
-It's easy to configure, and even supports named colours.
-
 
 ** Features
 - *Performance*: Executes in under 100ms on older hardware (pre-2010
