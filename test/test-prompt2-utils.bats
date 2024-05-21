@@ -66,7 +66,6 @@ TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-prompt2-utils"
 
 # --------------------------------------------------
 @test "spacefiller() with negative arg fails " {
-  skip "This fails. FIXME"
   # Given
   number_of_spaces=-1
 

@@ -56,7 +56,7 @@ char *trim(char *str) {
  *         spaces. Don't forget to free this string!
  */
 const char *spacefiller(int number_of_spaces) {
-  if (number_of_spaces < 0) return NULL;
+  if (number_of_spaces < 0) number_of_spaces = 0;
 
   char *space_str = malloc(number_of_spaces + 1);
   if (!space_str) {
