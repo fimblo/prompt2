@@ -135,14 +135,12 @@ const char *replace_attribute_tokens(const char *string, dictionary *attribute_d
               escape_seq = "\\[\\e[0m\\]";
             }
             else {
-              escape_seq = get_attribute_combo(attribute_dict, attr);
+              escape_seq = get_attribute_combo(attribute_dict, attr) ?: "ERROR";
             }
 
-            if (escape_seq) {
-              // Copy escape sequence to result
-              strcpy(result_ptr, escape_seq);
-              result_ptr += strlen(escape_seq);
-            }
+            // Copy escape sequence to result
+            strcpy(result_ptr, escape_seq);
+            result_ptr += strlen(escape_seq);
 
             free(attr);
             current = end + 1; // Move past the processed token
