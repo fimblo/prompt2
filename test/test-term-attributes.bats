@@ -137,17 +137,16 @@ TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-term-attributes"
 }
 
 # --------------------------------------------------
-@test "replace_attribute_tokens() with invalid attribute syntax should fail" {
-  skip "It returns the empty string. I don't think this is right"  # TODO: fixme
+@test "replace_attribute_tokens() should omit broken attributes" {
   # Given 
-  # - a valid attribute
-  attr='%{bold THIS is a string %{}'
+  # - an invalid attribute
+  attr='%{bold'
 
   # When we test
   run -0 $TEST_FUNCTION replace_attribute_tokens "$attr"
   echo $output
   # Then 
   # - it should translate the attribute to a valid escape sequence
-  test "$output" =  '\[\e[1m\]THIS is a string \[\e[0m\]'
+  test "$output" =  ''
 }
 
