@@ -124,17 +124,16 @@ TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-term-attributes"
 
 # --------------------------------------------------
 @test "replace_attribute_tokens() with a string containing many attributes should replace them all" {
-  skip "This fails with 'munmap_chunk(): invalid pointer'" # TODO: fixme
   # Given 
   # - a valid attribute
-  attr='%{bold}THIS is a bold string %{}%{dim}THIS is a dim string %{}'
+  attr='%{bold}THIS is a bold string %{}%{dim}THIS is a dim string%{}'
 
   # When we test
   run -0 $TEST_FUNCTION replace_attribute_tokens "$attr"
   echo $output
   # Then 
   # - it should translate the attribute to a valid escape sequence
-  test "$output" =  '\[\e[1m\]THIS is a string \[\e[0m\]'
+  test "$output" =  '\[\e[1m\]THIS is a bold string \[\e[0m\]\[\e[2m\]THIS is a dim string\[\e[0m\]'
 }
 
 # --------------------------------------------------

@@ -15,6 +15,7 @@
 #else
 #error "Unknown or unsupported OS"
 #endif
+#include "constants.h"
 #include "attributes.h"
 #include "prompt2-utils.h"
 #include "term-attributes.h"
@@ -114,9 +115,9 @@ const char * get_attribute_combo(dictionary *attribute_dict, const char* combo) 
 
 const char *replace_attribute_tokens(const char *string, dictionary *attribute_dict) {
     // Estimate the size of the result string
-    size_t result_size = strlen(string) + 1; // +1 for the null terminator
+    size_t result_size = PROMPT_MAX_LEN; 
     char *result = malloc(result_size);
-    if (!result) return NULL; // Failed to allocate memory
+    if (!result) return string; // Failed to allocate memory, return string as-is
 
     const char *current = string;
     char *result_ptr = result;
@@ -138,21 +139,9 @@ const char *replace_attribute_tokens(const char *string, dictionary *attribute_d
             }
 
             if (escape_seq) {
-                // Calculate new size and reallocate result with extra space for escape sequence
-                size_t escape_seq_len = strlen(escape_seq);
-                size_t new_size = result_size + escape_seq_len - (attr_len + 3); // +3 for "%{}"
-                char *temp = realloc(result, new_size);
-                if (!temp) {
-                    free(result);
-                    free(attr);
-                    return NULL; // Failed to reallocate memory
-                }
-                result = temp;
-                result_size = new_size;
-
-                // Copy escape sequence to result
-                strcpy(result_ptr, escape_seq);
-                result_ptr += escape_seq_len;
+              // Copy escape sequence to result
+              strcpy(result_ptr, escape_seq);
+              result_ptr += strlen(escape_seq);
             }
 
             free(attr);
