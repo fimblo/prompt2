@@ -1,6 +1,10 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 #ifdef __unix__
 #include <iniparser/dictionary.h>
@@ -14,6 +18,10 @@
 #else
 #error "Unknown or unsupported OS"
 #endif
+#include "constants.h"
+#include "prompt2-utils.h"
+
+
 
 
 
@@ -23,7 +31,7 @@ char* replace_literal_newlines(const char* input) {
   char* result = malloc(inputLen + 1); // +1 for the null terminator
   if (!result) {
     perror("REPLACE LITERAL NEWLINES FAILURE $ ");
-    exit(EXIT_FAILURE);
+    exit(1);
   }
 
   const char* current = input;
@@ -66,8 +74,10 @@ int main(int argc, char *argv[]) {
   var2 = iniparser_getstring(ini, "SECTION:var2", NULL);
 
   if (var1 && var2) {
-    printf("var1: '%s'\n", replace_literal_newlines(var1));
-    printf("var2: '%s'\n", replace_literal_newlines(var2));
+    printf("replace var1: '%s'\n", replace_literal_newlines(var1));
+    printf("replace var2: '%s'\n", replace_literal_newlines(var2));
+    printf("var1: '%s'\n", var1);
+    printf("var2: '%s'\n", var2);
   }
   else {
     printf("missing sections var1 and/or var2\n");    

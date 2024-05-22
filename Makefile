@@ -19,7 +19,7 @@ SOURCES = $(wildcard $(SRC_DIR)/*.c)
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
 # Binaries to build
-BINARIES = $(BIN_DIR)/prompt2 $(BIN_DIR)/termstylegen $(BIN_DIR)/test-get-status $(BIN_DIR)/test-prompt2-utils $(BIN_DIR)/test-term-attributes
+BINARIES = $(BIN_DIR)/prompt2 $(BIN_DIR)/termstylegen $(BIN_DIR)/test-get-status $(BIN_DIR)/test-prompt2-utils $(BIN_DIR)/test-term-attributes $(BIN_DIR)/my-iniparser
 
 # Phony Targets
 .PHONY: all clean build install-local test
@@ -62,6 +62,12 @@ $(BIN_DIR)/test-prompt2-utils: $(BUILD_DIR)/test-prompt2-utils.o $(BUILD_DIR)/pr
 
 # Link test-term-attributes
 $(BIN_DIR)/test-term-attributes: $(BUILD_DIR)/test-term-attributes.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/prompt2-utils.o
+	@echo "\nLinking $@"
+	@mkdir -p $(BIN_DIR)
+	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
+
+# Link my-iniparser
+$(BIN_DIR)/my-iniparser: $(BUILD_DIR)/my-iniparser.o
 	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
