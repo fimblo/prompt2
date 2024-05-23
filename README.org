@@ -134,12 +134,12 @@ Currently, there are two prompts you can configure:
   repo. To configure this, add a =prompt= entry under the =PROMPT.GIT=
   section.
 - *the default prompt*: in all other situations. To configure this,
-  add a =prompt= entry under the =PROMPT.DEFAULT= section.
+  add a =prompt= entry under the =PROMPT= section.
 
 For example, a minimal prompt setup could look like this:
 
 #+begin_src conf
-  [PROMPT.DEFAULT]
+  [PROMPT]
   prompt="default $ "
 
   [PROMPT.GIT]
@@ -156,7 +156,7 @@ whatever they represent at the time.
 
 #+begin_src conf
   ; add the prompt character '$' change depending on if you're root or not
-  [PROMPT.DEFAULT]
+  [PROMPT]
   prompt="default @{SYS.promptchar} "
 
   [PROMPT.GIT]
@@ -167,7 +167,7 @@ Now let's complicate this a bit more by adding a widget which shows
 you where you are in the filesystem:
 
 #+begin_src conf
-  [PROMPT.DEFAULT]
+  [PROMPT]
   prompt="default: @{CWD} @{SYS.promptchar} "
 
   [PROMPT.GIT]
@@ -190,7 +190,7 @@ prompt2 supports four styles of CWD:
 You can modify the CWD style for your prompts:
 
 #+begin_src conf
-  [PROMPT.DEFAULT]
+  [PROMPT]
   prompt="default: @{CWD} @{SYS.promptchar} "
 
   [PROMPT.GIT]
@@ -225,7 +225,7 @@ Here we change the default prompt style by making everything
 strike-through, as the cool kids do:
 
 #+begin_src conf
-  [PROMPT.DEFAULT]
+  [PROMPT]
   prompt="%{Strikethrough}My prompt%{Reset} $ "
 #+end_src
 
@@ -264,7 +264,7 @@ To differentiate between foreground and background colours, prefix with
 
 
 #+begin_src conf
-  [PROMPT.DEFAULT]
+  [PROMPT]
   # blue and yellow foreground text
   prompt="%{fg blue}My %{fg c4}prompt%{reset}$ "
 #+end_src
@@ -286,7 +286,7 @@ indicate if you want to colour the text or the background. The hyphen
 is needed to differentiate from the named reserved colours.
 
 #+begin_src conf
-  [PROMPT.DEFAULT]
+  [PROMPT]
   # Cadet Blue text, with empty attribute to reset the colour
   prompt="%{fg-cadetblue}TEXT%{} $ "
 #+end_src
@@ -311,7 +311,7 @@ combine attributes. For example, if you want:
 Then you can do this:
 
 #+begin_src conf
-  [PROMPT.DEFAULT]
+  [PROMPT]
   prompt="%{fg-palegreen2, bg-grey10, bold, strikethrough}TEXT%{} $ "
 #+end_src
 
@@ -468,7 +468,7 @@ understand.
   # =AWS.token_is_valid=. This widget is active if you have a valid aws
   # token right now.
 
-  [PROMPT.DEFAULT]
+  [PROMPT]
   prompt="@{AWS.token_is_valid} $ "
 
   # The widget in question will, if active (valid token), be replaced

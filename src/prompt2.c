@@ -240,8 +240,8 @@ void set_config_defaults(struct ConfigRoot *config) {
   config->default_prompt_cwd_type = "home";
 
   // Set git prompt defaults
-  config->git_prompt = "G: \\W $ ";
-  config->git_prompt_zero = "Z: \\W $ ";
+  config->git_prompt = "\\W $ ";
+  config->git_prompt_zero = "\\W $ ";
   config->git_prompt_cwd_type = "home";
 
   // Set widget defaults
@@ -304,16 +304,21 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   dictionary *ini = iniparser_load(selected_config_file);
   if (ini == NULL) return ERROR_INVALID_INI_FILE;
 
-  // get prompt-related config
-  if (iniparser_find_entry(ini, "PROMPT.DEFAULT") == 1) {
-    config->default_prompt          = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:prompt",     config->default_prompt));
-    config->default_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.DEFAULT:cwd_type",   config->default_prompt_cwd_type));
+  // set all prompt configs to user-provided default settings (if it exists)
+  if (iniparser_find_entry(ini, "PROMPT") == 1) {
+    config->default_prompt          = strdup(iniparser_getstring(ini, "PROMPT:prompt",     config->default_prompt));
+    config->git_prompt              = strdup(iniparser_getstring(ini, "PROMPT:prompt",     config->default_prompt));
+    config->git_prompt_zero         = strdup(iniparser_getstring(ini, "PROMPT:prompt",     config->default_prompt));
+
+    config->default_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT:cwd_type",   config->default_prompt_cwd_type));
+    config->git_prompt_cwd_type     = strdup(iniparser_getstring(ini, "PROMPT:cwd_type",   config->default_prompt_cwd_type));
     config->dynamic_default_prompt = 1;
   }
 
+  // if there is a git prompt config section, override the default (above) with this
   if (iniparser_find_entry(ini, "PROMPT.GIT") == 1) {
     config->git_prompt          = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
-    config->git_prompt_zero     = strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->git_prompt_zero));
+    config->git_prompt_zero     = strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->git_prompt)); // default to normal git prompt
     config->git_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.GIT:cwd_type",   config->git_prompt_cwd_type));
     config->dynamic_git_prompt = 1;
   }
