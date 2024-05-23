@@ -149,29 +149,29 @@ For example, a minimal prompt setup could look like this:
 This snippet would, if applied to your shell, result in the prompt
 =default $= and =git $= respectively.
 
-But this is no fun, so let's add a dynamic element to these prompts.
-These dynamic instructions are called Widgets. Each Widget is wrapped
-like so: =@{widgetname}= and are at runtime replaced with whatever
-they represent at the time.
+But this is no fun, so let's add some dynamic element to these
+prompts. These dynamic instructions are called Widgets. Each Widget is
+wrapped like so: =@{widgetname}= and are at runtime replaced with
+whatever they represent at the time.
 
 #+begin_src conf
-  ; show the current working directory, then
   ; add the prompt character '$' change depending on if you're root or not
   [PROMPT.DEFAULT]
-  prompt="@{CWD} @{SYS.promptchar} "
+  prompt="default @{SYS.promptchar} "
 
   [PROMPT.GIT]
-  prompt="@{CWD} @{SYS.promptchar} "
+  prompt="git @{SYS.promptchar} "
 #+end_src
 
-Now let's make these act differently:
+Now let's complicate this a bit more by adding a widget which shows
+you where you are in the filesystem:
 
 #+begin_src conf
   [PROMPT.DEFAULT]
-  prompt="Default: @{CWD} @{SYS.promptchar} "
+  prompt="default: @{CWD} @{SYS.promptchar} "
 
   [PROMPT.GIT]
-  prompt="Git: @{CWD} @{SYS.promptchar} "
+  prompt="git: @{CWD} @{SYS.promptchar} "
 #+end_src
 
 CWD is shorthand for 'Current Working Directory' - that is, the name
@@ -191,16 +191,17 @@ You can modify the CWD style for your prompts:
 
 #+begin_src conf
   [PROMPT.DEFAULT]
-  prompt="Default: @{CWD} @{SYS.promptchar} "
+  prompt="default: @{CWD} @{SYS.promptchar} "
 
   [PROMPT.GIT]
-  prompt="Git: @{CWD} @{SYS.promptchar} "
+  prompt="git: @{CWD} @{SYS.promptchar} "
   cwd_type="git"
 #+end_src
 
 In the example above, you will get the traditional path from HOME when
-wandering about your file-system, but when you enter a git repo the
-CWD will show your location in relation to the root of the repo.
+wandering about your file-system (no config line needed since it's the
+default), but when you enter a git repo the CWD will show your
+location in relation to the root of the repo.
 
 Before we dive into widgets and how to configure them, let's take a
 short detour and talk about Attributes...
