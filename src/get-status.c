@@ -431,6 +431,7 @@ void initialise_state(struct CurrentState *state) {
   state->gid                         = -1;
 
   state->is_git_repo                 = -1;
+  state->is_nascent_repo             = -1;
   state->has_upstream                = -1;
   state->conflict_num                = -1;
   state->is_rebase_in_progress       = -1;
@@ -475,16 +476,24 @@ int gather_git_context(struct CurrentState *state) {
   __get_repo_status(state);
   __get_repo_divergence(state);
 
+
+  // figure out if this repo (if it is a repo) is a mature one or a nascent. 
+  // A nascent repo is one where 'git init' has been run but no 'git commit'
+  state->is_nascent_repo = 0;
+  if (state->is_git_repo == 1 && state->head_ref == NULL) {
+    state->is_nascent_repo = 1;
+  }
+
   return ! state->is_git_repo;
 }
 
 /**
  * Gather regular system context
- * 
+ *
  * Currently this covers:
  * - username
  * - hostname
-*/
+ */
 int gather_system_context(struct CurrentState *state) {
   // Get the effective username of this shell and save in state->username
   char *username = getenv("USER") ?: getenv("LOGNAME");
@@ -622,7 +631,7 @@ const char *get_cwd_from_home(struct CurrentState *state) {
 
 /**
  * CWD selector
-*/
+ */
 char * get_cwd(struct CurrentState *state, const char *cwd_type) {
   char *cwd_path;
 

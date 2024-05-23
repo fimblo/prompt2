@@ -38,6 +38,8 @@ int main(void) {
   printf("CWD.home_path %s\n",      cwd_from_home);
 
   printf("Repo.is_git_repo %d\n",   state.is_git_repo);
+  printf("Repo.is_nascent_repo %d\n",state.is_nascent_repo);
+
   printf("Repo.name %s\n",          state.repo_name);
   printf("Repo.branch_name %s\n",   state.branch_name);
   printf("Repo.rebase_active %d\n", state.is_rebase_in_progress);

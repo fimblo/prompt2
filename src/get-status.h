@@ -45,6 +45,7 @@ struct CurrentState {
   int gid;
 
   int is_git_repo;
+  int is_nascent_repo;
   int has_upstream;
   int conflict_num;
   int is_rebase_in_progress;

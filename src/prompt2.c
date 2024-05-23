@@ -318,7 +318,7 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   // if there is a git prompt config section, override the default (above) with this
   if (iniparser_find_entry(ini, "PROMPT.GIT") == 1) {
     config->git_prompt          = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
-    config->git_prompt_zero     = strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->git_prompt)); // default to normal git prompt
+    config->git_prompt_zero     = strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->default_prompt)); // fallback to default prompt
     config->git_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.GIT:cwd_type",   config->git_prompt_cwd_type));
     config->dynamic_git_prompt = 1;
   }
@@ -370,6 +370,9 @@ void map_wtoken_to_state(dictionary *dict, struct CurrentState *state) {
 
   snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_git_repo);
   dictionary_set(dict, "repo.is_git_repo",   itoa_buf);
+
+  snprintf(itoa_buf, sizeof(itoa_buf), "%d",      state->is_nascent_repo);
+  dictionary_set(dict, "repo.is_nascent_repo",itoa_buf);
 
   dictionary_set(dict, "repo.name",              state->repo_name);
   dictionary_set(dict, "repo.branch_name",       state->branch_name);
@@ -450,6 +453,7 @@ int is_widget_active(const char * wtoken, const char *value) {
     | `sys.uid`                      | <1           | otherwise   |
     | `sys.gid`                      | <1           | otherwise   |
     | `repo.is_git_repo`             | <1           | otherwise   |
+    | `repo.is_nascent_repo`         | <1           | otherwise   |
     | `repo.rebase_active`           | <1           | otherwise   |
     | `repo.conflicts`               | <1           | otherwise   |
     | `repo.has_upstream`            | <1           | otherwise   |
@@ -480,25 +484,26 @@ int is_widget_active(const char * wtoken, const char *value) {
 
   // Define the widget type entries
   const struct WidgetTypeTable widget_type_table[] = {
-    { "sys.username",       TYPE_STRING },
-    { "sys.hostname",       TYPE_STRING },
-    { "cwd",                TYPE_STRING },
-    { "repo.name",          TYPE_STRING },
-    { "repo.branch_name",   TYPE_STRING },
+    { "sys.username",        TYPE_STRING },
+    { "sys.hostname",        TYPE_STRING },
+    { "cwd",                 TYPE_STRING },
+    { "repo.name",           TYPE_STRING },
+    { "repo.branch_name",    TYPE_STRING },
 
-    { "sys.uid",            TYPE_TOGGLE },
-    { "sys.gid",            TYPE_TOGGLE },
-    { "sys.promptchar",     TYPE_TOGGLE },
-    { "repo.is_git_repo",   TYPE_TOGGLE },
-    { "repo.rebase_active", TYPE_TOGGLE },
-    { "repo.conflicts",     TYPE_TOGGLE },
-    { "repo.has_upstream",  TYPE_TOGGLE },
-    { "repo.ahead",         TYPE_TOGGLE },
-    { "repo.behind",        TYPE_TOGGLE },
-    { "repo.staged",        TYPE_TOGGLE },
-    { "repo.modified",      TYPE_TOGGLE },
-    { "repo.untracked",     TYPE_TOGGLE },
-    { "aws.token_is_valid", TYPE_TOGGLE }
+    { "sys.uid",             TYPE_TOGGLE },
+    { "sys.gid",             TYPE_TOGGLE },
+    { "sys.promptchar",      TYPE_TOGGLE },
+    { "repo.is_git_repo",    TYPE_TOGGLE },
+    { "repo.is_nascent_repo",TYPE_TOGGLE },
+    { "repo.rebase_active",  TYPE_TOGGLE },
+    { "repo.conflicts",      TYPE_TOGGLE },
+    { "repo.has_upstream",   TYPE_TOGGLE },
+    { "repo.ahead",          TYPE_TOGGLE },
+    { "repo.behind",         TYPE_TOGGLE },
+    { "repo.staged",         TYPE_TOGGLE },
+    { "repo.modified",       TYPE_TOGGLE },
+    { "repo.untracked",      TYPE_TOGGLE },
+    { "aws.token_is_valid",  TYPE_TOGGLE }
   };
 
   int type = TYPE_UNKNOWN;
