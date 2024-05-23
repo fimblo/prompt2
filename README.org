@@ -130,37 +130,32 @@ and style Attributes.
 *** Defining your prompts
 
 Currently, there are two prompts you can configure:
-- *the git prompt*: applied when standing somewhere inside of a git
-  repo. To configure this, add a =prompt= entry under the =PROMPT.GIT=
-  section.
-- *the default prompt*: in all other situations. To configure this,
-  add a =prompt= entry under the =PROMPT= section.
+- *the default prompt*: Set this for a prompt for any situation. To
+  configure this, add a =prompt= entry under the =PROMPT= section.
+- *the git prompt*: overrides the default when standing somewhere
+  inside of a git repo. To configure this, add a =prompt= entry under
+  the =PROMPT.GIT= section. This prompt config is optional, but very
+  useful if you use git.
 
 For example, a minimal prompt setup could look like this:
 
 #+begin_src conf
   [PROMPT]
-  prompt="default $ "
-
-  [PROMPT.GIT]
-  prompt="git $ "
+  prompt="my prompt $ "
 #+end_src
 
 This snippet would, if applied to your shell, result in the prompt
-=default $= and =git $= respectively.
+=my prompt $= followed by a space.
 
-But this is no fun, so let's add some dynamic element to these
-prompts. These dynamic instructions are called Widgets. Each Widget is
-wrapped like so: =@{widgetname}= and are at runtime replaced with
-whatever they represent at the time.
+But this is no fun, so let's add a dynamic element to this prompt.
+These dynamic instructions are called Widgets. Each Widget is wrapped
+like so: =@{widgetname}= and are at runtime replaced with whatever
+they represent at the time.
 
 #+begin_src conf
   ; add the prompt character '$' change depending on if you're root or not
   [PROMPT]
-  prompt="default @{SYS.promptchar} "
-
-  [PROMPT.GIT]
-  prompt="git @{SYS.promptchar} "
+  prompt="@{SYS.promptchar} "
 #+end_src
 
 Now let's complicate this a bit more by adding a widget which shows
@@ -168,10 +163,7 @@ you where you are in the filesystem:
 
 #+begin_src conf
   [PROMPT]
-  prompt="default: @{CWD} @{SYS.promptchar} "
-
-  [PROMPT.GIT]
-  prompt="git: @{CWD} @{SYS.promptchar} "
+  prompt="@{CWD} @{SYS.promptchar} "
 #+end_src
 
 CWD is shorthand for 'Current Working Directory' - that is, the name
@@ -191,17 +183,41 @@ You can modify the CWD style for your prompts:
 
 #+begin_src conf
   [PROMPT]
-  prompt="default: @{CWD} @{SYS.promptchar} "
+  prompt="@{CWD} @{SYS.promptchar} "
+  cwd_type="full"
+#+end_src
+
+In the example above, you will override the default (path from HOME)
+with a full path from root.
+
+
+Ok, now it's time to override the default prompt when standing in a
+git repo. To do this, you add a new INI section. Let's make this a bit
+more playful by getting it to show:
+
+- The repository name
+- The branch name
+- How many commits behind or ahead of upstream the repo is right now
+- How many staged, modified and untracked files are in the repo
+
+Note the use of `\` to separate the config over many lines, as well as
+the =\n= to insert a newline. *NOTE for macos users*: the iniparser
+library on macos requires an extra backslash, so to insert a newline
+you'll need to write =\\n=.
+
+#+begin_src conf
+  [PROMPT]
+  prompt="@{CWD} @{SYS.promptchar} "
 
   [PROMPT.GIT]
-  prompt="git: @{CWD} @{SYS.promptchar} "
+  prompt="\
+  <@{Repo.name}><@{Repo.branch_name}>\
+  [@{Repo.behind},@{Repo.ahead}|@{Repo.staged},@{Repo.modified},@{Repo.untracked}] \
+  @{CWD}\n\
+  @{SYS.promptchar} "
   cwd_type="git"
 #+end_src
 
-In the example above, you will get the traditional path from HOME when
-wandering about your file-system (no config line needed since it's the
-default), but when you enter a git repo the CWD will show your
-location in relation to the root of the repo.
 
 Before we dive into widgets and how to configure them, let's take a
 short detour and talk about Attributes...
