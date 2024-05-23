@@ -104,7 +104,6 @@ struct ConfigRoot {
   char *              default_prompt;
   char *              default_prompt_cwd_type;
   char *              git_prompt;
-  char *              git_prompt_zero;
   char *              git_prompt_cwd_type;
   struct WidgetConfig defaults;
 
@@ -241,7 +240,6 @@ void set_config_defaults(struct ConfigRoot *config) {
 
   // Set git prompt defaults
   config->git_prompt = "\\W $ ";
-  config->git_prompt_zero = "\\W $ ";
   config->git_prompt_cwd_type = "home";
 
   // Set widget defaults
@@ -308,7 +306,6 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   if (iniparser_find_entry(ini, "PROMPT") == 1) {
     config->default_prompt          = strdup(iniparser_getstring(ini, "PROMPT:prompt",     config->default_prompt));
     config->git_prompt              = strdup(iniparser_getstring(ini, "PROMPT:prompt",     config->default_prompt));
-    config->git_prompt_zero         = strdup(iniparser_getstring(ini, "PROMPT:prompt",     config->default_prompt));
 
     config->default_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT:cwd_type",   config->default_prompt_cwd_type));
     config->git_prompt_cwd_type     = strdup(iniparser_getstring(ini, "PROMPT:cwd_type",   config->default_prompt_cwd_type));
@@ -318,7 +315,6 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   // if there is a git prompt config section, override the default (above) with this
   if (iniparser_find_entry(ini, "PROMPT.GIT") == 1) {
     config->git_prompt          = strdup(iniparser_getstring(ini, "PROMPT.GIT:prompt",     config->git_prompt));
-    config->git_prompt_zero     = strdup(iniparser_getstring(ini, "PROMPT.GIT:special",    config->default_prompt)); // fallback to default prompt
     config->git_prompt_cwd_type = strdup(iniparser_getstring(ini, "PROMPT.GIT:cwd_type",   config->git_prompt_cwd_type));
     config->dynamic_git_prompt = 1;
   }
@@ -834,7 +830,6 @@ int main(int argc, char *argv[]) {
   }
   if (config.dynamic_git_prompt) {
     free(config.git_prompt);
-    free(config.git_prompt_zero);
     free(config.git_prompt_cwd_type);
   }
   if (config.dynamic_widget_config) {
