@@ -710,34 +710,26 @@ int main(int argc, char *argv[]) {
   */
   gather_system_context(&state);
   gather_aws_context(&state);
-  int is_git_repo = gather_git_context(&state);
+  gather_git_context(&state);
   
 
   /*
     .. and figure out which prompt config to select
 
-    There are three prompts to choose from:
-    - git prompt: for use in normal git repos
-    - zero git prompt: for use in newly initialized git repos, with no
-      commits as of yet.
-    - non-git-repo: the default to use in all other directories
+    There are prompts to choose from:
+    - default: the prompt to use by default AND if the directory is a nascent git repo
+    - git prompt: for use in mature (non-nascent) git repos
   */
   char * selected_prompt;
   char * selected_cwd_type;
   dictionary *escape_code_dict = create_attribute_dict();
-  if (is_git_repo == SUCCESS_IS_GIT_REPO) {
-    if (state.ahead_num  == -1 && state.behind_num   == -1 &&
-        state.staged_num == -1 && state.modified_num == -1) {
-      selected_prompt = (char *) replace_attribute_tokens(config.git_prompt_zero, escape_code_dict);
-    }
-    else {
-      selected_prompt = (char *) replace_attribute_tokens(config.git_prompt, escape_code_dict);
-    }
-    selected_cwd_type = strdup(config.git_prompt_cwd_type);
-  }
-  else if (is_git_repo == FAILURE_IS_NOT_GIT_REPO) {
+  if (state.is_git_repo != 1 || state.is_nascent_repo == 1) {
     selected_prompt = (char *) replace_attribute_tokens(config.default_prompt, escape_code_dict);
     selected_cwd_type = strdup(config.default_prompt_cwd_type);
+  }
+  else if (state.is_git_repo == 1) {
+    selected_prompt = (char *) replace_attribute_tokens(config.git_prompt, escape_code_dict);
+    selected_cwd_type = strdup(config.git_prompt_cwd_type);
   }
   else {
     printf("UNDEFINED STATE $ ");
