@@ -92,24 +92,67 @@ const char * get_attribute_combo(dictionary *attribute_dict, const char* combo) 
 
   char *token;
   char *rest = str;
-  char *sequences[16]; // TODO: magic number
+  const int MAX_SEQUENCES = 16; // number of attribute components in one attribute
+  char *sequences[MAX_SEQUENCES];
   int i = 0;
-  while ((token = strtok_r(rest, ",", &rest))) {
-    char *trimmed_token = trim(token);
-    const char * code = dictionary_get(attribute_dict,
-                                       (const char*) to_lower((const char*) trimmed_token),
-                                       NULL);
-    free(trimmed_token);
-    if (code == NULL) {
-      return NULL;
+  while ((token = strtok_r(rest, ",", &rest)) && i < MAX_SEQUENCES) {
+    char *trimmed_token = to_lower((const char*)trim(token));
+
+    // if token starts with 'fg-rgb-' or 'bg-rgb-' then generate
+    // the escape code and put that into `sequences`
+    char prefix[8];
+    strncpy(prefix, trimmed_token, 7);
+    prefix[7] = '\0';
+    int fgbg = -1; // 38=fg-rgb, 48=bg-rgb, -1=other
+
+    if (strcmp(prefix, "fg-rgb-") == 0) {
+      fgbg = 38;
     }
-    sequences[i++] = (char *) code;
+    else if (strcmp(prefix, "bg-rgb-") == 0) {
+      fgbg = 48;
+    }
+
+    if (fgbg != -1) {
+      char *tmpString = trimmed_token + 7;  // ... which should be semi-colon separated rgb values
+      if (tmpString[0] == '\0') {
+        continue;
+      }
+      char code[17]; // 38;2;rrr;ggg;bbb + \0 char
+      size_t len = snprintf(code, sizeof(code), "%d;2;%s", fgbg, tmpString);
+      if (len >= sizeof(code)) {
+        continue;
+      }
+      sequences[i] = strdup(code);
+    }
+    else {
+      const char * code = dictionary_get(attribute_dict, trimmed_token, NULL);
+      if (code == NULL) {
+        continue;
+      }
+      sequences[i] = strdup(code);
+    }
+    if (sequences[i] == NULL) { // check if the strdup to sequences failed
+      i--;
+      continue;
+    }
+    i++;
+
+    free(trimmed_token);
   }
+
+  // if, after going through the loop, we have nothing, return NULL
+  if (i == 0) return NULL;  
 
   char attribute_sequence[32*16]; // TODO: magic number
   _join_sequence(attribute_sequence, sizeof(attribute_sequence), sequences, i);
   char combo_result[sizeof(attribute_sequence)+8];
   snprintf(combo_result, sizeof(combo_result), "\\[\\e[%sm\\]", attribute_sequence );
+
+  free(str);
+  for (int j = 0; j < i; j++) {
+    free(sequences[j]); // all elements have been stdup'ed, so freeing is safe
+  }
+
   return (const char *) strdup(combo_result);
 }
 

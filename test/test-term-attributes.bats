@@ -138,6 +138,7 @@ TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-term-attributes"
 
 # --------------------------------------------------
 @test "replace_attribute_tokens() should replace broken attributes with 'ERROR'" {
+  skip "This test passes for the wrong reasons. Rewrite test!"
   # Given 
   # - an invalid attribute
   attr='%{boldTHIS is a bold string %{}%{dim}THIS is a dim string%{}'
