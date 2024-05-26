@@ -49,7 +49,7 @@ void free_attribute_dict(dictionary *dict) {
   dictionary_del(dict);
 }
 
-
+// TODO: return int, and instead of strdupping the error, use return value to indicate errors/success
 void _join_sequence(char *result, size_t result_size, char *sequences[], size_t count) {
   size_t pos = 0;
   for (size_t i = 0; i < count; i++) {
