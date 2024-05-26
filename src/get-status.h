@@ -14,7 +14,17 @@ enum aws_related_return_values {
 enum git_related_return_values {
   SUCCESS_IS_GIT_REPO        = 0,
   FAILURE_IS_NOT_GIT_REPO    = 1,
-  FAILURE_NO_GIT_UPSTREAM    = 2,
+  
+  /*
+   * FAILURE_GIT_UPSTREAM_UNKNOWN
+   * 
+   * If the upstream_oid is NULL, it could be because the reference is
+   * unset, or broken, or has not been fetched yet. Regardless, we
+   * won't be able to tell the user if and how much we are ahead or
+   * behind upstream.
+   * 
+  */
+  FAILURE_GIT_UPSTREAM_UNKNOWN = 2,
 
   ERROR_GIT_REVWALK_CREATION = -2,
   ERROR_GIT_REVWALK_FORWARD  = -3,

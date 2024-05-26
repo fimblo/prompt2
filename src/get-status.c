@@ -289,19 +289,20 @@ int __get_repo_divergence(struct CurrentState *state) {
                          state->repo_obj,
                          full_remote_branch_name);
   if (retval != 0) {
-    // If there is no upstream ref, this is a stand-alone branch
+    // If there is no upstream ref, we can't say anything about behind
+    // or ahead.
     state->has_upstream = 0;
     git_reference_free(upstream_ref);
-    return FAILURE_NO_GIT_UPSTREAM;
+    return FAILURE_GIT_UPSTREAM_UNKNOWN;
   }
 
   upstream_oid = git_reference_target(upstream_ref);
 
-  // if the upstream_oid is null, we assume it's a stand-alone branch.
-  // Not certain about this. TODO: check
+  // If there is no upstream ref, we can't say anything about behind
+  // or ahead.
   if (upstream_oid == NULL) {
     state->has_upstream = 0;
-    return FAILURE_NO_GIT_UPSTREAM;
+    return FAILURE_GIT_UPSTREAM_UNKNOWN;
   }
   state->has_upstream = 1;
 
