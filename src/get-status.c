@@ -461,8 +461,6 @@ void initialise_state(struct CurrentState *state) {
 
 /**
  * Gather all git-related context.
- *
- * TODO: take return values into consideration
  */
 
 int gather_git_context(struct CurrentState *state) {
@@ -470,6 +468,11 @@ int gather_git_context(struct CurrentState *state) {
   // when functions return 0, it's true, and 1 means false.
   // very confusing.
   state->is_git_repo = ! __is_git_repo(".");
+
+  // if not a git repo
+  if (state->is_git_repo == 0) {
+    return ! state->is_git_repo;
+  }
 
   __populate_repo_context(state, ".");
   __get_repo_name(state);
@@ -485,7 +488,7 @@ int gather_git_context(struct CurrentState *state) {
     state->is_nascent_repo = 1;
   }
 
-  return ! state->is_git_repo;
+  return ! state->is_git_repo; // If we're in a git repo return 0, else not 0
 }
 
 /**
