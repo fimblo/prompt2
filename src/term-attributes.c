@@ -93,8 +93,13 @@ const char * get_attribute_combo(dictionary *attribute_dict, const char* combo) 
   char *token;
   char *rest = str;
   const int MAX_SEQUENCES = 16; // number of attribute components in one attribute
+  const int ATTR_OK       = 0;
+  const int ERROR_IN_ATTR = 1;
+  const int UNKNOWN_ATTR  = 2;
+
   char *sequences[MAX_SEQUENCES];
   int i = 0;
+  int error = ATTR_OK;
   while ((token = strtok_r(rest, ",", &rest)) && i < MAX_SEQUENCES) {
     char *trimmed_token = to_lower((const char*)trim(token));
 
@@ -115,38 +120,51 @@ const char * get_attribute_combo(dictionary *attribute_dict, const char* combo) 
     if (fgbg != -1) {
       char *tmpString = trimmed_token + 7;  // ... which should be semi-colon separated rgb values
       if (tmpString[0] == '\0') {
-        continue;
+        error = ERROR_IN_ATTR;
+        free(trimmed_token);
+        break;
       }
       char code[17]; // 38;2;rrr;ggg;bbb + \0 char
       size_t len = snprintf(code, sizeof(code), "%d;2;%s", fgbg, tmpString);
       if (len >= sizeof(code)) {
-        continue;
+        error = ERROR_IN_ATTR;
+        free(trimmed_token);
+        break;
       }
       sequences[i] = strdup(code);
     }
     else {
       const char * code = dictionary_get(attribute_dict, trimmed_token, NULL);
       if (code == NULL) {
-        continue;
+        error = UNKNOWN_ATTR;
+        free(trimmed_token);
+        break;
       }
       sequences[i] = strdup(code);
-    }
-    if (sequences[i] == NULL) { // check if the strdup to sequences failed
-      i--;
-      continue;
     }
     i++;
 
     free(trimmed_token);
   }
 
-  // if, after going through the loop, we have nothing, return NULL
-  if (i == 0) return NULL;  
-
   char attribute_sequence[32*16]; // TODO: magic number
-  _join_sequence(attribute_sequence, sizeof(attribute_sequence), sequences, i);
   char combo_result[sizeof(attribute_sequence)+8];
-  snprintf(combo_result, sizeof(combo_result), "\\[\\e[%sm\\]", attribute_sequence );
+  if (error == ATTR_OK) {
+    _join_sequence(attribute_sequence, sizeof(attribute_sequence), sequences, i);
+    snprintf(combo_result, sizeof(combo_result), "\\[\\e[%sm\\]", attribute_sequence );
+  }
+  else {
+    if (error == ERROR_IN_ATTR) {
+      snprintf(combo_result, sizeof(combo_result), "ERROR_IN_ATTR");
+    }
+    else if (error == UNKNOWN_ATTR) {
+      snprintf(combo_result, sizeof(combo_result), "UNKNOWN_ATTR");
+    }
+    else {
+      printf("term-attributes.c: illegal state\n");
+      exit(1);
+    }
+  }
 
   free(str);
   for (int j = 0; j < i; j++) {

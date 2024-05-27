@@ -77,7 +77,11 @@ TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-term-attributes"
   attr='potatosareyummy'
 
   # When we test , then it should return exit code 1
-  run -1 $TEST_FUNCTION get_attribute_combo "$attr"
+  run -0 $TEST_FUNCTION get_attribute_combo "$attr"
+  echo "'$output'"
+
+  # Then the output should be 'UNKNOWN_ATTR'
+  test "$output" = "UNKNOWN_ATTR"
 }
 
 # --------------------------------------------------
@@ -137,8 +141,8 @@ TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-term-attributes"
 }
 
 # --------------------------------------------------
-@test "replace_attribute_tokens() should replace broken attributes with 'ERROR'" {
-  skip "This test passes for the wrong reasons. Rewrite test!"
+@test "replace_attribute_tokens() should replace malformed attributes with 'UNKNOWN_ATTR'" {
+  #skip "This test passes for the wrong reasons. Rewrite test!"
   # Given 
   # - an invalid attribute
   attr='%{boldTHIS is a bold string %{}%{dim}THIS is a dim string%{}'
@@ -146,8 +150,25 @@ TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-term-attributes"
   # When we test
   run -0 $TEST_FUNCTION replace_attribute_tokens "$attr"
   echo $output
+
   # Then 
   # - it should translate the attribute to a valid escape sequence
-  test "$output" =  'ERROR\[\e[2m\]THIS is a dim string\[\e[0m\]'
+  test "$output" =  'UNKNOWN_ATTR\[\e[2m\]THIS is a dim string\[\e[0m\]'
+}
+
+# --------------------------------------------------
+@test "replace_attribute_tokens() should replace unknown attributes with 'UNKNOWN_ATTR'" {
+  #skip "This test passes for the wrong reasons. Rewrite test!"
+  # Given 
+  # - an invalid attribute
+  attr='%{RANDOMSTRING}THIS is a bold string %{}%{dim}THIS is a dim string%{}'
+
+  # When we test
+  run -0 $TEST_FUNCTION replace_attribute_tokens "$attr"
+  echo $output
+
+  # Then 
+  # - it should translate the attribute to a valid escape sequence
+  test "$output" =  'UNKNOWN_ATTRTHIS is a bold string \[\e[0m\]\[\e[2m\]THIS is a dim string\[\e[0m\]'
 }
 
