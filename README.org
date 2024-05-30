@@ -131,7 +131,7 @@ For all the details, see the separate documentation for [[Customisation.org][Cus
 But if you just want to take a look at what it could look like, see
 below:
 
-#+begin_src conf
+#+begin_src ini
   [PROMPT]
   prompt="@{SYS.username}@@{SYS.hostname}:@{CWD}@{SPC}@{Repo.is_nascent_repo}\n\
   @{SYS.promptchar} "

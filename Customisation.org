@@ -18,7 +18,7 @@ Currently, there are two prompts you can configure:
 
 For example, a minimal prompt setup could look like this:
 
-#+begin_src conf
+#+begin_src ini
   [PROMPT]
   prompt="my prompt $ "
 #+end_src
@@ -31,7 +31,7 @@ These dynamic instructions are called Widgets. Each Widget is wrapped
 like so: =@{widgetname}= and are at runtime replaced with whatever
 they represent at the time.
 
-#+begin_src conf
+#+begin_src ini
   ; add the prompt character '$' change depending on if you're root or not
   [PROMPT]
   prompt="@{SYS.promptchar} "
@@ -40,7 +40,7 @@ they represent at the time.
 Now let's complicate this a bit more by adding a widget which shows
 you where you are in the filesystem:
 
-#+begin_src conf
+#+begin_src ini
   [PROMPT]
   prompt="@{CWD} @{SYS.promptchar} "
 #+end_src
@@ -60,7 +60,7 @@ prompt2 supports four styles of CWD:
 
 You can modify the CWD style for your prompts:
 
-#+begin_src conf
+#+begin_src ini
   [PROMPT]
   prompt="@{CWD} @{SYS.promptchar} "
   cwd_type="full"
@@ -84,7 +84,7 @@ the =\n= to insert a newline. *NOTE for macos users*: the iniparser
 library on macos requires an extra backslash, so to insert a newline
 you'll need to write =\\n=.
 
-#+begin_src conf
+#+begin_src ini
   [PROMPT]
   prompt="@{CWD} @{SYS.promptchar} "
 
@@ -119,7 +119,7 @@ are: =bold=, =dim=, =italic=, =underline=, =blink=, =reverse=,
 Here we change the default prompt style by making everything
 strike-through, as the cool kids do:
 
-#+begin_src conf
+#+begin_src ini
   [PROMPT]
   prompt="%{Strikethrough}My prompt%{Reset} $ "
 #+end_src
@@ -158,7 +158,7 @@ To differentiate between foreground and background colours, prefix with
 | fg white   | bg white   | fg c7      | bg c7      |
 
 
-#+begin_src conf
+#+begin_src ini
   [PROMPT]
   # blue and yellow foreground text
   prompt="%{fg blue}My %{fg c4}prompt%{reset}$ "
@@ -180,7 +180,7 @@ Using these are easy - prefix the colour name with =fg-= or =bg-= to
 indicate if you want to colour the text or the background. The hyphen
 is needed to differentiate from the named reserved colours.
 
-#+begin_src conf
+#+begin_src ini
   [PROMPT]
   # Cadet Blue text, with empty attribute to reset the colour
   prompt="%{fg-cadetblue}TEXT%{} $ "
@@ -205,7 +205,7 @@ combine attributes. For example, if you want:
 
 Then you can do this:
 
-#+begin_src conf
+#+begin_src ini
   [PROMPT]
   prompt="%{fg-palegreen2, bg-grey10, bold, strikethrough}TEXT%{} $ "
 #+end_src
@@ -279,7 +279,7 @@ The default hard-coded config looks like this:
 These can be overridden with your own defaults, by creating your own
 =[WIDGET_DEFAULT]= section like this:
 
-#+begin_src conf
+#+begin_src ini
   [WIDGET_DEFAULT]
   max_width=128              # shorten if longer than this
   string_active="%s"
@@ -308,13 +308,13 @@ These can be overridden with your own defaults, by creating your own
   For example, to set the foreground colour to a specific shade of blue
   using RGB values, you would use:
   
-  #+begin_src conf
+  #+begin_src ini
   colour_on="%{fg-goldenrod}"  # A nice shade of gold
   #+end_src
 
   Similarly, to set a background colour using RGB, you might use:
   
-  #+begin_src conf
+  #+begin_src ini
   colour_off="%{bg-grey10}"  # A dark background
   #+end_src
 
@@ -325,7 +325,7 @@ Each individual widget can override the default config, for example
 for =Repo.branch_name= here, where we normally would shorten longer
 branch names to save space in the terminal.
 
-#+begin_src conf
+#+begin_src ini
   [Repo.branch_name]
   max_width=20
 #+end_src
@@ -334,7 +334,7 @@ We might also want to override =string_inactive= to show a hyphen if
 there is no defined branch name yet. Remember: the other settings are
 inherited from the default, so we don't need to tell it to print the
 branch name if there is one.
-#+begin_src conf
+#+begin_src ini
   [Repo.branch_name]
   max_width=20
   string_inactive="-"
@@ -344,7 +344,7 @@ Here's another example, where prompt2 will only show the conflict
 widget if there is a git conflict. In other situations, it will not be
 visible.
 
-#+begin_src conf
+#+begin_src ini
   [Repo.conflicts]
   string_active="<conflicts: %s>"
   string_inactive=""
@@ -358,9 +358,9 @@ prompt2 supports nested widgets (only one layer deep). Here's an
 example with some annotation to make things a little easier to
 understand.
 
-#+begin_src conf
+#+begin_src ini
   # Here we have a simple prompt which has one widget in it -
-  # =AWS.token_is_valid=. This widget is active if you have a valid aws
+  # AWS.token_is_valid. This widget is active if you have a valid aws
   # token right now.
 
   [PROMPT]
