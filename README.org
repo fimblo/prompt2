@@ -13,18 +13,9 @@ features, like AWS authentication state.
 
 
 ** Features
-- *Performance*: Executes in under 100ms on older hardware (pre-2010
-  with spinning disks) and around 10-13ms on modern machines equipped
-  with SSDs.
-- *Configuration*: Offers customisable prompt definitions, where
-  widgets (content) and attributes (style) are separated - and
-  configurable as well. All customisation is done in an INI file.
-- *Cross-Platform Compatibility*: Supports both Debian/Ubuntu and
-  macOS. Other systems should work - but you might need to fiddle with
-  the =include= statements.
-- *Extensibility*:  Designed with extensibility in mind, making it
-  quite easy to add your own widgets - if you're willing to submit
-  yourself to the somewhat masochistic craft known as C programming.
+- *Performance*: Executes in around 10-13ms on modern machines.
+- *Configuration*: Offers fully customisable prompt definitions. It's easy too.
+- *Cross-Platform Compatibility*: Tested on Debian/Ubuntu and macOS.
   
 ** Installation
 
