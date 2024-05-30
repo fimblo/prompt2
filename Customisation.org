@@ -32,7 +32,7 @@ like so: =@{widgetname}= and are at runtime replaced with whatever
 they represent at the time.
 
 #+begin_src ini
-  ; add the prompt character '$' change depending on if you're root or not
+  # add the prompt character '$' change depending on if you're root or not
   [PROMPT]
   prompt="@{SYS.promptchar} "
 #+end_src
@@ -305,18 +305,10 @@ These can be overridden with your own defaults, by creating your own
   attributes for the active and inactive states of the widget. See
   [[#style-attributes][Style Attributes]] for details on what these are.
 
-  For example, to set the foreground colour to a specific shade of blue
-  using RGB values, you would use:
-  
-  #+begin_src ini
-  colour_on="%{fg-goldenrod}"  # A nice shade of gold
-  #+end_src
-
-  Similarly, to set a background colour using RGB, you might use:
-  
-  #+begin_src ini
-  colour_off="%{bg-grey10}"  # A dark background
-  #+end_src
+  For example, to set the foreground colour to a specific shade of
+  gold using RGB values, you would use =colour_on="%{fg-goldenrod}"=.
+  Similarly, to set a background colour using RGB, you might use
+  =colour_off="%{bg-grey10}"=.
 
 
 *** Overriding the default widget
