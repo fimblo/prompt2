@@ -127,7 +127,7 @@ Widgets. The configuration file allows you to set various parameters
 for each widget, such as text formatting, active and inactive states,
 and style Attributes.
 
-For all the details, see the separate documentation for [[Customisation.org][Customisation]].
+For all the details, see the separate documentation for [[Customisation.md][Customisation]].
 But if you just want to take a look at what it could look like, see
 below:
 
