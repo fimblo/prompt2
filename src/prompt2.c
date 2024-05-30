@@ -38,15 +38,13 @@
 
 #include <errno.h>
 #include <git2.h>
+#include <iniparser/dictionary.h>
+#include <iniparser/iniparser.h>
 #include <stdio.h>
 #include <uthash.h>
 #ifdef __unix__
-#include <iniparser/dictionary.h>
-#include <iniparser/iniparser.h>
 #include <linux/limits.h>
 #elif __APPLE__
-#include <dictionary.h>
-#include <iniparser.h>
 #include <sys/syslimits.h>
 #include <unistd.h> // for access()
 #else
