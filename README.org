@@ -188,6 +188,21 @@ below:
   colour_off=""
 #+end_src
 
+** Contributing
+
+Oh fun!
+
+You're welcome to contribute to this project. Here are some guidelines
+I ask that you respect. Please:
+
+- Ensure that your PRs have a title and description which covers the
+  purpose of the change as well as a high-level explanation of the
+  changes made. If the PR fixes a github issue, I ask that you link to
+  said issue (e.g. "Fixes #47").
+- Use [[https://www.conventionalcommits.org/en/v1.0.0/][Conventional commit]] messages, and try to keep the commits small
+  and focussed on a single change.
+- If you add or change functionality, please ensure to update the
+  tests and documentation.
 
 ** Third-party Licenses
 
