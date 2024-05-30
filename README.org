@@ -199,8 +199,11 @@ I ask that you respect. Please:
   purpose of the change as well as a high-level explanation of the
   changes made. If the PR fixes a github issue, I ask that you link to
   said issue (e.g. "Fixes #47").
-- Use [[https://www.conventionalcommits.org/en/v1.0.0/][Conventional commit]] messages, and try to keep the commits small
-  and focussed on a single change.
+- Use [[https://www.conventionalcommits.org/en/v1.0.0/][Conventional commit]] messages. I also make use of the types in
+  the Angular convention, like =build:=, =chore:=, =ci:=, =docs:=,
+  =style:=, =refactor:=, =perf:=, and =test:=. Oh and try to keep the
+  commits small and focussed on a single change. This makes it much
+  easier for me to review your change.
 - If you add or change functionality, please ensure to update the
   tests and documentation.
 
