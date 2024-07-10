@@ -1,5 +1,10 @@
-# This file is meant to be sourced!
 
+if [[ -n "BASH_VERSION" ]]; then
+  if ! (return 0 2>/dev/null) ; then
+    echo "This script is meant to be sourced, not executed directly."
+    exit 1
+  fi
+fi
 
 # Get the full path to the prompt2 binary
 CONFIG_DIR=$(dirname ${BASH_SOURCE[0]})
