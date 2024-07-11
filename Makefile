@@ -37,13 +37,13 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 # Link prompt2
-$(BIN_DIR)/prompt2: $(BUILD_DIR)/prompt2.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/get-status.o
+$(BIN_DIR)/prompt2: $(BUILD_DIR)/prompt2.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/get-status.o $(BUILD_DIR)/attributes.o 
 	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
 # Link get-term-esc-sequence
-$(BIN_DIR)/get-term-esc-sequence: $(BUILD_DIR)/get-term-esc-sequence.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term-attributes.o
+$(BIN_DIR)/get-term-esc-sequence: $(BUILD_DIR)/get-term-esc-sequence.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/attributes.o 
 	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
@@ -61,7 +61,7 @@ $(BIN_DIR)/test-prompt2-utils: $(BUILD_DIR)/test-prompt2-utils.o $(BUILD_DIR)/pr
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
 # Link test-term-attributes
-$(BIN_DIR)/test-term-attributes: $(BUILD_DIR)/test-term-attributes.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/prompt2-utils.o
+$(BIN_DIR)/test-term-attributes: $(BUILD_DIR)/test-term-attributes.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/attributes.o 
 	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)

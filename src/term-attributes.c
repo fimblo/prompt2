@@ -28,7 +28,7 @@
 */
 dictionary *create_attribute_dict() {
   dictionary *dict = dictionary_new((size_t) 2048);
-  for (size_t i = 0; i < sizeof(attributes) / sizeof(attributes[0]); i++) {
+  for (size_t i = 0; attributes[i].name != NULL; i++) {
     dictionary_set(dict, attributes[i].name, attributes[i].code);
   }
   return dict;
