@@ -12,10 +12,10 @@
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     printf("Usage:\n");
-    printf(" get-term-esc-sequence <plaintext style and colour>\n");
+    printf(" get-terminal-escape-sequence <plaintext style and colour>\n");
     printf("\n");
     printf("Example: to get the terminal escape code '\\[\\e[1;34;47m\\]', run:\n");
-    printf(" get-term-esc-sequence 'bold,fg blue,bg white'\n");
+    printf(" get-terminal-escape-sequence 'bold;fg blue;bg white'\n");
     exit(1);
   }
   //  printf("arg: %s\n", argv[1]);
