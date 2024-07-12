@@ -1,4 +1,4 @@
-name: "[ubuntu] Build and test"
+name: "[ubuntu] Build, test, upload"
 
 on:
   pull_request:
@@ -9,8 +9,8 @@ on:
       - '*'
       
 jobs:
-  build-and-test:
-    name: build and test
+  build-test-upload:
+    name: build, test, upload
     runs-on: ubuntu-latest
 
     steps:
@@ -37,3 +37,12 @@ jobs:
         
         # run test
         make test
+    
+    - name: Upload binaries as an artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: 'prompt2-bundle-ubuntu-latest'
+        path: 'bin/*'
+
+
+
