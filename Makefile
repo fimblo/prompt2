@@ -67,6 +67,11 @@ $(BIN_DIR)/test-term-attributes: $(BUILD_DIR)/test-term-attributes.o $(BUILD_DIR
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
 
+# Tarball Target
+tarball: build test $(BIN_DIR)/prompt2 $(BIN_DIR)/get-term-esc-sequence
+	@echo "Creating tarball with prompt2 and get-term-esc-sequence"
+	tar -czvf $(BIN_DIR)/prompt2_bundle.tgz -C $(BIN_DIR) prompt2 get-term-esc-sequence
+
 # Clean Target
 clean:
 	@echo "Cleaning..."
