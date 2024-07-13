@@ -11,10 +11,22 @@
 
 void usage() {
   printf("Usage:\n");
-  printf(" get-terminal-escape-sequence <plaintext style and colour>\n");
+  printf(" get-attribute [option] <comma-separated attributes>\n");
+  printf("\n");
+  printf("Description:\n");
+  printf(" get-attribute is a tool to retrieve terminal escape codes for various\n text styles and colors.\n");
+  printf("\n");
+  printf("Options:\n");
+  printf(" --list-all          List all available attributes.\n");
+  printf(" --list-styles       List all available text styles.\n");
+  printf(" --list-col-8bit     List all available 8-bit colors.\n");
+  printf(" --list-col-24bit    Instructions to create full RGB colors.\n");
+  printf(" --list-col-names    List all available color names.\n");
+  printf(" --list-reset        List all reset escape sequences.\n");
+  printf(" --usage, --help, -h Show this usage information.\n");
   printf("\n");
   printf("Example: to get the terminal escape code '\\[\\e[1;34;47m\\]', run:\n");
-  printf(" get-terminal-escape-sequence 'bold;fg blue;bg white'\n");
+  printf(" get-attribute 'bold;fg blue;bg white'\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -68,7 +80,9 @@ int main(int argc, char *argv[]) {
     
     exit_status = 0;
   }
-  else if (strcmp(category, "--usage") == 0) {
+  else if (strcmp(category, "--usage") == 0 ||
+           strcmp(category, "--help")  == 0 ||
+           strcmp(category, "-h") == 0) {
     // List usage
     usage();
     exit_status = 0;
