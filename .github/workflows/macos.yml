@@ -38,7 +38,9 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: 'prompt2-bundle-macos-latest'
-        path: 'bin/*'
+        path: |
+          bin/prompt2
+          bin/get-attribute
   
   
   
