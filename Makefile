@@ -19,7 +19,7 @@ SOURCES = $(wildcard $(SRC_DIR)/*.c)
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
 # Binaries to build
-BINARIES = $(BIN_DIR)/prompt2 $(BIN_DIR)/get-term-esc-sequence $(BIN_DIR)/test-get-status $(BIN_DIR)/test-prompt2-utils $(BIN_DIR)/test-term-attributes
+BINARIES = $(BIN_DIR)/prompt2 $(BIN_DIR)/get-attribute $(BIN_DIR)/test-get-status $(BIN_DIR)/test-prompt2-utils $(BIN_DIR)/test-term-attributes
 
 # Phony Targets
 .PHONY: all clean build install-local test
@@ -42,8 +42,8 @@ $(BIN_DIR)/prompt2: $(BUILD_DIR)/prompt2.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
 
-# Link get-term-esc-sequence
-$(BIN_DIR)/get-term-esc-sequence: $(BUILD_DIR)/get-term-esc-sequence.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/attributes.o 
+# Link get-attribute
+$(BIN_DIR)/get-attribute: $(BUILD_DIR)/get-attribute.o $(BUILD_DIR)/prompt2-utils.o $(BUILD_DIR)/term-attributes.o $(BUILD_DIR)/attributes.o 
 	@echo "\nLinking $@"
 	@mkdir -p $(BIN_DIR)
 	$(CC) $^ -L$(LIB_DIR) -o $@ $(LIBS)
@@ -68,9 +68,9 @@ $(BIN_DIR)/test-term-attributes: $(BUILD_DIR)/test-term-attributes.o $(BUILD_DIR
 
 
 # Tarball Target
-tarball: build test $(BIN_DIR)/prompt2 $(BIN_DIR)/get-term-esc-sequence
-	@echo "Creating tarball with prompt2 and get-term-esc-sequence"
-	tar -czvf $(BIN_DIR)/prompt2_bundle.tgz -C $(BIN_DIR) prompt2 get-term-esc-sequence
+tarball: build test $(BIN_DIR)/prompt2 $(BIN_DIR)/get-attribute
+	@echo "Creating tarball with prompt2 and get-attribute"
+	tar -czvf $(BIN_DIR)/prompt2_bundle.tgz -C $(BIN_DIR) prompt2 get-attribute
 
 # Clean Target
 clean:
