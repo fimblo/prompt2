@@ -1,4 +1,4 @@
-name: "[ubuntu] Build, test, upload"
+name: "Build and test"
 
 on:
   pull_request:
@@ -9,8 +9,8 @@ on:
       - '*'
       
 jobs:
-  build-test-upload:
-    name: build, test, upload
+  build-ubuntu:
+    name: build-ubuntu
     runs-on: ubuntu-latest
 
     steps:
@@ -47,4 +47,40 @@ jobs:
           bin/get-attribute
 
 
+
+
+  build-macos:
+    name: build-macos
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        brew install libgit2 json-c uthash iniparser
+        brew install bash bats-core
+
+    - name: Build binary
+      run: make build
+    
+    - name: Run tests
+      run: |
+        # meta about environment
+        bash --version
+        echo $-
+        bats --version
+
+        # run test
+        make test
+  
+    - name: Upload binaries as an artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: 'prompt2-bundle-macos-latest'
+        path: |
+          bin/prompt2
+          bin/get-attribute
+  
+          
 

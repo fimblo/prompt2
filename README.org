@@ -1,6 +1,5 @@
 * prompt2
-[[https://github.com/fimblo/prompt2/actions/workflows/ubuntu.yml/badge.svg]]
-[[https://github.com/fimblo/prompt2/actions/workflows/macos.yml/badge.svg]]
+[[https://github.com/fimblo/prompt2/actions/workflows/build-and-test.yml/badge.svg]]
 
 prompt2 - Dynamic Shell Prompt Generator
 
