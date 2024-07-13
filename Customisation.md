@@ -113,6 +113,26 @@ starts with a `%` followed by curly braces, and contains an
 instruction. It could look like this `%{bold}`. All attributes are
 case-insensitive.
 
+You can get a list of all attributes by running the binary
+`get-attribute`, like:
+
+```bash
+  $ get-attribute bold
+```
+
+Run `get-attribute --help` to find out more about what attributes
+are supported.
+
+Oh, and most of the attributes supported by `prompt2` are the named
+24-bit colours. To see them rendered in colour, I've supplied a small
+script in `scripts/print_colours.pl` which prints all the colours with
+their names. Run it in your terminal like this:
+  
+```bash
+  $ path/to/repo/scripts/print_colours.pl
+```
+
+
 ### Text attributes
 
 To change the style of the font, you can use these attributes. These
@@ -179,8 +199,9 @@ can get a bright magenta background by writing `bg bright magenta` or
 
 Using a terminal palette is useful, but sometimes you might want to
 There are 658 named full RGB colours. These names come from the
-[[https://en.wikipedia.org/wiki/X11_color_names][original X11 colour-set]] which can be found littering the internet. The
-file and its license can be found in the [[etc/][etc/]] directory of this
+[[https://en.wikipedia.org/wiki/X11_color_names][original X11 colour-set]]
+which can be found littering the internet. The file and
+its license can be found in the [[etc/][etc/]] directory of this
 project.
 
 Using these are easy - prefix the colour name with `fg-` or `bg-` to
@@ -191,14 +212,6 @@ is needed to differentiate from the named reserved colours.
   [PROMPT]
   # Cadet Blue text, with empty attribute to reset the colour
   prompt="%{fg-cadetblue}TEXT%{} $ "
-```
-
-Note: it's sometimes hard to know what colours look nice. I've
-supplied a small script in `scripts/print_colours.pl` which prints all
-the colours with their names. Run it in your terminal like this:
-  
-```bash
-  $ path/to/repo/scripts/print_colours.pl
 ```
 
 ### Combining attributes
