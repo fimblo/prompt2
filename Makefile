@@ -78,10 +78,10 @@ clean:
 	rm -rf $(BUILD_DIR) $(BIN_DIR)
 
 # Install Target
-install-local: $(BINARIES)
-	@echo "Installing binaries to $(HOME)/bin"
+install-local: $(BIN_DIR)/prompt2 $(BIN_DIR)/get-attribute
+	@echo "Installing prompt2 and get-attribute to $(HOME)/bin"
 	@mkdir -p $(HOME)/bin
-	install -m 755 $^ $(HOME)/bin
+	install -m 755 $(BIN_DIR)/prompt2 $(BIN_DIR)/get-attribute $(HOME)/bin
 
 # Test Target
 test:
