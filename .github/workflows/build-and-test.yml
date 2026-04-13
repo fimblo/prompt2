@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
@@ -39,7 +39,7 @@ jobs:
         make test
     
     - name: Upload binaries as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: 'prompt2-bundle-ubuntu-latest'
         path: |
@@ -54,7 +54,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
@@ -75,7 +75,7 @@ jobs:
         make test
   
     - name: Upload binaries as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: 'prompt2-bundle-macos-latest'
         path: |
