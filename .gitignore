@@ -56,6 +56,7 @@ env.local
 bin/
 build/
 .vscode/
+.claude/
 
 # System files
 .DS_Store
