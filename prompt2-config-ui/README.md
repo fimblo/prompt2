@@ -1,6 +1,6 @@
 # prompt2 Config Editor
 
-<!-- Insert screenshot here -->
+![prompt2 config editor](./editor-screenshot.png)
 
 A browser-based visual editor for your `~/.prompt2_config.ini`. It's not
 strictly necessary — editing the INI file directly works fine, especially
