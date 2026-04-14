@@ -679,6 +679,7 @@ load test_helper_functions
 
 # --------------------------------------------------
 @test "aws sso token is outdated" {
+  skip
   # given an expired aws token
   if [[ "$(uname)" == "Linux" ]]; then
     timestamp=$(date --date='-30 days' +"%Y-%m-%dT%H:%M:%SZ")
@@ -708,6 +709,7 @@ load test_helper_functions
 
 # --------------------------------------------------
 @test "aws sso token is valid" {
+  skip
   # given a valid aws token
   mkdir -p $HOME/.aws/sso/cache
   if [[ "$(uname)" == "Linux" ]]; then

@@ -118,6 +118,12 @@ for each widget, such as text formatting, active and inactive states,
 and style Attributes.
 
 For all the details, see the separate documentation for [[Customisation.md][Customisation]].
+
+If you'd rather not edit the INI file directly, there's a browser-based
+visual editor in the [[prompt2-config-ui/][prompt2-config-ui/]] directory. It gives you a live
+preview of your prompt, a searchable colour picker, and a side-by-side view
+of your original and updated config. See [[prompt2-config-ui/README.md][its README]] for how to start it.
+
 But if you just want to take a look at what it could look like, see
 below:
 
