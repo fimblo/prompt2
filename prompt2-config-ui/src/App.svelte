@@ -98,6 +98,9 @@ colour_on="%{fg magenta}"
     URL.revokeObjectURL(url);
   }
 
+  // ── Maximised pane ────────────────────────────────────────────────────────
+  let maximizedPane = $state<null | 'original' | 'updated'>(null);
+
   // ── Reset ─────────────────────────────────────────────────────────────────
   function resetToDefault() {
     originalText = DEFAULT_CONFIG;
@@ -121,18 +124,48 @@ colour_on="%{fg magenta}"
 <div class="app">
   <header>
     <h1>prompt2 Config Editor</h1>
-    <button class="reset-btn" onclick={resetToDefault}>Reset to default</button>
   </header>
 
-  <div class="three-panel">
+  <div class="main-grid">
 
-    <!-- ══════════════ LEFT: INI column ══════════════ -->
+    <!-- ══ Row 1, Left: reset (shares row height with toolbar) ══ -->
+    <div class="left-toolbar">
+      <button class="reset-btn" onclick={resetToDefault}>Reset to default</button>
+    </div>
+
+    <!-- ══ Row 1, Right: section toolbar ══ -->
+    <div class="toolbar">
+      <div class="section-toggle">
+        <button
+          class="tog-btn"
+          class:active={$activeSection === 'prompt'}
+          onclick={() => toggleSection('prompt')}
+        >PROMPT</button>
+        <button
+          class="tog-btn"
+          class:active={$activeSection === 'promptGit'}
+          onclick={() => toggleSection('promptGit')}
+        >PROMPT.GIT</button>
+      </div>
+      <button
+        class="defaults-btn"
+        class:active={$selectedItem?.kind === 'defaults'}
+        onclick={() => selectedItem.set(
+          $selectedItem?.kind === 'defaults' ? null : { kind: 'defaults' }
+        )}
+      >Widget Defaults</button>
+    </div>
+
+    <!-- ══ Row 2, Left: INI column ══ -->
     <div class="ini-column">
 
       <div class="ini-pane">
         <div class="pane-header">
           <span>Original INI</span>
           <span class="pane-hint">paste your config, then Load</span>
+          <button class="expand-btn" onclick={() => maximizedPane = 'original'} data-tooltip="Expand to full screen">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 1 0 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 1 0 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/></svg>
+          </button>
         </div>
         <textarea
           class="ini-textarea"
@@ -150,6 +183,9 @@ colour_on="%{fg magenta}"
         <div class="pane-header">
           <span>Updated INI</span>
           <span class="pane-hint">live — reflects your edits</span>
+          <button class="expand-btn" onclick={() => maximizedPane = 'updated'} data-tooltip="Expand to full screen">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 1 0 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 1 0 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/></svg>
+          </button>
         </div>
         <textarea
           class="ini-textarea"
@@ -164,41 +200,46 @@ colour_on="%{fg magenta}"
 
     </div>
 
-    <!-- ══════════════ RIGHT: Editor column ══════════════ -->
+    <!-- ══ Row 2, Right: editor components ══ -->
     <div class="editor-column">
-
-      <!-- Toolbar: section + widget defaults -->
-      <div class="toolbar">
-        <div class="section-toggle">
-          <button
-            class="tog-btn"
-            class:active={$activeSection === 'prompt'}
-            onclick={() => toggleSection('prompt')}
-          >PROMPT</button>
-          <button
-            class="tog-btn"
-            class:active={$activeSection === 'promptGit'}
-            onclick={() => toggleSection('promptGit')}
-          >PROMPT.GIT</button>
-        </div>
-        <button
-          class="defaults-btn"
-          class:active={$selectedItem?.kind === 'defaults'}
-          onclick={() => selectedItem.set(
-            $selectedItem?.kind === 'defaults' ? null : { kind: 'defaults' }
-          )}
-        >Widget Defaults</button>
-      </div>
-
       <Preview />
       <PromptEditor />
       <WidgetConfigPanel />
       <WidgetPalette />
-
     </div>
 
   </div>
 </div>
+
+{#if maximizedPane}
+  <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+  <div class="modal-backdrop" onclick={() => maximizedPane = null}>
+    <div class="modal-pane" onclick={(e) => e.stopPropagation()}>
+      <div class="modal-header">
+        <span>{maximizedPane === 'original' ? 'Original INI' : 'Updated INI'}</span>
+        {#if maximizedPane === 'original'}
+          <span class="modal-hint">paste your config, then Load</span>
+        {:else}
+          <span class="modal-hint">live — reflects your edits</span>
+        {/if}
+        <button class="modal-close" onclick={() => maximizedPane = null}>&times;</button>
+      </div>
+
+      {#if maximizedPane === 'original'}
+        <textarea class="modal-textarea" bind:value={originalText} spellcheck="false"></textarea>
+        {#if parseError}<div class="parse-error modal-error">{parseError}</div>{/if}
+        <div class="modal-actions">
+          <button class="load-btn" onclick={loadConfig}>Load config</button>
+        </div>
+      {:else}
+        <textarea class="modal-textarea" value={$updatedIni} readonly spellcheck="false"></textarea>
+        <div class="modal-actions">
+          <button class="download-btn" onclick={downloadConfig}>Download dot.prompt2_config.ini</button>
+        </div>
+      {/if}
+    </div>
+  </div>
+{/if}
 
 <style>
   .app {
@@ -207,21 +248,32 @@ colour_on="%{fg magenta}"
     padding: 20px 24px;
   }
 
-  header {
-    margin-bottom: 18px;
+  header { margin-bottom: 18px; }
+  h1 { color: #e0e0e0; font-size: 1.4rem; margin: 0; }
+
+  /* ── Main grid: 2 cols × 2 rows ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    column-gap: 20px;
+    row-gap: 14px;
+    align-items: start;
+  }
+
+  /* ── Row 1, Left: reset button ── */
+  .left-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
   }
-  h1 { color: #e0e0e0; font-size: 1.4rem; margin: 0; }
   .reset-btn {
-    padding: 5px 12px;
-    border: 1px solid #555;
-    border-radius: 5px;
+    padding: 6px 14px;
+    border: 1px solid #444;
+    border-radius: 4px;
     background: rgba(255, 255, 255, 0.05);
-    color: #777;
+    color: #888;
     cursor: pointer;
-    font-size: 0.78rem;
+    font-family: 'SF Mono', monospace;
+    font-size: 0.8rem;
   }
   .reset-btn:hover {
     border-color: #ff5555;
@@ -229,15 +281,7 @@ colour_on="%{fg magenta}"
     background: rgba(255, 85, 85, 0.08);
   }
 
-  /* ── Three-panel layout ── */
-  .three-panel {
-    display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: 20px;
-    align-items: start;
-  }
-
-  /* ── Left column ── */
+  /* ── Row 2, Left: INI column ── */
   .ini-column {
     display: flex;
     flex-direction: column;
@@ -325,13 +369,7 @@ colour_on="%{fg magenta}"
   }
   .download-btn:hover { background: rgba(100,180,255,0.25); }
 
-  /* ── Right column ── */
-  .editor-column {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
+  /* ── Row 1, Right: toolbar ── */
   .toolbar {
     display: flex;
     align-items: center;
@@ -373,4 +411,116 @@ colour_on="%{fg magenta}"
     border-color: rgba(180,140,255,0.3);
   }
   .defaults-btn:not(.active):hover { background: rgba(255,255,255,0.1); color: #bbb; }
+
+  /* ── Expand button in pane headers ── */
+  .expand-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    position: relative;
+  }
+  .expand-btn:hover { color: #aaa; background: rgba(255,255,255,0.08); }
+  .expand-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: #111827;
+    color: #e0e0e0;
+    font-size: 0.7rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    border: 1px solid #374151;
+    z-index: 10;
+    letter-spacing: normal;
+    text-transform: none;
+    font-weight: normal;
+  }
+  .expand-btn[data-tooltip]:hover::after { opacity: 1; }
+
+  /* ── Maximised pane modal ── */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  .modal-pane {
+    background: #252535;
+    border: 1px solid #444;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 960px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    background: #2a2a3e;
+    padding: 7px 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #ccc;
+    font-weight: 500;
+    flex-shrink: 0;
+    border-radius: 8px 8px 0 0;
+  }
+  .modal-hint { color: #666; font-size: 0.72rem; font-weight: 400; }
+  .modal-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.3rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 2px;
+  }
+  .modal-close:hover { color: #ff5555; }
+  .modal-textarea {
+    flex: 1;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    background: #1e1e2e;
+    color: #bbb;
+    border: none;
+    resize: none;
+    padding: 14px 18px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .modal-textarea[readonly] { color: #888; cursor: default; }
+  .modal-actions {
+    padding: 10px 14px;
+    flex-shrink: 0;
+  }
+  .modal-error { margin: 0 14px 0; }
+
+  /* ── Row 2, Right: editor components ── */
+  .editor-column {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
 </style>
