@@ -199,9 +199,9 @@ can get a bright magenta background by writing `bg bright magenta` or
 
 Using a terminal palette is useful, but sometimes you might want to
 There are 658 named full RGB colours. These names come from the
-[[https://en.wikipedia.org/wiki/X11_color_names][original X11 colour-set]]
+[original X11 colour-set](https://en.wikipedia.org/wiki/X11_color_names)
 which can be found littering the internet. The file and
-its license can be found in the [[etc/][etc/]] directory of this
+its license can be found in the [etc/](etc/) directory of this
 project.
 
 Using these are easy - prefix the colour name with `fg-` or `bg-` to
