@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { selectedItem, iniFile, activeSection, currentTokens, cursorIndex } from '../lib/stores';
+  import { selectedItem, iniFile, activeSection, currentTokens, cursorIndex, inactiveOverrides } from '../lib/stores';
   import { serializeTokens, type PromptToken } from '../lib/prompt-tokenizer';
   import type { WidgetConfig } from '../lib/ini-parser';
   import ColourPicker from './ColourPicker.svelte';
@@ -258,6 +258,27 @@
 
     <!-- ═══════════════════ WIDGET / DEFAULTS ═══════════════════ -->
     {:else}
+      <!-- Preview state toggle (only for individual widgets, not defaults) -->
+      {#if $selectedItem?.kind === 'widget'}
+        {@const name = $selectedItem.name}
+        {@const isInactive = $inactiveOverrides.has(name)}
+        <div class="preview-state-row">
+          <span class="field-label">Preview state</span>
+          <div class="state-toggle">
+            <button
+              class="state-btn"
+              class:state-active={!isInactive}
+              onclick={() => inactiveOverrides.update(s => { s.delete(name); return new Set(s); })}
+            >active</button>
+            <button
+              class="state-btn"
+              class:state-inactive={isInactive}
+              onclick={() => inactiveOverrides.update(s => { s.add(name); return new Set(s); })}
+            >inactive</button>
+          </div>
+        </div>
+      {/if}
+
       <!-- String format fields (not shown for CWD which has no format) -->
       {#if !isCwd}
         <div class="string-fields">
@@ -387,6 +408,37 @@
     font-family: 'SF Mono', monospace;
     font-size: 0.82rem;
     color: #ffb46e;
+  }
+
+  /* Preview state toggle */
+  .preview-state-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .state-toggle {
+    display: flex;
+    gap: 2px;
+  }
+  .state-btn {
+    padding: 4px 10px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.04);
+    color: #666;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: 'SF Mono', monospace;
+  }
+  .state-btn.state-active {
+    background: rgba(100, 220, 120, 0.15);
+    color: #86efac;
+    border-color: rgba(100, 220, 120, 0.35);
+  }
+  .state-btn.state-inactive {
+    background: rgba(255, 160, 80, 0.15);
+    color: #fdba74;
+    border-color: rgba(255, 160, 80, 0.35);
   }
 
   /* Widget / Defaults */

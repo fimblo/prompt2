@@ -19,6 +19,12 @@ export const hoveredTokenIndex = writable<number | null>(null);
 export const terminalBg = writable<string>('#1e1e2e');
 
 /**
+ * Set of widget names whose preview state is forced to inactive ('0').
+ * By default widgets show their active state (BASE_STATE has non-zero values).
+ */
+export const inactiveOverrides = writable<Set<string>>(new Set());
+
+/**
  * What is currently selected/open in the config panel.
  */
 export type SelectedItem =
@@ -40,11 +46,11 @@ export const currentTokens = derived(
   }
 );
 
-/** Preview spans derived from current tokens, config, and active cwd_type */
+/** Preview spans derived from current tokens, config, active cwd_type, and overrides */
 export const previewSpans = derived(
-  [currentTokens, iniFile, activeSection],
-  ([$currentTokens, $iniFile, $activeSection]) => {
+  [currentTokens, iniFile, activeSection, inactiveOverrides],
+  ([$currentTokens, $iniFile, $activeSection, $inactiveOverrides]) => {
     const section = $activeSection === 'prompt' ? $iniFile.prompt : $iniFile.promptGit;
-    return renderPreview($currentTokens, $iniFile, section?.cwd_type);
+    return renderPreview($currentTokens, $iniFile, section?.cwd_type, $inactiveOverrides);
   }
 );

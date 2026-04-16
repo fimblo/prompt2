@@ -140,16 +140,23 @@ function renderTokens(
 
 /**
  * Main entry point: render a prompt preview.
- * @param cwdType — the cwd_type setting from the active prompt section
+ * @param cwdType         — the cwd_type setting from the active prompt section
+ * @param inactiveOverrides — widget names forced to their inactive state ('0')
  */
 export function renderPreview(
   tokens: PromptToken[],
   ini: IniFile,
   cwdType?: string,
+  inactiveOverrides?: Set<string>,
 ): StyledSpan[] {
   const state: Record<string, string> = {
     ...BASE_STATE,
     cwd: CWD_BY_TYPE[cwdType ?? 'home'] ?? CWD_BY_TYPE.home,
   };
+  if (inactiveOverrides) {
+    for (const name of inactiveOverrides) {
+      state[name.toLowerCase()] = '0';
+    }
+  }
   return renderTokens(tokens, ini, state);
 }

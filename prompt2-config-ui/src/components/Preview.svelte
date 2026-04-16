@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { previewSpans, currentTokens, selectedItem, cursorIndex, hoveredTokenIndex, terminalBg } from '../lib/stores';
+  import { previewSpans, currentTokens, selectedItem, cursorIndex, hoveredTokenIndex, terminalBg, inactiveOverrides } from '../lib/stores';
   import { termStyleToCssString } from '../lib/ansi-to-css';
   import type { StyledSpan } from '../lib/preview-renderer';
 
@@ -16,10 +16,21 @@
     return lines;
   }
 
-  function handleSpanClick(span: StyledSpan) {
+  function handleSpanClick(span: StyledSpan, event: MouseEvent) {
     if (span.tokenIndex === undefined) return;
     const token = $currentTokens[span.tokenIndex];
     if (!token) return;
+
+    // Alt+click on a widget toggles its active/inactive preview state
+    if (event.altKey && token.type === 'widget') {
+      event.preventDefault();
+      inactiveOverrides.update(s => {
+        if (s.has(token.name)) { s.delete(token.name); } else { s.add(token.name); }
+        return new Set(s);
+      });
+      return;
+    }
+
     cursorIndex.set(span.tokenIndex);
     if (token.type === 'widget') {
       selectedItem.set({ kind: 'widget', name: token.name });
@@ -46,7 +57,10 @@
     if (span.tokenIndex === undefined) return '';
     const token = $currentTokens[span.tokenIndex];
     if (!token) return '';
-    if (token.type === 'widget') return `@{${token.name}} — click to configure`;
+    if (token.type === 'widget') {
+      const inactive = $inactiveOverrides.has(token.name);
+      return `@{${token.name}} — click to configure · Alt+click to toggle ${inactive ? 'active' : 'inactive'}`;
+    }
     if (token.type === 'text') return 'Text — click to edit';
     if (token.type === 'attribute') return `%{${token.value}} — click to edit attribute`;
     return '';
@@ -88,7 +102,7 @@
             class:selected={isSpanSelected(span)}
             class:hovered={isSpanHovered(span)}
             title={spanTitle(span)}
-            onclick={() => handleSpanClick(span)}
+            onclick={(e) => handleSpanClick(span, e)}
           >{span.text}</span>
         {/each}
       </div>
