@@ -679,12 +679,11 @@ load test_helper_functions
 
 # --------------------------------------------------
 @test "aws sso token is outdated" {
-  skip
   # given an expired aws token
   if [[ "$(uname)" == "Linux" ]]; then
-    timestamp=$(date --date='-30 days' +"%Y-%m-%dT%H:%M:%SZ")
+    timestamp=$(/usr/bin/date --date='-30 days' +"%Y-%m-%dT%H:%M:%SZ")
   else
-    timestamp=$(date -v-30d +"%Y-%m-%dT%H:%M:%SZ")
+    timestamp=$(/bin/date -v-30d +"%Y-%m-%dT%H:%M:%SZ")
   fi
 
   mkdir -p $HOME/.aws/sso/cache
@@ -709,13 +708,12 @@ load test_helper_functions
 
 # --------------------------------------------------
 @test "aws sso token is valid" {
-  skip
   # given a valid aws token
   mkdir -p $HOME/.aws/sso/cache
   if [[ "$(uname)" == "Linux" ]]; then
-    timestamp=$(date -u --date='+135 minutes' +"%Y-%m-%dT%H:%M:%SZ")
+    timestamp=$(/usr/bin/date -u --date='+135 minutes' +"%Y-%m-%dT%H:%M:%SZ")
   else
-    timestamp=$(date -u -v+135M +"%Y-%m-%dT%H:%M:%SZ")
+    timestamp=$(/bin/date -u -v+135M +"%Y-%m-%dT%H:%M:%SZ")
   fi
 
   cat<<-EOF>$HOME/.aws/sso/cache/token.json
