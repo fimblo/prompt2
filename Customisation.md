@@ -84,8 +84,14 @@ You can use `\` to separate the config over many lines, as well as
 the `\n` to insert a newline into the resulting prompt.
 
 > [!NOTE]
-> **Macos users**: The iniparser library on macos requires an extra
-> backslash, so to insert a newline you'll need to write `\\n`.
+> **macOS users**: The iniparser library on macOS (4.2.x) interprets `\n`
+> differently from Linux (4.1). Add a `[SYSTEM]` section to your config with
+> `extra_backslash = true` and prompt2 will handle the difference for you,
+> so you can write `\n` on both platforms:
+> ```ini
+> [SYSTEM]
+> extra_backslash = true
+> ```
 
 
 
