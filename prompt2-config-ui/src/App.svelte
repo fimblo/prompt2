@@ -4,7 +4,7 @@
   import PromptEditor from './components/PromptEditor.svelte';
   import WidgetPalette from './components/WidgetPalette.svelte';
   import WidgetConfigPanel from './components/WidgetConfigPanel.svelte';
-  import { iniFile, activeSection, selectedItem } from './lib/stores';
+  import { iniFile, activeSection, selectedItem, terminalBg } from './lib/stores';
   import { parseIni, serializeIni } from './lib/ini-parser';
 
   // ── Default config loaded on startup ──────────────────────────────────────
@@ -49,14 +49,35 @@ colour_on="%{fg magenta}"
 colour_on="%{fg magenta}"
 `;
 
-  iniFile.set(parseIni(DEFAULT_CONFIG));
+  // ── Restore persisted state from localStorage ─────────────────────────────
+  const LS_ORIGINAL = 'prompt2_original_ini';
+  const LS_EDITOR   = 'prompt2_editor_ini';
+  const LS_BG       = 'prompt2_preview_bg';
+
+  const savedOriginal = localStorage.getItem(LS_ORIGINAL);
+  const savedEditor   = localStorage.getItem(LS_EDITOR);
+  const savedBg       = localStorage.getItem(LS_BG);
+
+  if (savedBg) terminalBg.set(savedBg);
 
   // ── Left column state ──────────────────────────────────────────────────────
-  let originalText = $state(DEFAULT_CONFIG);
+  let originalText = $state(savedOriginal ?? DEFAULT_CONFIG);
   let parseError = $state('');
+
+  // Initialise iniFile from saved editor state, falling back to originalText
+  if (savedEditor) {
+    try { iniFile.set(parseIni(savedEditor)); } catch { iniFile.set(parseIni(originalText)); }
+  } else {
+    iniFile.set(parseIni(originalText));
+  }
 
   // Live-updated INI derived from the editor state
   const updatedIni = derived(iniFile, ($ini) => serializeIni($ini));
+
+  // ── Persist state to localStorage on every change ─────────────────────────
+  $effect(() => { localStorage.setItem(LS_ORIGINAL, originalText); });
+  $effect(() => { localStorage.setItem(LS_EDITOR,   $updatedIni); });
+  $effect(() => { localStorage.setItem(LS_BG,       $terminalBg); });
 
   function loadConfig() {
     try {
@@ -77,6 +98,14 @@ colour_on="%{fg magenta}"
     URL.revokeObjectURL(url);
   }
 
+  // ── Reset ─────────────────────────────────────────────────────────────────
+  function resetToDefault() {
+    originalText = DEFAULT_CONFIG;
+    parseError = '';
+    iniFile.set(parseIni(DEFAULT_CONFIG));
+    terminalBg.set('#1e1e2e');
+  }
+
   // ── Section / defaults toolbar ─────────────────────────────────────────────
   function toggleSection(s: 'prompt' | 'promptGit') {
     activeSection.set(s);
@@ -92,6 +121,7 @@ colour_on="%{fg magenta}"
 <div class="app">
   <header>
     <h1>prompt2 Config Editor</h1>
+    <button class="reset-btn" onclick={resetToDefault}>Reset to default</button>
   </header>
 
   <div class="three-panel">
@@ -177,8 +207,27 @@ colour_on="%{fg magenta}"
     padding: 20px 24px;
   }
 
-  header { margin-bottom: 18px; }
+  header {
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
   h1 { color: #e0e0e0; font-size: 1.4rem; margin: 0; }
+  .reset-btn {
+    padding: 5px 12px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #777;
+    cursor: pointer;
+    font-size: 0.78rem;
+  }
+  .reset-btn:hover {
+    border-color: #ff5555;
+    color: #ff5555;
+    background: rgba(255, 85, 85, 0.08);
+  }
 
   /* ── Three-panel layout ── */
   .three-panel {

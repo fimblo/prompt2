@@ -15,6 +15,9 @@ export const cursorIndex = writable<number>(-1);
 /** Token index currently being hovered in the prompt editor, or null */
 export const hoveredTokenIndex = writable<number | null>(null);
 
+/** Background colour of the preview terminal */
+export const terminalBg = writable<string>('#1e1e2e');
+
 /**
  * What is currently selected/open in the config panel.
  */
