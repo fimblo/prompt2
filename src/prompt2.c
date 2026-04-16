@@ -109,6 +109,9 @@ struct ConfigRoot {
   int dynamic_default_prompt;
   int dynamic_git_prompt;
   int dynamic_widget_config;
+
+  // [SYSTEM] section
+  int extra_backslash; // 1 = macOS (iniparser 4.2.x interprets \n); 0 = Linux default
 };
 
 /**
@@ -250,8 +253,58 @@ void set_config_defaults(struct ConfigRoot *config) {
   config->dynamic_default_prompt = 0;
   config->dynamic_git_prompt     = 0;
   config->dynamic_widget_config  = 0;
+  config->extra_backslash        = 0;
 }
 
+
+
+/**
+ * Reads an entire file into a newly allocated string.
+ * Returns NULL on error. Caller must free the returned buffer.
+ */
+static char *read_file_content(const char *path) {
+  FILE *f = fopen(path, "rb");
+  if (!f) return NULL;
+
+  fseek(f, 0, SEEK_END);
+  long size = ftell(f);
+  fseek(f, 0, SEEK_SET);
+
+  char *buf = malloc(size + 1);
+  if (!buf) { fclose(f); return NULL; }
+
+  size_t nread = fread(buf, 1, size, f);
+  fclose(f);
+  buf[nread] = '\0';
+  return buf;
+}
+
+
+/**
+ * Quick scan of raw config text for 'extra_backslash = true'.
+ * Only matches when extra_backslash is the first non-whitespace token on a line,
+ * so comment lines are naturally skipped.
+ *
+ * Returns 1 if true/yes/1, 0 otherwise.
+ */
+static int detect_extra_backslash(const char *content) {
+  const char *p = content;
+  while (*p) {
+    while (*p == ' ' || *p == '\t') p++;
+    if (strncmp(p, "extra_backslash", 15) == 0) {
+      p += 15;
+      while (*p == ' ' || *p == '\t') p++;
+      if (*p == '=') {
+        p++;
+        while (*p == ' ' || *p == '\t') p++;
+        return (*p == 't' || *p == 'T' || *p == '1' || *p == 'y' || *p == 'Y');
+      }
+    }
+    while (*p && *p != '\n') p++;
+    if (*p == '\n') p++;
+  }
+  return 0;
+}
 
 
 /**
@@ -296,8 +349,40 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   }
 
 
-  // Load INI file
-  dictionary *ini = iniparser_load(selected_config_file);
+  // Read raw content to detect the [SYSTEM] extra_backslash flag.
+  // When true, bare backslashes in prompt values are doubled before iniparser
+  // sees the file so that iniparser 4.2.x (macOS) returns the same strings
+  // as iniparser 4.1 (Linux).
+  char *raw_content = read_file_content(selected_config_file);
+  if (!raw_content) return ERROR_INVALID_INI_FILE;
+  config->extra_backslash = detect_extra_backslash(raw_content);
+
+  dictionary *ini;
+#ifdef __APPLE__
+  if (config->extra_backslash) {
+    // Preprocess: escape bare backslashes so iniparser 4.2.x on macOS gives
+    // back the same two-char sequences that iniparser 4.1 on Linux would.
+    // fmemopen lets us hand the in-memory buffer directly to iniparser_load_file
+    // (available in iniparser >= 4.2) — no temp file needed.
+    // Important: raw_content must stay alive until after iniparser_load_file
+    // returns, because fmemopen holds a pointer into the buffer.
+    char *escaped = escape_ini_backslashes(raw_content);
+    free(raw_content);
+
+    FILE *mem_file = fmemopen((void *)escaped, strlen(escaped), "r");
+    if (!mem_file) { free(escaped); return ERROR_INVALID_INI_FILE; }
+    ini = iniparser_load_file(mem_file, selected_config_file);
+    fclose(mem_file);
+    free(escaped);
+  } else {
+    free(raw_content);
+    ini = iniparser_load(selected_config_file);
+  }
+#else
+  free(raw_content);
+  ini = iniparser_load(selected_config_file);
+#endif
+
   if (ini == NULL) return ERROR_INVALID_INI_FILE;
 
   // set all prompt configs to user-provided default settings (if it exists)
@@ -327,6 +412,7 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
   for (int i = 0; i < iniparser_getnsec(ini); i++) {
     const char * section = iniparser_getsecname(ini, i);
     if (strcmp(section, INI_SECTION_WIDGET_DEFAULT) == 0) continue;
+    if (strcmp(section, "system") == 0) continue;
 
     struct WidgetConfig wc = { NULL, NULL, NULL, NULL, 0 };
     create_widget(ini, section, &wc, &config->defaults);

@@ -75,6 +75,18 @@ void truncate_with_ellipsis(char *str, size_t max_width);
 
 
 /**
+ * Escapes all bare backslashes in raw INI config content by doubling them,
+ * so that iniparser 4.2.x (macOS) returns the same strings as iniparser 4.1
+ * (Linux). Already-doubled backslashes (\\) and line-continuation backslashes
+ * (\ at end of line) are left unchanged.
+ *
+ * @param input  Raw config file content.
+ * @return       New string with bare backslashes doubled. Caller must free.
+ */
+char *escape_ini_backslashes(const char *input);
+
+
+/**
  * Replaces occurrences of the two-character sequence '\' followed by
  * 'n' with the actual newline character '\n', in a given string.
  *

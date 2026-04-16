@@ -144,6 +144,69 @@ void truncate_with_ellipsis(char *str, size_t max_width) {
 
 
 /**
+ * Escapes all bare backslashes in raw INI config content by doubling them,
+ * so that iniparser 4.2.x (macOS) hands the C code the same strings that
+ * iniparser 4.1 (Linux) would.
+ *
+ * Two cases are left untouched:
+ *   \\  — already an escaped backslash; iniparser gives back \ on both platforms.
+ *   \<newline> — line-continuation syntax; must reach iniparser as-is.
+ *
+ * Everything else (\\n, \\[, \\], \\e, \\033, …) is doubled so that
+ * iniparser 4.2.x returns the original two-char sequence rather than
+ * treating it as an invalid escape with unpredictable results.
+ *
+ * @param input  Raw config file content.
+ * @return       New string with bare backslashes doubled. Caller must free.
+ */
+char *escape_ini_backslashes(const char *input) {
+  int count = 0;
+  const char *p = input;
+  while (*p) {
+    if (*p == '\\') {
+      if (*(p + 1) == '\\') {
+        p += 2;          // already escaped — skip both chars
+      } else if (*(p + 1) == '\n' || *(p + 1) == '\0') {
+        p++;             // line continuation or end of string — leave alone
+      } else {
+        count++;         // bare backslash — needs doubling
+        p += 2;
+      }
+    } else {
+      p++;
+    }
+  }
+
+  char *result = malloc(strlen(input) + count + 1);
+  if (!result) {
+    perror("ESCAPE INI BACKSLASHES FAILURE $ ");
+    exit(EXIT_FAILURE);
+  }
+
+  const char *src = input;
+  char *dst = result;
+  while (*src) {
+    if (*src == '\\') {
+      if (*(src + 1) == '\\') {
+        *dst++ = *src++;   // copy both chars of the already-escaped pair
+        *dst++ = *src++;
+      } else if (*(src + 1) == '\n' || *(src + 1) == '\0') {
+        *dst++ = *src++;   // copy \ as-is (line continuation / end)
+      } else {
+        *dst++ = '\\';     // insert extra backslash
+        *dst++ = *src++;   // copy the original backslash
+        *dst++ = *src++;   // copy the following char
+      }
+    } else {
+      *dst++ = *src++;
+    }
+  }
+  *dst = '\0';
+  return result;
+}
+
+
+/**
  * Replaces occurrences of the two-character sequence '\' followed by
  * 'n' with the actual newline character '\n', in a given string.
  *
