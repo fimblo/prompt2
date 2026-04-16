@@ -4,6 +4,7 @@
   import PromptEditor from './components/PromptEditor.svelte';
   import WidgetPalette from './components/WidgetPalette.svelte';
   import WidgetConfigPanel from './components/WidgetConfigPanel.svelte';
+  import IniHighlight from './components/IniHighlight.svelte';
   import { iniFile, activeSection, selectedItem, terminalBg } from './lib/stores';
   import { parseIni, serializeIni } from './lib/ini-parser';
 
@@ -187,12 +188,7 @@ colour_on="%{fg magenta}"
             <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 1 0 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 1 0 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/></svg>
           </button>
         </div>
-        <textarea
-          class="ini-textarea"
-          value={$updatedIni}
-          readonly
-          spellcheck="false"
-        ></textarea>
+        <IniHighlight text={$updatedIni} />
         <button class="download-btn" onclick={downloadConfig}>
           Download dot.prompt2_config.ini
         </button>
@@ -232,7 +228,7 @@ colour_on="%{fg magenta}"
           <button class="load-btn" onclick={loadConfig}>Load config</button>
         </div>
       {:else}
-        <textarea class="modal-textarea" value={$updatedIni} readonly spellcheck="false"></textarea>
+        <IniHighlight text={$updatedIni} />
         <div class="modal-actions">
           <button class="download-btn" onclick={downloadConfig}>Download dot.prompt2_config.ini</button>
         </div>
@@ -516,6 +512,10 @@ colour_on="%{fg magenta}"
     flex-shrink: 0;
   }
   .modal-error { margin: 0 14px 0; }
+
+  /* ── IniHighlight sizing per context ── */
+  .ini-pane :global(.ini-highlight) { height: 280px; }
+  .modal-pane :global(.ini-highlight) { flex: 1; height: auto; min-height: 0; }
 
   /* ── Row 2, Right: editor components ── */
   .editor-column {
