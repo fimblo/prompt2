@@ -9,7 +9,10 @@
   import { parseIni, serializeIni } from './lib/ini-parser';
 
   // ── Default config loaded on startup ──────────────────────────────────────
-  const DEFAULT_CONFIG = `[PROMPT]
+  const DEFAULT_CONFIG = `[SYSTEM]
+extra_backslash=false
+
+[PROMPT]
 prompt="@{SYS.username}@@{SYS.hostname}:@{CWD}\\n@{SYS.promptchar} "
 cwd_type="home"
 
@@ -148,6 +151,15 @@ colour_on="%{fg magenta}"
           onclick={() => toggleSection('promptGit')}
         >PROMPT.GIT</button>
       </div>
+      <button
+        class="tog-btn macos-btn"
+        class:active={$iniFile.system?.extra_backslash === true}
+        title="extra_backslash — enable on macOS (iniparser 4.2.x)"
+        onclick={() => iniFile.update(ini => ({
+          ...ini,
+          system: { extra_backslash: !(ini.system?.extra_backslash ?? false) }
+        }))}
+      >macOS</button>
       <button
         class="defaults-btn"
         class:active={$selectedItem?.kind === 'defaults'}
@@ -390,6 +402,12 @@ colour_on="%{fg magenta}"
     border-color: rgba(100,180,255,0.3);
   }
   .tog-btn:not(.active):hover { background: rgba(255,255,255,0.1); color: #bbb; }
+
+  .macos-btn.active {
+    background: rgba(255, 180, 80, 0.15);
+    color: #ffb450;
+    border-color: rgba(255, 180, 80, 0.35);
+  }
 
   .defaults-btn {
     padding: 6px 14px;

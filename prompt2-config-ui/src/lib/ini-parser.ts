@@ -5,6 +5,10 @@
  * and the specific section structure used by prompt2.
  */
 
+export interface SystemConfig {
+  extra_backslash: boolean;
+}
+
 export interface WidgetConfig {
   string_active?: string;
   string_inactive?: string;
@@ -19,6 +23,7 @@ export interface PromptSection {
 }
 
 export interface IniFile {
+  system?: SystemConfig;
   prompt: PromptSection;
   promptGit?: PromptSection;
   widgetDefault: WidgetConfig;
@@ -63,7 +68,13 @@ export function parseIni(text: string): IniFile {
 
     const sectionLower = currentSection.toLowerCase();
 
-    if (sectionLower === 'prompt' || sectionLower === 'prompt.git') {
+    if (sectionLower === 'system') {
+      if (!result.system) result.system = { extra_backslash: false };
+      if (currentKey === 'extra_backslash') {
+        const v = val.toLowerCase();
+        result.system.extra_backslash = v === 'true' || v === '1' || v === 'yes' || v.startsWith('t') || v.startsWith('y');
+      }
+    } else if (sectionLower === 'prompt' || sectionLower === 'prompt.git') {
       const section: PromptSection = sectionLower === 'prompt'
         ? result.prompt
         : (result.promptGit ??= { prompt: '' });
@@ -176,6 +187,13 @@ export function parseIni(text: string): IniFile {
  */
 export function serializeIni(ini: IniFile): string {
   const lines: string[] = [];
+
+  // [SYSTEM]
+  if (ini.system !== undefined) {
+    lines.push('[SYSTEM]');
+    lines.push(`extra_backslash=${ini.system.extra_backslash ? 'true' : 'false'}`);
+    lines.push('');
+  }
 
   // [PROMPT]
   lines.push('[PROMPT]');
