@@ -12,6 +12,9 @@ export const activeSection = writable<'prompt' | 'promptGit'>('prompt');
 /** Index in the token array where the next widget insert should go */
 export const cursorIndex = writable<number>(-1);
 
+/** Token index currently being hovered in the prompt editor, or null */
+export const hoveredTokenIndex = writable<number | null>(null);
+
 /**
  * What is currently selected/open in the config panel.
  */

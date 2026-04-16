@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { previewSpans } from '../lib/stores';
+  import { previewSpans, currentTokens, selectedItem, cursorIndex, hoveredTokenIndex } from '../lib/stores';
   import { termStyleToCssString } from '../lib/ansi-to-css';
+  import type { StyledSpan } from '../lib/preview-renderer';
 
   // Split spans into lines at newline characters
-  function splitIntoLines(spans: { text: string; style: import('../lib/ansi-to-css').TermStyle }[]) {
+  function splitIntoLines(spans: StyledSpan[]) {
     const lines: typeof spans[] = [[]];
     for (const span of spans) {
       if (span.text === '\n') {
@@ -14,15 +15,67 @@
     }
     return lines;
   }
+
+  function handleSpanClick(span: StyledSpan) {
+    if (span.tokenIndex === undefined) return;
+    const token = $currentTokens[span.tokenIndex];
+    if (!token) return;
+    cursorIndex.set(span.tokenIndex);
+    if (token.type === 'widget') {
+      selectedItem.set({ kind: 'widget', name: token.name });
+    } else if (token.type === 'text') {
+      selectedItem.set({ kind: 'text', index: span.tokenIndex });
+    } else if (token.type === 'attribute') {
+      selectedItem.set({ kind: 'attribute', index: span.tokenIndex });
+    }
+  }
+
+  function isSpanSelected(span: StyledSpan): boolean {
+    if (span.tokenIndex === undefined) return false;
+    const s = $selectedItem;
+    if (!s) return false;
+    const token = $currentTokens[span.tokenIndex];
+    if (!token) return false;
+    if (s.kind === 'widget' && token.type === 'widget') return s.name === token.name;
+    if (s.kind === 'text' && token.type === 'text') return s.index === span.tokenIndex;
+    if (s.kind === 'attribute' && token.type === 'attribute') return s.index === span.tokenIndex;
+    return false;
+  }
+
+  function spanTitle(span: StyledSpan): string {
+    if (span.tokenIndex === undefined) return '';
+    const token = $currentTokens[span.tokenIndex];
+    if (!token) return '';
+    if (token.type === 'widget') return `@{${token.name}} — click to configure`;
+    if (token.type === 'text') return 'Text — click to edit';
+    if (token.type === 'attribute') return `%{${token.value}} — click to edit attribute`;
+    return '';
+  }
+
+  function isClickable(span: StyledSpan): boolean {
+    return span.tokenIndex !== undefined;
+  }
+
+  function isSpanHovered(span: StyledSpan): boolean {
+    return span.tokenIndex !== undefined && span.tokenIndex === $hoveredTokenIndex;
+  }
 </script>
 
 <div class="preview">
-  <div class="preview-label">Preview</div>
+  <div class="preview-label">Preview — click text to select a token</div>
   <div class="terminal">
     {#each splitIntoLines($previewSpans) as line}
       <div class="terminal-line">
         {#each line as span}
-          <span style={termStyleToCssString(span.style)}>{span.text}</span>
+          <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+          <span
+            style={termStyleToCssString(span.style)}
+            class:clickable={isClickable(span)}
+            class:selected={isSpanSelected(span)}
+            class:hovered={isSpanHovered(span)}
+            title={spanTitle(span)}
+            onclick={() => handleSpanClick(span)}
+          >{span.text}</span>
         {/each}
       </div>
     {/each}
@@ -55,6 +108,26 @@
   }
   .terminal-line {
     white-space: pre;
+  }
+  .clickable {
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .clickable:hover {
+    outline: 1px solid rgba(255, 255, 255, 0.25);
+    outline-offset: 1px;
+  }
+  .selected {
+    outline: 1px solid rgba(124, 124, 255, 0.7);
+    outline-offset: 1px;
+    background: rgba(124, 124, 255, 0.15);
+    border-radius: 2px;
+  }
+  .hovered:not(.selected) {
+    outline: 1px solid rgba(255, 255, 255, 0.2);
+    outline-offset: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 2px;
   }
   .cursor {
     color: #ccc;

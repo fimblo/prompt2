@@ -10,6 +10,8 @@ import { tokenizePrompt } from './prompt-tokenizer';
 export interface StyledSpan {
   text: string;
   style: TermStyle;
+  /** Index into the token array this span originated from (undefined for newlines) */
+  tokenIndex?: number;
 }
 
 /** Base simulated state (CWD is overridden by cwd_type at render time) */
@@ -102,10 +104,11 @@ function renderTokens(
   const spans: StyledSpan[] = [];
   let currentStyle: TermStyle = {};
 
-  for (const token of tokens) {
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
     switch (token.type) {
       case 'text':
-        spans.push({ text: token.value, style: { ...currentStyle } });
+        spans.push({ text: token.value, style: { ...currentStyle }, tokenIndex: i });
         break;
 
       case 'newline':
@@ -122,10 +125,12 @@ function renderTokens(
 
       case 'widget':
         if (token.name.toUpperCase() === 'SPC') {
-          spans.push({ text: '    ', style: {} });
+          spans.push({ text: '    ', style: {}, tokenIndex: i });
           break;
         }
-        spans.push(...renderWidget(token.name, ini, currentStyle, state));
+        for (const s of renderWidget(token.name, ini, currentStyle, state)) {
+          spans.push({ ...s, tokenIndex: i });
+        }
         break;
     }
   }

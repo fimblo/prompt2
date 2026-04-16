@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { currentTokens, iniFile, activeSection, cursorIndex, selectedItem } from '../lib/stores';
+  import { currentTokens, iniFile, activeSection, cursorIndex, selectedItem, hoveredTokenIndex } from '../lib/stores';
   import { serializeTokens, type PromptToken } from '../lib/prompt-tokenizer';
   import { resolveAttributeCombo, termStyleToCssString } from '../lib/ansi-to-css';
 
@@ -76,6 +76,8 @@
         class:selected={isSelected(i, token)}
         style={getTokenPreviewStyle(token)}
         onclick={() => handleTokenClick(i, token)}
+        onmouseenter={() => hoveredTokenIndex.set(i)}
+        onmouseleave={() => hoveredTokenIndex.set(null)}
         title={token.type === 'widget' ? 'Click to configure' : token.type === 'text' ? 'Click to edit / add color' : token.type === 'attribute' ? 'Click to edit attribute' : ''}
       >
         <span class="token-label">{tokenLabel(token)}</span>
