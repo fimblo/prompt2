@@ -61,11 +61,25 @@
   }
 
   $: lines = splitIntoLines($previewSpans);
+
+  let terminalBg = '#1e1e2e';
 </script>
 
 <div class="preview">
-  <div class="preview-label">Preview — click text to select a token</div>
-  <div class="terminal">
+  <div class="preview-label">
+    <span>Preview — click text to select a token</span>
+    <label class="bg-picker-label" title="Change preview background colour">
+      <input class="bg-picker-input" type="color" bind:value={terminalBg} />
+      <span class="bg-picker-btn">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M8 5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3m4 3a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M5.5 7a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3"/>
+          <path d="M16 8c0 3.15-1.866 2.585-3.567 2.07C11.42 9.763 10.465 9.473 10 10c-.603.683-.475 1.819-.351 2.92C9.826 14.495 9.996 16 8 16a8 8 0 1 1 8-8m-8 7c.611 0 .654-.171.655-.176.078-.146.124-.464.07-1.119-.014-.168-.037-.37-.061-.591-.052-.464-.112-1.005-.118-1.462-.01-.707.083-1.61.704-2.314.369-.417.845-.578 1.272-.618.404-.038.812.026 1.16.104.343.077.702.186 1.07.299C15.5 9.909 15.5 9.575 15.5 8A7.5 7.5 0 1 0 .5 8c0 3.715 2.7 6.808 6.288 7.373"/>
+        </svg>
+        <span class="bg-picker-swatch" style="background: {terminalBg}"></span>
+      </span>
+    </label>
+  </div>
+  <div class="terminal" style="background: {terminalBg}">
     {#each lines as line, i}
       <div class="terminal-line">
         {#each line as span}
@@ -95,9 +109,46 @@
     background: #2a2a3e;
     color: #888;
     font-size: 0.75rem;
-    padding: 4px 12px;
+    padding: 4px 8px 4px 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .bg-picker-label {
+    cursor: pointer;
+    position: relative;
+  }
+  .bg-picker-input {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+  }
+  .bg-picker-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 5px 2px;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #aaa;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .bg-picker-label:hover .bg-picker-btn {
+    border-color: #888;
+    color: #ccc;
+  }
+  .bg-picker-swatch {
+    width: 13px;
+    height: 3px;
+    border-radius: 1px;
   }
   .terminal {
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
