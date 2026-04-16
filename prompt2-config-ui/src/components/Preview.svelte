@@ -68,7 +68,7 @@
 <div class="preview">
   <div class="preview-label">
     <span>Preview — click text to select a token</span>
-    <label class="bg-picker-label" title="Change preview background colour">
+    <label class="bg-picker-label" data-tooltip="Change preview background colour">
       <input class="bg-picker-input" type="color" bind:value={terminalBg} />
       <span class="bg-picker-btn">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -144,6 +144,29 @@
   .bg-picker-label:hover .bg-picker-btn {
     border-color: #888;
     color: #ccc;
+  }
+  .bg-picker-label[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: #111827;
+    color: #e0e0e0;
+    font-size: 0.7rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    border: 1px solid #374151;
+    z-index: 100;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+  .bg-picker-label[data-tooltip]:hover::after {
+    opacity: 1;
   }
   .bg-picker-swatch {
     width: 13px;

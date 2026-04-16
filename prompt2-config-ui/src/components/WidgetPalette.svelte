@@ -87,9 +87,9 @@
   <div class="palette-header">
     <span class="palette-label">Widget Palette</span>
     <div class="toolbar">
-      <button class="tool-btn" onclick={insertText} title="Insert literal text">Aa</button>
-      <button class="tool-btn" onclick={insertAttribute} title="Insert attribute (color/style)">{'%{}'}</button>
-      <button class="tool-btn" onclick={insertNewline} title="Insert newline">{'\\n'}</button>
+      <button class="tool-btn" onclick={insertText} data-tooltip="Insert literal text">Aa</button>
+      <button class="tool-btn" onclick={insertAttribute} data-tooltip="Insert color/style attribute">{'%{}'}</button>
+      <button class="tool-btn" onclick={insertNewline} data-tooltip="Insert newline">{'\\n'}</button>
     </div>
   </div>
 
@@ -120,7 +120,6 @@
     background: #252535;
     border: 1px solid #333;
     border-radius: 8px;
-    overflow: hidden;
   }
   .palette-header {
     background: #2a2a3e;
@@ -128,6 +127,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 4px 12px;
+    border-radius: 8px 8px 0 0;
   }
   .palette-label {
     color: #888;
@@ -148,10 +148,35 @@
     cursor: pointer;
     font-family: 'SF Mono', monospace;
     font-size: 0.75rem;
+    position: relative;
   }
   .tool-btn:hover {
     background: rgba(255, 255, 255, 0.15);
     color: #ddd;
+  }
+  .tool-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111827;
+    color: #e0e0e0;
+    font-size: 0.7rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    border: 1px solid #374151;
+    z-index: 100;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+  .tool-btn[data-tooltip]:hover::after {
+    opacity: 1;
   }
   .groups {
     padding: 12px;
