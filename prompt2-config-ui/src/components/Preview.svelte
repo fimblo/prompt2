@@ -59,12 +59,14 @@
   function isSpanHovered(span: StyledSpan): boolean {
     return span.tokenIndex !== undefined && span.tokenIndex === $hoveredTokenIndex;
   }
+
+  $: lines = splitIntoLines($previewSpans);
 </script>
 
 <div class="preview">
   <div class="preview-label">Preview — click text to select a token</div>
   <div class="terminal">
-    {#each splitIntoLines($previewSpans) as line}
+    {#each lines as line, i}
       <div class="terminal-line">
         {#each line as span}
           <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
@@ -79,7 +81,6 @@
         {/each}
       </div>
     {/each}
-    <span class="cursor">&#x2588;</span>
   </div>
 </div>
 
@@ -129,7 +130,8 @@
     background: rgba(255, 255, 255, 0.06);
     border-radius: 2px;
   }
-  .cursor {
+  .terminal-line:last-child::after {
+    content: '█';
     color: #ccc;
     animation: blink 1s step-end infinite;
   }
