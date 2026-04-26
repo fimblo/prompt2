@@ -1,0 +1,8 @@
+# This is a C project with a helper in typescript.
+# But since typescript code is the majority of the project, github
+# presents this repo not as a C project but a typescript one.
+# Annoying!!! 
+# 
+# By marking prompt2-config-ui as a vendor, hopefully github will
+# do the right thing and present this project as a C project.
+prompt2-config-ui/** linguist-vendored=true
