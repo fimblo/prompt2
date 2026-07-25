@@ -42,11 +42,11 @@
 #include <iniparser/iniparser.h>
 #include <stdio.h>
 #include <uthash.h>
+#include <unistd.h> // for access()
 #ifdef __unix__
 #include <linux/limits.h>
 #elif __APPLE__
 #include <sys/syslimits.h>
-#include <unistd.h> // for access()
 #else
 #error "Unknown or unsupported OS"
 #endif
