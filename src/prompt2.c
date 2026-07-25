@@ -111,7 +111,8 @@ struct ConfigRoot {
   int dynamic_widget_config;
 
   // [SYSTEM] section
-  int extra_backslash; // 1 = macOS (iniparser 4.2.x interprets \n); 0 = Linux default
+  int extra_backslash; // 1 = installed iniparser eats bare backslashes (iniparser >= 4.2.x,
+                       // seen on both Homebrew/macOS and modern Debian/Ubuntu); 0 = older iniparser (4.1.x)
 };
 
 /**
@@ -351,17 +352,18 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
 
   // Read raw content to detect the [SYSTEM] extra_backslash flag.
   // When true, bare backslashes in prompt values are doubled before iniparser
-  // sees the file so that iniparser 4.2.x (macOS) returns the same strings
-  // as iniparser 4.1 (Linux).
+  // sees the file so that iniparser >= 4.2.x returns the same two-char
+  // sequences that iniparser 4.1.x would. This is a property of the
+  // installed iniparser version, not of the OS: iniparser 4.2.x ships on
+  // both Homebrew/macOS and, as of recent Debian/Ubuntu releases, on Linux.
   char *raw_content = read_file_content(selected_config_file);
   if (!raw_content) return ERROR_INVALID_INI_FILE;
   config->extra_backslash = detect_extra_backslash(raw_content);
 
   dictionary *ini;
-#ifdef __APPLE__
   if (config->extra_backslash) {
-    // Preprocess: escape bare backslashes so iniparser 4.2.x on macOS gives
-    // back the same two-char sequences that iniparser 4.1 on Linux would.
+    // Preprocess: escape bare backslashes so a backslash-eating iniparser
+    // gives back the same two-char sequences that iniparser 4.1.x would.
     // fmemopen lets us hand the in-memory buffer directly to iniparser_load_file
     // (available in iniparser >= 4.2) — no temp file needed.
     // Important: raw_content must stay alive until after iniparser_load_file
@@ -378,10 +380,6 @@ int handle_configuration(struct ConfigRoot *config, const char *config_file_path
     free(raw_content);
     ini = iniparser_load(selected_config_file);
   }
-#else
-  free(raw_content);
-  ini = iniparser_load(selected_config_file);
-#endif
 
   if (ini == NULL) return ERROR_INVALID_INI_FILE;
 

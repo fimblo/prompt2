@@ -96,6 +96,17 @@ int main(int argc, char *argv[]) {
   }
 
 
+  else if (strcmp(function_name, "escape_ini_backslashes") == 0) {
+    if (argc != 3) {
+      fprintf(stderr, "escape_ini_backslashes function requires 1 argument.\n");
+      return EXIT_FAILURE;
+    }
+    char *result = escape_ini_backslashes(argv[2]);
+    printf("%s\n", result);
+    free(result);
+  }
+
+
   else if (strcmp(function_name, "has_nonexpanding_tokens") == 0) {
     if (argc != 3) {
       fprintf(stderr, "has_nonexpanding_tokens function requires 1 argument.\n");

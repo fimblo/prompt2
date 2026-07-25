@@ -145,16 +145,17 @@ void truncate_with_ellipsis(char *str, size_t max_width) {
 
 /**
  * Escapes all bare backslashes in raw INI config content by doubling them,
- * so that iniparser 4.2.x (macOS) hands the C code the same strings that
- * iniparser 4.1 (Linux) would.
+ * so that a backslash-eating iniparser (>= 4.2.x, seen on both Homebrew/macOS
+ * and modern Debian/Ubuntu) hands the C code the same strings that
+ * iniparser 4.1.x would.
  *
  * Two cases are left untouched:
- *   \\  — already an escaped backslash; iniparser gives back \ on both platforms.
+ *   \\  — already an escaped backslash; iniparser gives back \ either way.
  *   \<newline> — line-continuation syntax; must reach iniparser as-is.
  *
  * Everything else (\\n, \\[, \\], \\e, \\033, …) is doubled so that
- * iniparser 4.2.x returns the original two-char sequence rather than
- * treating it as an invalid escape with unpredictable results.
+ * iniparser >= 4.2.x returns the original two-char sequence rather than
+ * silently dropping the backslash.
  *
  * @param input  Raw config file content.
  * @return       New string with bare backslashes doubled. Caller must free.

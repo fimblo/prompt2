@@ -84,14 +84,19 @@ You can use `\` to separate the config over many lines, as well as
 the `\n` to insert a newline into the resulting prompt.
 
 > [!NOTE]
-> **macOS users**: The iniparser library on macOS (4.2.x) interprets `\n`
-> differently from Linux (4.1). Add a `[SYSTEM]` section to your config with
-> `extra_backslash = true` and prompt2 will handle the difference for you,
-> so you can write `\n` on both platforms:
+> **iniparser >= 4.2.x**: Some builds of iniparser (Homebrew on macOS, and
+> modern Debian/Ubuntu releases) interpret backslash escapes inside quoted
+> values themselves, silently eating bare backslashes like `\n`, `\[`, `\e`
+> before prompt2 ever sees them — this shows up as stray `n` characters or
+> broken colours in your prompt. Older iniparser (4.1.x) doesn't do this.
+> Add a `[SYSTEM]` section to your config with `extra_backslash = true` and
+> prompt2 will compensate for it, regardless of platform:
 > ```ini
 > [SYSTEM]
 > extra_backslash = true
 > ```
+> If your prompt looks correct without it, leave it unset — it's a property
+> of your installed iniparser version, not your OS.
 
 
 
