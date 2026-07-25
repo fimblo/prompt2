@@ -5,9 +5,13 @@
 # Initial Configuration
 CC = gcc
 CFLAGS = -Wall -Wextra
-INCLUDE_DIR = /opt/homebrew/include
-LIB_DIR = /opt/homebrew/lib
 LIBS = -lgit2 -ljson-c -liniparser
+
+# These are added just for homebrew installations. This works on linux
+# since these two lines are in essense noops, and gcc defaults to the
+# normal /usr/{include,lib} directories.
+INCLUDE_DIR = /opt/homebrew/include # only on mac with homebrew
+LIB_DIR = /opt/homebrew/lib         # only on mac with homebrew
 
 # Directories
 SRC_DIR = src
