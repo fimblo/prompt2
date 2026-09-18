@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build and Test Commands
 
+**Dependencies:** iniparser >= 4.2 is required. It treats `\` as an escape character in quoted values, so configs write `\\n`, `\\e` etc. 4.1.x (still shipped by some Debian/Ubuntu releases) builds fine but leaves the doubled backslashes in the prompt; there is no compatibility shim.
+
 **Dependencies (Ubuntu/Debian):**
 ```bash
 sudo apt-get install build-essential git libgit2-dev libiniparser-dev libjson-c-dev uthash-dev bats

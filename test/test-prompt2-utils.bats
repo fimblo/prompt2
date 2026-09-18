@@ -211,42 +211,6 @@ TEST_FUNCTION="$BATS_TEST_DIRNAME/../bin/test-prompt2-utils"
 }
 
 # --------------------------------------------------
-@test "escape_ini_backslashes() doubles a bare backslash" {
-  # Given a string with a bare backslash before a letter (eg. \n, \e, \[)
-
-  # When we test
-  run -0 $TEST_FUNCTION escape_ini_backslashes 'a\nb'
-
-  # Then
-  # - the backslash should be doubled, leaving the letter untouched
-  test "$output" = 'a\\nb'
-}
-
-# --------------------------------------------------
-@test "escape_ini_backslashes() leaves an already-escaped backslash alone" {
-  # Given a string with an already-doubled backslash
-
-  # When we test
-  run -0 $TEST_FUNCTION escape_ini_backslashes 'a\\nb'
-
-  # Then
-  # - it should be passed through unchanged
-  test "$output" = 'a\\nb'
-}
-
-# --------------------------------------------------
-@test "escape_ini_backslashes() leaves a line-continuation backslash alone" {
-  # Given a string ending in a backslash directly followed by a real newline
-
-  # When we test
-  run -0 $TEST_FUNCTION escape_ini_backslashes $'a\\\nb'
-
-  # Then
-  # - the line-continuation backslash should not be doubled
-  test "$output" = $'a\\\nb'
-}
-
-# --------------------------------------------------
 @test "has_nonexpanding_tokens() returns true (widget at start)" {
   # Given a string with a widget in in
   string='@{foo}@{CWD}@{SPC}lalala'

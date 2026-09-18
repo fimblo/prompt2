@@ -21,6 +21,13 @@ features, like AWS authentication state.
 
 Follow these steps to install prompt2 on your system.
 
+prompt2 requires *iniparser 4.2 or newer*. prompt2 will still build
+against 4.1.x (which some Debian/Ubuntu releases still ship), but 4.1.x
+handles backslashes differently, so a config written for 4.2 shows up
+with stray backslashes in your prompt. Check with
+=dpkg-query -W libiniparser-dev=; if it's too old, build iniparser from
+[[https://gitlab.com/iniparser/iniparser][source]] first.
+
 | Note on the build instructions                                        |
 |-----------------------------------------------------------------------|
 | If the instructions below don't work for you, I advise that you check the  github action for your operating system([[.github/workflows/build-and-test.yml#L12][Debian/Ubuntu]], [[.github/workflows/build-and-test.yml#L52.yml][MacOS]]), since this should be up-to-date. |
@@ -130,14 +137,14 @@ below:
 
 #+begin_src ini
   [PROMPT]
-  prompt="@{SYS.username}@@{SYS.hostname}:@{CWD}@{SPC}@{Repo.is_nascent_repo}\n\
+  prompt="@{SYS.username}@@{SYS.hostname}:@{CWD}@{SPC}@{Repo.is_nascent_repo}\\n\
   @{SYS.promptchar} "
 
   [PROMPT.GIT]
   prompt="<@{Repo.name}><@{Repo.branch_name}>\
   [@{Repo.behind},@{Repo.ahead}|@{Repo.staged},@{Repo.modified},@{Repo.untracked}] \
   @{CWD}@{SPC}@{Repo.rebase_active}\
-  \n\
+  \\n\
   @{Repo.conflicts}@{SYS.promptchar} "
 
   cwd_type="git" # override default CWD style with path from git root

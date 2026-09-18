@@ -80,23 +80,16 @@ more playful by getting it to show:
 - How many commits behind or ahead of upstream the repo is right now
 - How many staged, modified and untracked files are in the repo
 
-You can use `\` to separate the config over many lines, as well as
-the `\n` to insert a newline into the resulting prompt.
+You can end a line with `\` to continue the config on the next line,
+and use `\\n` to insert a newline into the resulting prompt.
 
 > [!NOTE]
-> **iniparser >= 4.2.x**: Some builds of iniparser (Homebrew on macOS, and
-> modern Debian/Ubuntu releases) interpret backslash escapes inside quoted
-> values themselves, silently eating bare backslashes like `\n`, `\[`, `\e`
-> before prompt2 ever sees them — this shows up as stray `n` characters or
-> broken colours in your prompt. Older iniparser (4.1.x) doesn't do this.
-> Add a `[SYSTEM]` section to your config with `extra_backslash = true` and
-> prompt2 will compensate for it, regardless of platform:
-> ```ini
-> [SYSTEM]
-> extra_backslash = true
-> ```
-> If your prompt looks correct without it, leave it unset — it's a property
-> of your installed iniparser version, not your OS.
+> iniparser (>= 4.2, which prompt2 requires) treats a backslash inside a
+> quoted value as an escape character: `\n` comes out as a plain `n`,
+> while `\\n` comes out as `\n`. So whenever you want a backslash to
+> reach prompt2 - `\\n`, `\\e`, `\\[`, `\\033` and so on - write it
+> doubled. The one exception is a single `\` at the very end of a line,
+> which is a line continuation.
 
 
 
@@ -108,7 +101,7 @@ the `\n` to insert a newline into the resulting prompt.
   prompt="\
   <@{Repo.name}><@{Repo.branch_name}>\
   [@{Repo.behind},@{Repo.ahead}|@{Repo.staged},@{Repo.modified},@{Repo.untracked}] \
-  @{CWD}\n\
+  @{CWD}\\n\
   @{SYS.promptchar} "
   cwd_type="git"
 ```
@@ -244,11 +237,12 @@ Then you can do this:
 ### Note: Plain terminal escape codes
 
 These aren't really attributes - it's just the normal terminal escape
-codes. If you want to insert a terminal bell (`\[\a\]`) or for some
+codes. If you want to insert a terminal bell (`\\[\\a\\]`) or for some
 reason want to use the escape sequence for an RGB colour
-(`\[\e[38;2;30;30;30\]`), prompt2 will ignore this as long as you wrap
+(`\\[\\e[38;2;30;30;30\\]`), prompt2 will ignore this as long as you wrap
 the code in escaped brackets as specified in the section `[PROMPTING]`
-in the bash man-page.
+in the bash man-page. (Backslashes are doubled because of iniparser's
+escaping - see the note above.)
 
 ## Widgets
 
