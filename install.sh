@@ -116,6 +116,31 @@ if ! [[ -e Makefile ]] ; then
   exit 1
 fi
 
+print_title "Checking iniparser version..."
+# prompt2 needs iniparser >= 4.2. There is no version macro in the
+# headers, so probe for iniparser_load_file(), which appeared in 4.2.
+# This checks what the compiler actually sees, so it also works with
+# an iniparser built from source over an older distro package.
+probe_dir=$(mktemp -d)
+cat > "$probe_dir/probe.c" <<-EOF
+	#include <iniparser/iniparser.h>
+	int main(void) { return iniparser_load_file == 0; }
+	EOF
+if ! cc "$probe_dir/probe.c" -I/opt/homebrew/include -L/opt/homebrew/lib \
+     -liniparser -o "$probe_dir/probe" &> /dev/null ; then
+  rm -rf "$probe_dir"
+  cat<<-EOF
+	$(echo -e "$REDSTAR") iniparser 4.2 or newer is required, but was not found.
+	  Either iniparser is not installed, or it is too old (eg. 4.1.x, which
+	  some Debian/Ubuntu releases still ship). If your package manager only
+	  offers an older version, build iniparser from source:
+	  https://gitlab.com/iniparser/iniparser
+	EOF
+  exit 1
+fi
+rm -rf "$probe_dir"
+echo -e "$GREENSTAR iniparser >= 4.2 found"
+
 print_title "Building binaries..."
 make build
 
