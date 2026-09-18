@@ -63,3 +63,6 @@ build/
 
 # backup
 *~
+
+# locally built dependencies (scripts/install-iniparser.sh)
+deps/
