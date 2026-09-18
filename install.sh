@@ -119,16 +119,29 @@ fi
 print_title "Checking iniparser version..."
 # prompt2 needs iniparser >= 4.2. There is no version macro in the
 # headers, so probe for iniparser_load_file(), which appeared in 4.2.
-# This checks what the compiler actually sees, so it also works with
-# an iniparser built from source over an older distro package.
+# Use the same iniparser the Makefile will: the static one in deps/ if
+# scripts/install-iniparser.sh has built it, otherwise the system one.
+iniparser_lib="deps/iniparser/lib/libiniparser.a"
+if [[ -e $iniparser_lib ]] ; then
+  iniparser_flags=(-Ideps/iniparser/include "$iniparser_lib")
+else
+  iniparser_flags=(-I/opt/homebrew/include -L/opt/homebrew/lib -liniparser)
+fi
 probe_dir=$(mktemp -d)
 cat > "$probe_dir/probe.c" <<-EOF
 	#include <iniparser/iniparser.h>
 	int main(void) { return iniparser_load_file == 0; }
 	EOF
-if ! cc "$probe_dir/probe.c" -I/opt/homebrew/include -L/opt/homebrew/lib \
-     -liniparser -o "$probe_dir/probe" &> /dev/null ; then
+if ! cc "$probe_dir/probe.c" "${iniparser_flags[@]}" -o "$probe_dir/probe" &> /dev/null ; then
   rm -rf "$probe_dir"
+  # On Debian-based distros, build our own iniparser into deps/ and
+  # start over. Only once: if deps/ is already there, it didn't help.
+  if [[ $OSTYPE == "linux-gnu"* && ! -e $iniparser_lib ]] \
+     && command -v dpkg-query &> /dev/null ; then
+    echo -e "$REDSTAR iniparser >= 4.2 not found. Building it into deps/ instead."
+    ./scripts/install-iniparser.sh || exit 1
+    exec ./install.sh
+  fi
   cat<<-EOF
 	$(echo -e "$REDSTAR") iniparser 4.2 or newer is required, but was not found.
 	  Either iniparser is not installed, or it is too old (eg. 4.1.x, which

@@ -13,6 +13,18 @@ LIBS = -lgit2 -ljson-c -liniparser
 INCLUDE_DIR = /opt/homebrew/include # only on mac with homebrew
 LIB_DIR = /opt/homebrew/lib         # only on mac with homebrew
 
+# Unlike the other libs, iniparser is compiled into the binaries (static)
+# if scripts/install-iniparser.sh has built it into deps/. That's for
+# older Debian-based distros which only ship iniparser 4.1, and it lets
+# their libiniparser-dev stay installed without clashing with ours.
+INIPARSER_LIB = deps/iniparser/lib/libiniparser.a
+ifneq ($(wildcard $(INIPARSER_LIB)),)
+  CFLAGS += -Ideps/iniparser/include
+  LIBS = -lgit2 -ljson-c $(INIPARSER_LIB)
+else
+  INIPARSER_LIB =
+endif
+
 # Directories
 SRC_DIR = src
 BUILD_DIR = build
@@ -35,7 +47,7 @@ all: build test
 build: $(BINARIES)
 
 # Compile Source Files to Object Files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(INIPARSER_LIB)
 	@echo "\nCompiling $< to $@"
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
