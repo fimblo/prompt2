@@ -89,7 +89,7 @@
     <div class="toolbar">
       <button class="tool-btn" onclick={insertText} data-tooltip="Insert literal text">Aa</button>
       <button class="tool-btn" onclick={insertAttribute} data-tooltip="Insert color/style attribute">{'%{}'}</button>
-      <button class="tool-btn" onclick={insertNewline} data-tooltip="Insert newline">{'\\n'}</button>
+      <button class="tool-btn" onclick={insertNewline} data-tooltip="Insert newline">{'\\\\n'}</button>
     </div>
   </div>
 

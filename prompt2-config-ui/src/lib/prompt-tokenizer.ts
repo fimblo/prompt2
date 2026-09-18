@@ -3,7 +3,7 @@
  *
  * Widget tokens:    @{WidgetName}
  * Attribute tokens: %{fg red, bold}  or  %{} (reset)
- * Newlines:         \n  or  \\n (macOS iniparser quirk)
+ * Newlines:         \\n (iniparser >= 4.2 turns it into \n)
  * Everything else:  plain text
  */
 
@@ -52,20 +52,12 @@ export function tokenizePrompt(prompt: string): PromptToken[] {
       continue;
     }
 
-    // Newline: \\n (macOS double-backslash) or \n
-    if (prompt[i] === '\\') {
-      if (prompt[i + 1] === '\\' && prompt[i + 2] === 'n') {
-        flushText();
-        tokens.push({ type: 'newline' });
-        i += 3;
-        continue;
-      }
-      if (prompt[i + 1] === 'n') {
-        flushText();
-        tokens.push({ type: 'newline' });
-        i += 2;
-        continue;
-      }
+    // Newline: \\n (iniparser >= 4.2 turns it into \n)
+    if (prompt[i] === '\\' && prompt[i + 1] === '\\' && prompt[i + 2] === 'n') {
+      flushText();
+      tokens.push({ type: 'newline' });
+      i += 3;
+      continue;
     }
 
     textBuf += prompt[i];
@@ -82,7 +74,7 @@ export function serializeTokens(tokens: PromptToken[]): string {
       case 'text': return t.value;
       case 'widget': return `@{${t.name}}`;
       case 'attribute': return `%{${t.value}}`;
-      case 'newline': return '\\n';
+      case 'newline': return '\\\\n';
     }
   }).join('');
 }
